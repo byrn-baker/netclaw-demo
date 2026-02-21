@@ -38,7 +38,7 @@ clone_or_pull() {
 
 NETCLAW_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MCP_DIR="$NETCLAW_DIR/mcp-servers"
-TOTAL_STEPS=19
+TOTAL_STEPS=20
 
 echo "========================================="
 echo "  NetClaw - CCIE Network Agent"
@@ -104,7 +104,7 @@ else
     if command -v openclaw &> /dev/null; then
         log_info "OpenClaw installed successfully"
     else
-        log_warn "openclaw not found on PATH after install"
+        log_error "openclaw not found on PATH after install"
         log_warn "Try: export PATH=\"$(npm config get prefix)/bin:\$PATH\""
     fi
 fi
@@ -112,20 +112,45 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 3: Create mcp-servers directory
+# Step 3: OpenClaw Onboard (provider, gateway, channels)
 # ═══════════════════════════════════════════
 
-log_step "3/$TOTAL_STEPS Setting up MCP servers directory..."
+log_step "3/$TOTAL_STEPS Running OpenClaw onboard..."
+
+echo ""
+echo "  This is OpenClaw's built-in setup wizard."
+echo "  You'll pick your AI provider, set up the gateway, and connect"
+echo "  channels like Slack, Discord, Telegram, etc."
+echo ""
+
+if command -v openclaw &> /dev/null; then
+    openclaw onboard --install-daemon || {
+        log_warn "openclaw onboard exited with an error."
+        log_warn "You can re-run it later: openclaw onboard --install-daemon"
+    }
+    log_info "OpenClaw onboard complete"
+else
+    log_error "openclaw command not found — skipping onboard"
+    log_warn "After fixing your PATH, run: openclaw onboard --install-daemon"
+fi
+
+echo ""
+
+# ═══════════════════════════════════════════
+# Step 4: Create mcp-servers directory
+# ═══════════════════════════════════════════
+
+log_step "4/$TOTAL_STEPS Setting up MCP servers directory..."
 
 mkdir -p "$MCP_DIR"
 log_info "MCP servers directory: $MCP_DIR"
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 4: pyATS MCP (clone + pip install)
+# Step 5: pyATS MCP (clone + pip install)
 # ═══════════════════════════════════════════
 
-log_step "4/$TOTAL_STEPS Installing pyATS MCP Server..."
+log_step "5/$TOTAL_STEPS Installing pyATS MCP Server..."
 echo "  Source: https://github.com/automateyournetwork/pyATS_MCP"
 
 PYATS_MCP_DIR="$MCP_DIR/pyATS_MCP"
@@ -142,10 +167,10 @@ pip3 install -r "$PYATS_MCP_DIR/requirements.txt" 2>/dev/null || \
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 5: Markmap MCP (clone + npm build)
+# Step 6: Markmap MCP (clone + npm build)
 # ═══════════════════════════════════════════
 
-log_step "5/$TOTAL_STEPS Installing Markmap MCP Server..."
+log_step "6/$TOTAL_STEPS Installing Markmap MCP Server..."
 echo "  Source: https://github.com/automateyournetwork/markmap_mcp"
 
 MARKMAP_MCP_DIR="$MCP_DIR/markmap_mcp"
@@ -164,10 +189,10 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 6: GAIT MCP (clone + pip install)
+# Step 7: GAIT MCP (clone + pip install)
 # ═══════════════════════════════════════════
 
-log_step "6/$TOTAL_STEPS Installing GAIT MCP Server..."
+log_step "7/$TOTAL_STEPS Installing GAIT MCP Server..."
 echo "  Source: https://github.com/automateyournetwork/gait_mcp"
 
 GAIT_MCP_DIR="$MCP_DIR/gait_mcp"
@@ -183,10 +208,10 @@ pip3 install mcp fastmcp gait-ai 2>/dev/null || log_warn "Some GAIT deps failed"
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 7: NetBox MCP (clone + pip install)
+# Step 8: NetBox MCP (clone + pip install)
 # ═══════════════════════════════════════════
 
-log_step "7/$TOTAL_STEPS Installing NetBox MCP Server..."
+log_step "8/$TOTAL_STEPS Installing NetBox MCP Server..."
 echo "  Source: https://github.com/netboxlabs/netbox-mcp-server"
 
 NETBOX_MCP_DIR="$MCP_DIR/netbox-mcp-server"
@@ -201,10 +226,10 @@ log_info "NetBox MCP ready: python3 -m netbox_mcp_server.server"
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 8: ServiceNow MCP (clone + pip install)
+# Step 9: ServiceNow MCP (clone + pip install)
 # ═══════════════════════════════════════════
 
-log_step "8/$TOTAL_STEPS Installing ServiceNow MCP Server..."
+log_step "9/$TOTAL_STEPS Installing ServiceNow MCP Server..."
 echo "  Source: https://github.com/echelon-ai-labs/servicenow-mcp"
 
 SERVICENOW_MCP_DIR="$MCP_DIR/servicenow-mcp"
@@ -219,10 +244,10 @@ log_info "ServiceNow MCP ready"
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 9: ACI MCP (clone + pip install)
+# Step 10: ACI MCP (clone + pip install)
 # ═══════════════════════════════════════════
 
-log_step "9/$TOTAL_STEPS Installing Cisco ACI MCP Server..."
+log_step "10/$TOTAL_STEPS Installing Cisco ACI MCP Server..."
 echo "  Source: https://github.com/automateyournetwork/ACI_MCP"
 
 ACI_MCP_DIR="$MCP_DIR/ACI_MCP"
@@ -239,10 +264,10 @@ pip3 install requests pydantic python-dotenv fastmcp 2>/dev/null || \
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 10: ISE MCP (clone + pip install)
+# Step 11: ISE MCP (clone + pip install)
 # ═══════════════════════════════════════════
 
-log_step "10/$TOTAL_STEPS Installing Cisco ISE MCP Server..."
+log_step "11/$TOTAL_STEPS Installing Cisco ISE MCP Server..."
 echo "  Source: https://github.com/automateyournetwork/ISE_MCP"
 
 ISE_MCP_DIR="$MCP_DIR/ISE_MCP"
@@ -259,10 +284,10 @@ pip3 install pydantic python-dotenv fastmcp httpx aiocache aiolimiter 2>/dev/nul
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 11: Wikipedia MCP (clone + pip install)
+# Step 12: Wikipedia MCP (clone + pip install)
 # ═══════════════════════════════════════════
 
-log_step "11/$TOTAL_STEPS Installing Wikipedia MCP Server..."
+log_step "12/$TOTAL_STEPS Installing Wikipedia MCP Server..."
 echo "  Source: https://github.com/automateyournetwork/Wikipedia_MCP"
 
 WIKIPEDIA_MCP_DIR="$MCP_DIR/Wikipedia_MCP"
@@ -279,10 +304,10 @@ pip3 install fastmcp wikipedia pydantic 2>/dev/null || \
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 12: NVD CVE MCP (clone + pip install)
+# Step 13: NVD CVE MCP (clone + pip install)
 # ═══════════════════════════════════════════
 
-log_step "12/$TOTAL_STEPS Installing NVD CVE MCP Server..."
+log_step "13/$TOTAL_STEPS Installing NVD CVE MCP Server..."
 echo "  Source: https://github.com/marcoeg/mcp-nvd"
 
 NVD_MCP_DIR="$MCP_DIR/mcp-nvd"
@@ -297,10 +322,10 @@ log_info "NVD CVE MCP ready: python3 -m mcp_nvd.main"
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 13: Subnet Calculator MCP (clone + pip install)
+# Step 14: Subnet Calculator MCP (clone + pip install)
 # ═══════════════════════════════════════════
 
-log_step "13/$TOTAL_STEPS Installing Subnet Calculator MCP Server..."
+log_step "14/$TOTAL_STEPS Installing Subnet Calculator MCP Server..."
 echo "  Source: https://github.com/automateyournetwork/GeminiCLI_SubnetCalculator_Extension"
 
 SUBNET_MCP_DIR="$MCP_DIR/subnet-calculator-mcp"
@@ -317,10 +342,10 @@ pip3 install pydantic python-dotenv mcp 2>/dev/null || \
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 14: F5 BIG-IP MCP (clone + pip install)
+# Step 15: F5 BIG-IP MCP (clone + pip install)
 # ═══════════════════════════════════════════
 
-log_step "14/$TOTAL_STEPS Installing F5 BIG-IP MCP Server..."
+log_step "15/$TOTAL_STEPS Installing F5 BIG-IP MCP Server..."
 echo "  Source: https://github.com/czirakim/F5.MCP.server"
 
 F5_MCP_DIR="$MCP_DIR/f5-mcp-server"
@@ -337,10 +362,10 @@ pip3 install -r "$F5_MCP_DIR/requirements.txt" 2>/dev/null || \
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 15: Catalyst Center MCP (clone + pip install)
+# Step 16: Catalyst Center MCP (clone + pip install)
 # ═══════════════════════════════════════════
 
-log_step "15/$TOTAL_STEPS Installing Catalyst Center MCP Server..."
+log_step "16/$TOTAL_STEPS Installing Catalyst Center MCP Server..."
 echo "  Source: https://github.com/richbibby/catalyst-center-mcp"
 
 CATC_MCP_DIR="$MCP_DIR/catalyst-center-mcp"
@@ -357,10 +382,10 @@ pip3 install -r "$CATC_MCP_DIR/requirements.txt" 2>/dev/null || \
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 16: npx MCP servers (Draw.io, RFC)
+# Step 17: npx MCP servers (Draw.io, RFC)
 # ═══════════════════════════════════════════
 
-log_step "16/$TOTAL_STEPS Caching npx-based MCP servers..."
+log_step "17/$TOTAL_STEPS Caching npx-based MCP servers..."
 
 for pkg in "@drawio/mcp" "@mjpitz/mcp-rfc"; do
     log_info "Pre-caching $pkg..."
@@ -370,10 +395,10 @@ done
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 17: Deploy skills and set environment
+# Step 18: Deploy skills and set environment
 # ═══════════════════════════════════════════
 
-log_step "17/$TOTAL_STEPS Deploying skills and configuration..."
+log_step "18/$TOTAL_STEPS Deploying skills and configuration..."
 
 PYATS_SCRIPT="$PYATS_MCP_DIR/pyats_mcp_server.py"
 TESTBED_PATH="$NETCLAW_DIR/testbed/testbed.yaml"
@@ -387,18 +412,16 @@ if [ ! -d "$OPENCLAW_DIR" ]; then
     log_info "Created $OPENCLAW_DIR"
 fi
 
-# Deploy openclaw.json config (gateway.mode=local, model config)
-if [ -f "$NETCLAW_DIR/config/openclaw.json" ]; then
-    cp "$NETCLAW_DIR/config/openclaw.json" "$OPENCLAW_DIR/openclaw.json"
-    log_info "Deployed openclaw.json (gateway.mode=local)"
+# Deploy openclaw.json config ONLY if onboard didn't already create one
+if [ ! -f "$OPENCLAW_DIR/openclaw.json" ]; then
+    if [ -f "$NETCLAW_DIR/config/openclaw.json" ]; then
+        cp "$NETCLAW_DIR/config/openclaw.json" "$OPENCLAW_DIR/openclaw.json"
+        log_info "Deployed fallback openclaw.json (gateway.mode=local)"
+    else
+        log_warn "config/openclaw.json not found in repo"
+    fi
 else
-    log_warn "config/openclaw.json not found in repo"
-fi
-
-# Run openclaw setup if available (creates any remaining directories)
-if command -v openclaw &> /dev/null; then
-    log_info "Running openclaw setup..."
-    openclaw setup 2>/dev/null || log_warn "openclaw setup returned non-zero (may be OK if already configured)"
+    log_info "openclaw.json already exists (created by onboard) — keeping it"
 fi
 
 # Deploy skills
@@ -445,7 +468,7 @@ for key in "${!ENV_VARS[@]}"; do
 done
 
 # Remind user about API key if not set
-if ! grep -q "^ANTHROPIC_API_KEY=" "$OPENCLAW_ENV" 2>/dev/null && [ -z "$ANTHROPIC_API_KEY" ]; then
+if ! grep -q "^ANTHROPIC_API_KEY=" "$OPENCLAW_ENV" 2>/dev/null && [ -z "${ANTHROPIC_API_KEY:-}" ]; then
     echo "" >> "$OPENCLAW_ENV"
     echo "# Uncomment and set your Anthropic API key:" >> "$OPENCLAW_ENV"
     echo "# ANTHROPIC_API_KEY=sk-ant-your-key-here" >> "$OPENCLAW_ENV"
@@ -474,10 +497,10 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 18: Verify installation
+# Step 19: Verify installation
 # ═══════════════════════════════════════════
 
-log_step "18/$TOTAL_STEPS Verifying installation..."
+log_step "19/$TOTAL_STEPS Verifying installation..."
 
 SERVERS_OK=0
 SERVERS_FAIL=0
@@ -513,10 +536,10 @@ log_info "Verification: $SERVERS_OK OK, $SERVERS_FAIL FAILED"
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 19: Summary
+# Step 20: Summary
 # ═══════════════════════════════════════════
 
-log_step "19/$TOTAL_STEPS Installation Summary"
+log_step "20/$TOTAL_STEPS Installation Summary"
 echo ""
 echo "========================================="
 echo "  NetClaw Installation Complete"
@@ -601,54 +624,35 @@ echo "  └───────────────────────
 echo ""
 
 # ═══════════════════════════════════════════
-# Launch OpenClaw Onboard + NetClaw Setup
+# Launch NetClaw Platform Setup
 # ═══════════════════════════════════════════
 
-echo ""
-echo -e "${CYAN}Installation complete. Now let's set up OpenClaw and NetClaw.${NC}"
-echo ""
-echo "  This will run two setup steps:"
-echo "    1. openclaw onboard — pick your AI provider, gateway, channels (Slack, etc.)"
-echo "    2. NetClaw setup    — configure network platform credentials"
-echo ""
-
-read -rp "Run setup now? [Y/n] " RUN_SETUP
-RUN_SETUP="${RUN_SETUP:-y}"
-if [[ "$RUN_SETUP" =~ ^[Yy] ]]; then
-    # Step 1: OpenClaw's native onboard wizard (provider, gateway, channels, daemon)
+SETUP_SCRIPT="$NETCLAW_DIR/scripts/setup.sh"
+if [ -f "$SETUP_SCRIPT" ]; then
     echo ""
-    log_step "OpenClaw Onboard"
+    echo -e "${CYAN}Now let's configure your network platform credentials.${NC}"
     echo ""
-    echo "  This is OpenClaw's built-in setup wizard."
-    echo "  Pick your AI provider, set up the gateway, and connect channels (Slack, etc.)."
-    echo ""
-    if command -v openclaw &> /dev/null; then
-        openclaw onboard --workspace "$OPENCLAW_DIR/workspace" || {
-            log_warn "openclaw onboard exited with an error — you can re-run it later:"
-            echo "    openclaw onboard"
-        }
-    else
-        log_error "openclaw not found on PATH. Install it first: npm install -g openclaw@latest"
-    fi
-
-    # Step 2: NetClaw-specific platform credentials
-    SETUP_SCRIPT="$NETCLAW_DIR/scripts/setup.sh"
-    if [ -f "$SETUP_SCRIPT" ]; then
-        echo ""
-        log_step "NetClaw Platform Setup"
-        echo ""
-        echo "  Now let's configure your network platform credentials."
-        echo ""
+    read -rp "Run NetClaw platform setup now? [Y/n] " RUN_SETUP
+    RUN_SETUP="${RUN_SETUP:-y}"
+    if [[ "$RUN_SETUP" =~ ^[Yy] ]]; then
         bash "$SETUP_SCRIPT"
+    else
+        echo ""
+        log_info "Skipped platform setup. Run it later:"
+        echo "  ./scripts/setup.sh"
     fi
-else
-    echo ""
-    log_info "Skipped setup. Run these when you're ready:"
-    echo ""
-    echo "  1. openclaw onboard                 # AI provider, gateway, Slack"
-    echo "  2. ./scripts/setup.sh               # Network platform credentials"
-    echo "  3. nano testbed/testbed.yaml        # Your network devices"
-    echo "  4. openclaw gateway                 # Start the gateway"
-    echo "  5. openclaw chat --new              # Talk to NetClaw"
-    echo ""
 fi
+
+echo ""
+echo "========================================="
+echo "  Next Steps"
+echo "========================================="
+echo ""
+echo "  1. nano testbed/testbed.yaml        # Add your network devices"
+echo "  2. openclaw gateway                 # Start the gateway"
+echo "  3. openclaw chat --new              # Talk to NetClaw"
+echo ""
+echo "  Re-run setup anytime:"
+echo "    openclaw onboard --install-daemon  # AI provider, gateway, channels"
+echo "    ./scripts/setup.sh                 # Network platform credentials"
+echo ""
