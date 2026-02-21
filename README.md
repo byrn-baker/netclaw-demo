@@ -9,14 +9,20 @@ A CCIE-level AI network engineering coworker. Built on [OpenClaw](https://github
 ```bash
 git clone https://github.com/automateyournetwork/netclaw.git
 cd netclaw
-./scripts/install.sh          # clones 15 MCP servers, deploys 32 skills, sets env vars
-nano testbed/testbed.yaml     # add your network devices
-openclaw onboard --install-daemon
-openclaw gateway              # foreground mode for WSL2
-openclaw chat --new           # talk to NetClaw
+./scripts/install.sh          # installs OpenClaw, clones 15 MCP servers, deploys 32 skills, configures everything
+
+# Set your Anthropic API key
+echo 'ANTHROPIC_API_KEY=sk-ant-your-key-here' >> ~/.openclaw/.env
+
+# Add your network devices
+nano testbed/testbed.yaml
+
+# Start NetClaw
+openclaw gateway              # terminal 1
+openclaw chat --new           # terminal 2
 ```
 
-The installer handles everything: OpenClaw, 12 Python/Node MCP servers, 2 npx MCP servers, 32 skills, 14 environment variables, and verification of all components.
+The installer handles everything: OpenClaw installation, `openclaw.json` config (`gateway.mode=local`), 12 Python/Node MCP servers, 2 npx MCP servers, 32 skills, 6 workspace MD files, 14 environment variables, and verification of all components. No separate `openclaw setup` or `openclaw onboard` needed.
 
 **Optional credentials** (add to `~/.openclaw/.env` for full feature set):
 

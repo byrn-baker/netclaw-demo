@@ -378,55 +378,89 @@ log_step "17/$TOTAL_STEPS Deploying skills and configuration..."
 PYATS_SCRIPT="$PYATS_MCP_DIR/pyats_mcp_server.py"
 TESTBED_PATH="$NETCLAW_DIR/testbed/testbed.yaml"
 
-# Deploy skills to OpenClaw workspace
+# Bootstrap OpenClaw workspace (create if it doesn't exist)
 OPENCLAW_DIR="$HOME/.openclaw"
-if [ -d "$OPENCLAW_DIR" ]; then
+if [ ! -d "$OPENCLAW_DIR" ]; then
+    log_info "OpenClaw directory not found. Bootstrapping..."
     mkdir -p "$OPENCLAW_DIR/workspace/skills"
-    cp -r "$NETCLAW_DIR/workspace/skills/"* "$OPENCLAW_DIR/workspace/skills/"
-    log_info "Deployed skills to $OPENCLAW_DIR/workspace/skills/"
+    mkdir -p "$OPENCLAW_DIR/agents/main/sessions"
+    log_info "Created $OPENCLAW_DIR"
+fi
 
-    # Deploy OpenClaw workspace MD files (SOUL, AGENTS, IDENTITY, USER, TOOLS, HEARTBEAT)
-    for mdfile in SOUL.md AGENTS.md IDENTITY.md USER.md TOOLS.md HEARTBEAT.md; do
-        if [ -f "$NETCLAW_DIR/$mdfile" ]; then
-            cp "$NETCLAW_DIR/$mdfile" "$OPENCLAW_DIR/workspace/$mdfile"
-            log_info "Deployed $mdfile to workspace"
-        fi
-    done
-    log_info "Deployed workspace files to $OPENCLAW_DIR/workspace/"
-
-    # Set ALL environment variables in OpenClaw .env
-    OPENCLAW_ENV="$OPENCLAW_DIR/.env"
-    [ -f "$OPENCLAW_ENV" ] || touch "$OPENCLAW_ENV"
-
-    declare -A ENV_VARS=(
-        ["PYATS_TESTBED_PATH"]="$TESTBED_PATH"
-        ["PYATS_MCP_SCRIPT"]="$PYATS_SCRIPT"
-        ["MCP_CALL"]="$NETCLAW_DIR/scripts/mcp-call.py"
-        ["MARKMAP_MCP_SCRIPT"]="$MARKMAP_INNER/dist/index.js"
-        ["GAIT_MCP_SCRIPT"]="$NETCLAW_DIR/scripts/gait-stdio.py"
-        ["NETBOX_MCP_SCRIPT"]="$NETBOX_MCP_DIR/src/netbox_mcp_server/server.py"
-        ["SERVICENOW_MCP_SCRIPT"]="$SERVICENOW_MCP_DIR/src/servicenow_mcp/cli.py"
-        ["ACI_MCP_SCRIPT"]="$ACI_MCP_DIR/aci_mcp/main.py"
-        ["ISE_MCP_SCRIPT"]="$ISE_MCP_DIR/src/ise_mcp_server/server.py"
-        ["WIKIPEDIA_MCP_SCRIPT"]="$WIKIPEDIA_MCP_DIR/main.py"
-        ["NVD_MCP_SCRIPT"]="$NVD_MCP_DIR/mcp_nvd/main.py"
-        ["SUBNET_MCP_SCRIPT"]="$SUBNET_MCP_DIR/servers/subnetcalculator_mcp.py"
-        ["F5_MCP_SCRIPT"]="$F5_MCP_DIR/F5MCPserver.py"
-        ["CATC_MCP_SCRIPT"]="$CATC_MCP_DIR/catalyst-center-mcp.py"
-    )
-
-    for key in "${!ENV_VARS[@]}"; do
-        if grep -q "^${key}=" "$OPENCLAW_ENV" 2>/dev/null; then
-            sed -i "s|^${key}=.*|${key}=${ENV_VARS[$key]}|" "$OPENCLAW_ENV"
-        else
-            echo "${key}=${ENV_VARS[$key]}" >> "$OPENCLAW_ENV"
-        fi
-    done
-
-    log_info "Set ${#ENV_VARS[@]} environment variables in $OPENCLAW_ENV"
+# Deploy openclaw.json config (gateway.mode=local, model config)
+if [ -f "$NETCLAW_DIR/config/openclaw.json" ]; then
+    cp "$NETCLAW_DIR/config/openclaw.json" "$OPENCLAW_DIR/openclaw.json"
+    log_info "Deployed openclaw.json (gateway.mode=local)"
 else
-    log_warn "OpenClaw directory not found at $OPENCLAW_DIR"
-    log_warn "Run 'openclaw onboard --install-daemon' first"
+    log_warn "config/openclaw.json not found in repo"
+fi
+
+# Run openclaw setup if available (creates any remaining directories)
+if command -v openclaw &> /dev/null; then
+    log_info "Running openclaw setup..."
+    openclaw setup 2>/dev/null || log_warn "openclaw setup returned non-zero (may be OK if already configured)"
+fi
+
+# Deploy skills
+mkdir -p "$OPENCLAW_DIR/workspace/skills"
+cp -r "$NETCLAW_DIR/workspace/skills/"* "$OPENCLAW_DIR/workspace/skills/"
+log_info "Deployed skills to $OPENCLAW_DIR/workspace/skills/"
+
+# Deploy OpenClaw workspace MD files (SOUL, AGENTS, IDENTITY, USER, TOOLS, HEARTBEAT)
+for mdfile in SOUL.md AGENTS.md IDENTITY.md USER.md TOOLS.md HEARTBEAT.md; do
+    if [ -f "$NETCLAW_DIR/$mdfile" ]; then
+        cp "$NETCLAW_DIR/$mdfile" "$OPENCLAW_DIR/workspace/$mdfile"
+        log_info "Deployed $mdfile to workspace"
+    fi
+done
+log_info "Deployed workspace files to $OPENCLAW_DIR/workspace/"
+
+# Set ALL environment variables in OpenClaw .env
+OPENCLAW_ENV="$OPENCLAW_DIR/.env"
+[ -f "$OPENCLAW_ENV" ] || touch "$OPENCLAW_ENV"
+
+declare -A ENV_VARS=(
+    ["PYATS_TESTBED_PATH"]="$TESTBED_PATH"
+    ["PYATS_MCP_SCRIPT"]="$PYATS_SCRIPT"
+    ["MCP_CALL"]="$NETCLAW_DIR/scripts/mcp-call.py"
+    ["MARKMAP_MCP_SCRIPT"]="$MARKMAP_INNER/dist/index.js"
+    ["GAIT_MCP_SCRIPT"]="$NETCLAW_DIR/scripts/gait-stdio.py"
+    ["NETBOX_MCP_SCRIPT"]="$NETBOX_MCP_DIR/src/netbox_mcp_server/server.py"
+    ["SERVICENOW_MCP_SCRIPT"]="$SERVICENOW_MCP_DIR/src/servicenow_mcp/cli.py"
+    ["ACI_MCP_SCRIPT"]="$ACI_MCP_DIR/aci_mcp/main.py"
+    ["ISE_MCP_SCRIPT"]="$ISE_MCP_DIR/src/ise_mcp_server/server.py"
+    ["WIKIPEDIA_MCP_SCRIPT"]="$WIKIPEDIA_MCP_DIR/main.py"
+    ["NVD_MCP_SCRIPT"]="$NVD_MCP_DIR/mcp_nvd/main.py"
+    ["SUBNET_MCP_SCRIPT"]="$SUBNET_MCP_DIR/servers/subnetcalculator_mcp.py"
+    ["F5_MCP_SCRIPT"]="$F5_MCP_DIR/F5MCPserver.py"
+    ["CATC_MCP_SCRIPT"]="$CATC_MCP_DIR/catalyst-center-mcp.py"
+)
+
+for key in "${!ENV_VARS[@]}"; do
+    if grep -q "^${key}=" "$OPENCLAW_ENV" 2>/dev/null; then
+        sed -i "s|^${key}=.*|${key}=${ENV_VARS[$key]}|" "$OPENCLAW_ENV"
+    else
+        echo "${key}=${ENV_VARS[$key]}" >> "$OPENCLAW_ENV"
+    fi
+done
+
+# Remind user about API key if not set
+if ! grep -q "^ANTHROPIC_API_KEY=" "$OPENCLAW_ENV" 2>/dev/null && [ -z "$ANTHROPIC_API_KEY" ]; then
+    echo "" >> "$OPENCLAW_ENV"
+    echo "# Uncomment and set your Anthropic API key:" >> "$OPENCLAW_ENV"
+    echo "# ANTHROPIC_API_KEY=sk-ant-your-key-here" >> "$OPENCLAW_ENV"
+    log_warn "ANTHROPIC_API_KEY not set. Add it to $OPENCLAW_ENV or export it in your shell."
+fi
+
+log_info "Set ${#ENV_VARS[@]} environment variables in $OPENCLAW_ENV"
+
+# Verify the config is correct
+if [ -f "$OPENCLAW_DIR/openclaw.json" ]; then
+    if grep -q '"mode": "local"' "$OPENCLAW_DIR/openclaw.json" 2>/dev/null; then
+        log_info "Gateway config verified: mode=local"
+    else
+        log_warn "openclaw.json may be missing gateway.mode=local"
+    fi
 fi
 
 # Create .env if it doesn't exist
@@ -567,8 +601,13 @@ echo "  └───────────────────────
 echo ""
 
 log_info "Next steps:"
-echo "  1. Edit .env with your credentials:"
-echo "     - PYATS_TESTBED_PATH (network devices)"
+echo ""
+echo "  1. Set your Anthropic API key (REQUIRED):"
+echo "     echo 'ANTHROPIC_API_KEY=sk-ant-your-key-here' >> ~/.openclaw/.env"
+echo ""
+echo "  2. Edit testbed/testbed.yaml with your network devices"
+echo ""
+echo "  3. (Optional) Add credentials for external platforms to ~/.openclaw/.env:"
 echo "     - NVD_API_KEY (NVD vulnerability database)"
 echo "     - NETBOX_URL, NETBOX_TOKEN (NetBox)"
 echo "     - SERVICENOW_INSTANCE_URL, USERNAME, PASSWORD (ServiceNow)"
@@ -576,7 +615,7 @@ echo "     - APIC_URL, USERNAME, PASSWORD (Cisco ACI)"
 echo "     - ISE_BASE, USERNAME, PASSWORD (Cisco ISE)"
 echo "     - F5_IP_ADDRESS, F5_AUTH_STRING (F5 BIG-IP)"
 echo "     - CCC_HOST, CCC_USER, CCC_PWD (Catalyst Center)"
-echo "  2. Edit testbed/testbed.yaml with your network devices"
-echo "  3. Restart the gateway: openclaw gateway"
-echo "  4. Chat: openclaw chat"
+echo ""
+echo "  4. Start the gateway:  openclaw gateway"
+echo "  5. Chat with NetClaw:  openclaw chat --new"
 echo ""

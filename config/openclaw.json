@@ -1,6 +1,10 @@
 {
+  "gateway": {
+    "mode": "local"
+  },
   "agents": {
     "defaults": {
+      "workspace": "~/.openclaw/workspace",
       "model": {
         "primary": "anthropic/claude-opus-4-6",
         "fallbacks": [
@@ -8,5 +12,11 @@
         ]
       }
     }
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
+    "restart": true,
+    "ownerDisplay": "raw"
   }
 }
