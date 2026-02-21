@@ -601,35 +601,54 @@ echo "  └───────────────────────
 echo ""
 
 # ═══════════════════════════════════════════
-# Launch Setup Wizard
+# Launch OpenClaw Onboard + NetClaw Setup
 # ═══════════════════════════════════════════
 
-SETUP_SCRIPT="$NETCLAW_DIR/scripts/setup.sh"
-if [ -f "$SETUP_SCRIPT" ]; then
+echo ""
+echo -e "${CYAN}Installation complete. Now let's set up OpenClaw and NetClaw.${NC}"
+echo ""
+echo "  This will run two setup steps:"
+echo "    1. openclaw onboard — pick your AI provider, gateway, channels (Slack, etc.)"
+echo "    2. NetClaw setup    — configure network platform credentials"
+echo ""
+
+read -rp "Run setup now? [Y/n] " RUN_SETUP
+RUN_SETUP="${RUN_SETUP:-y}"
+if [[ "$RUN_SETUP" =~ ^[Yy] ]]; then
+    # Step 1: OpenClaw's native onboard wizard (provider, gateway, channels, daemon)
     echo ""
-    echo -e "${CYAN}Installation complete. Now let's configure NetClaw for your environment.${NC}"
+    log_step "OpenClaw Onboard"
     echo ""
-    read -rp "Run the setup wizard now? [Y/n] " RUN_SETUP
-    RUN_SETUP="${RUN_SETUP:-y}"
-    if [[ "$RUN_SETUP" =~ ^[Yy] ]]; then
-        bash "$SETUP_SCRIPT"
+    echo "  This is OpenClaw's built-in setup wizard."
+    echo "  Pick your AI provider, set up the gateway, and connect channels (Slack, etc.)."
+    echo ""
+    if command -v openclaw &> /dev/null; then
+        openclaw onboard --workspace "$OPENCLAW_DIR/workspace" || {
+            log_warn "openclaw onboard exited with an error — you can re-run it later:"
+            echo "    openclaw onboard"
+        }
     else
+        log_error "openclaw not found on PATH. Install it first: npm install -g openclaw@latest"
+    fi
+
+    # Step 2: NetClaw-specific platform credentials
+    SETUP_SCRIPT="$NETCLAW_DIR/scripts/setup.sh"
+    if [ -f "$SETUP_SCRIPT" ]; then
         echo ""
-        log_info "Skipped setup wizard. Run it later with:"
-        echo "    ./scripts/setup.sh"
+        log_step "NetClaw Platform Setup"
         echo ""
-        log_info "Or configure manually:"
+        echo "  Now let's configure your network platform credentials."
         echo ""
-        echo "  1. Set your API key (REQUIRED):"
-        echo "     echo 'ANTHROPIC_API_KEY=sk-ant-your-key-here' >> ~/.openclaw/.env"
-        echo ""
-        echo "  2. Edit testbed/testbed.yaml with your network devices"
-        echo ""
-        echo "  3. Start the gateway:  openclaw gateway"
-        echo "  4. Chat with NetClaw:  openclaw chat --new"
-        echo ""
+        bash "$SETUP_SCRIPT"
     fi
 else
-    log_warn "Setup wizard not found at $SETUP_SCRIPT"
-    log_info "Configure manually: edit ~/.openclaw/.env with your credentials"
+    echo ""
+    log_info "Skipped setup. Run these when you're ready:"
+    echo ""
+    echo "  1. openclaw onboard                 # AI provider, gateway, Slack"
+    echo "  2. ./scripts/setup.sh               # Network platform credentials"
+    echo "  3. nano testbed/testbed.yaml        # Your network devices"
+    echo "  4. openclaw gateway                 # Start the gateway"
+    echo "  5. openclaw chat --new              # Talk to NetClaw"
+    echo ""
 fi

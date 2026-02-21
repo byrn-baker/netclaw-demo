@@ -12,13 +12,18 @@ cd netclaw
 ./scripts/install.sh          # installs everything, then launches the setup wizard
 ```
 
-That's it. The installer clones 15 MCP servers, deploys 32 skills, configures OpenClaw, then launches an **interactive setup wizard** that walks you through:
+That's it. The installer clones 15 MCP servers, deploys 32 skills, then launches a two-phase setup:
 
-1. **AI Provider** — Anthropic, OpenAI, AWS Bedrock, or Google Vertex AI
-2. **Network Devices** — opens your testbed editor
-3. **Platforms** — NetBox, ServiceNow, ACI, ISE, F5 BIG-IP, Catalyst Center, NVD CVE
-4. **Slack** — bot token and channel configuration
-5. **Your Identity** — name, role, timezone for USER.md
+**Phase 1: `openclaw onboard`** (OpenClaw's built-in wizard)
+- Pick your AI provider (Anthropic, OpenAI, Bedrock, Vertex, 30+ options)
+- Set up the gateway (local mode, auth, port)
+- Connect channels (Slack, Discord, Telegram, WhatsApp, etc.)
+- Install the daemon service
+
+**Phase 2: `./scripts/setup.sh`** (NetClaw platform credentials)
+- Network devices (testbed.yaml editor)
+- Platform credentials (NetBox, ServiceNow, ACI, ISE, F5, Catalyst Center, NVD)
+- Your identity (name, role, timezone for USER.md)
 
 After setup, start NetClaw:
 
@@ -27,7 +32,9 @@ openclaw gateway              # terminal 1
 openclaw chat --new           # terminal 2
 ```
 
-Re-run the wizard anytime: `./scripts/setup.sh`
+Reconfigure anytime:
+- `openclaw configure` — AI provider, gateway, channels
+- `./scripts/setup.sh` — network platform credentials
 
 ---
 
@@ -474,7 +481,8 @@ netclaw/
 17. **Deploys skills + workspace files** — Copies 32 skills and 6 MD files to `~/.openclaw/workspace/`
 18. **Verifies installation** — Checks 14 critical files exist (all MCP server scripts + core scripts)
 19. **Prints summary** — Lists all 15 MCP servers by category and all 32 skills by domain
-20. **Launches setup wizard** — Interactive `setup.sh` for API key, platform credentials, Slack, and personalization
+20. **Launches `openclaw onboard`** — OpenClaw's built-in wizard for AI provider, gateway, and channel setup
+21. **Launches `setup.sh`** — NetClaw-specific wizard for platform credentials and personalization
 
 ---
 

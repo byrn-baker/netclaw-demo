@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
-# NetClaw Setup Wizard
-# Interactive first-run configuration for brand new users
+# NetClaw Platform Setup
+# Configures network platform credentials (runs after openclaw onboard)
+#
+# This handles the NetClaw-specific stuff that openclaw onboard doesn't:
+# - Network platform credentials (NetBox, ServiceNow, ACI, ISE, F5, CatC, NVD)
+# - pyATS testbed editing
+# - Slack channel mapping
+# - USER.md personalization
+#
+# AI provider, gateway, and channel connections are handled by:
+#   openclaw onboard        (first time)
+#   openclaw configure      (reconfigure)
 
 set -euo pipefail
 
@@ -54,9 +64,7 @@ yesno() {
 
 set_env() {
     local key="$1" value="$2"
-    if [ -z "$value" ]; then
-        return
-    fi
+    [ -z "$value" ] && return
     if grep -q "^${key}=" "$OPENCLAW_ENV" 2>/dev/null; then
         sed -i "s|^${key}=.*|${key}=${value}|" "$OPENCLAW_ENV"
     elif grep -q "^# ${key}=" "$OPENCLAW_ENV" 2>/dev/null; then
@@ -92,131 +100,20 @@ fi
 # Welcome
 # ───────────────────────────────────────────
 
-clear 2>/dev/null || true
 echo ""
-echo -e "${BOLD}    ╔═══════════════════════════════════════╗${NC}"
-echo -e "${BOLD}    ║                                       ║${NC}"
-echo -e "${BOLD}    ║        NetClaw Setup Wizard            ║${NC}"
-echo -e "${BOLD}    ║                                       ║${NC}"
-echo -e "${BOLD}    ║   CCIE-Level AI Network Engineer       ║${NC}"
-echo -e "${BOLD}    ║   32 Skills · 15 MCP Servers           ║${NC}"
-echo -e "${BOLD}    ║                                       ║${NC}"
-echo -e "${BOLD}    ╚═══════════════════════════════════════╝${NC}"
+echo -e "${BOLD}    NetClaw Platform Setup${NC}"
 echo ""
-echo -e "  This wizard will configure NetClaw for your environment."
-echo -e "  You can re-run this anytime: ${BOLD}./scripts/setup.sh${NC}"
-echo -e "  Press Ctrl+C to exit at any point."
+echo -e "  Configure your network platform credentials."
+echo -e "  AI provider and Slack were set up by ${BOLD}openclaw onboard${NC}."
+echo -e "  Re-run anytime: ${BOLD}./scripts/setup.sh${NC}"
 echo ""
-echo -e "  ${DIM}All credentials are stored in ~/.openclaw/.env${NC}"
-echo -e "  ${DIM}and never committed to git.${NC}"
-echo ""
+echo -e "  ${DIM}All credentials are stored in ~/.openclaw/.env (never committed to git)${NC}"
 
 # ═══════════════════════════════════════════
-# Step 1: AI Provider
+# Step 1: Network Devices (pyATS)
 # ═══════════════════════════════════════════
 
-section "Step 1: AI Provider"
-
-echo "  NetClaw needs an LLM to think. Which provider?"
-echo ""
-echo "    1) Anthropic Claude  (recommended — Claude Opus/Sonnet)"
-echo "    2) OpenAI            (GPT-4o / o1)"
-echo "    3) AWS Bedrock       (Claude via Bedrock)"
-echo "    4) Google Vertex AI  (Claude via Vertex)"
-echo "    5) Skip              (I'll configure this later)"
-echo ""
-
-prompt PROVIDER_CHOICE "Select provider [1-5]" "1"
-
-case "$PROVIDER_CHOICE" in
-    1)
-        echo ""
-        echo -e "  Get your API key from: ${BOLD}https://console.anthropic.com/settings/keys${NC}"
-        echo ""
-        prompt_secret API_KEY "Anthropic API Key (sk-ant-...)"
-        if [ -n "$API_KEY" ]; then
-            set_env "ANTHROPIC_API_KEY" "$API_KEY"
-            ok "Anthropic API key saved"
-        else
-            echo -e "  ${YELLOW}No key entered. You'll need to set ANTHROPIC_API_KEY later.${NC}"
-        fi
-        ;;
-    2)
-        echo ""
-        echo -e "  Get your API key from: ${BOLD}https://platform.openai.com/api-keys${NC}"
-        echo ""
-        prompt_secret API_KEY "OpenAI API Key (sk-...)"
-        if [ -n "$API_KEY" ]; then
-            set_env "OPENAI_API_KEY" "$API_KEY"
-            # Update model config for OpenAI
-            if [ -f "$OPENCLAW_DIR/openclaw.json" ]; then
-                python3 -c "
-import json
-with open('$OPENCLAW_DIR/openclaw.json') as f:
-    cfg = json.load(f)
-cfg.setdefault('agents', {}).setdefault('defaults', {})['model'] = {
-    'primary': 'openai/gpt-4o',
-    'fallbacks': ['openai/gpt-4o-mini']
-}
-with open('$OPENCLAW_DIR/openclaw.json', 'w') as f:
-    json.dump(cfg, f, indent=2)
-" 2>/dev/null && ok "OpenAI model config set (gpt-4o)" || echo -e "  ${YELLOW}Warning: could not update model config${NC}"
-            fi
-            ok "OpenAI API key saved"
-        fi
-        ;;
-    3)
-        echo ""
-        prompt AWS_REGION "AWS Region" "us-east-1"
-        prompt AWS_PROFILE "AWS Profile (or leave empty for default)" ""
-        set_env "AWS_REGION" "$AWS_REGION"
-        [ -n "$AWS_PROFILE" ] && set_env "AWS_PROFILE" "$AWS_PROFILE"
-        if [ -f "$OPENCLAW_DIR/openclaw.json" ]; then
-            python3 -c "
-import json
-with open('$OPENCLAW_DIR/openclaw.json') as f:
-    cfg = json.load(f)
-cfg.setdefault('agents', {}).setdefault('defaults', {})['model'] = {
-    'primary': 'bedrock/anthropic.claude-opus-4-6-v1',
-    'fallbacks': ['bedrock/anthropic.claude-sonnet-4-6-v1']
-}
-with open('$OPENCLAW_DIR/openclaw.json', 'w') as f:
-    json.dump(cfg, f, indent=2)
-" 2>/dev/null && ok "Bedrock model config set" || echo -e "  ${YELLOW}Warning: could not update model config${NC}"
-        fi
-        ok "AWS Bedrock configured"
-        ;;
-    4)
-        echo ""
-        prompt GCP_PROJECT "GCP Project ID"
-        prompt GCP_REGION "GCP Region" "us-central1"
-        set_env "GOOGLE_CLOUD_PROJECT" "$GCP_PROJECT"
-        set_env "GOOGLE_CLOUD_LOCATION" "$GCP_REGION"
-        if [ -f "$OPENCLAW_DIR/openclaw.json" ]; then
-            python3 -c "
-import json
-with open('$OPENCLAW_DIR/openclaw.json') as f:
-    cfg = json.load(f)
-cfg.setdefault('agents', {}).setdefault('defaults', {})['model'] = {
-    'primary': 'vertex/claude-opus-4-6@20250514',
-    'fallbacks': ['vertex/claude-sonnet-4-6@20250514']
-}
-with open('$OPENCLAW_DIR/openclaw.json', 'w') as f:
-    json.dump(cfg, f, indent=2)
-" 2>/dev/null && ok "Vertex AI model config set" || echo -e "  ${YELLOW}Warning: could not update model config${NC}"
-        fi
-        ok "Google Vertex AI configured"
-        ;;
-    *)
-        skip "AI provider"
-        ;;
-esac
-
-# ═══════════════════════════════════════════
-# Step 2: Network Devices (pyATS)
-# ═══════════════════════════════════════════
-
-section "Step 2: Network Devices"
+section "Step 1: Network Devices"
 
 echo "  NetClaw uses pyATS to connect to Cisco devices via SSH."
 echo "  Your device inventory goes in testbed/testbed.yaml."
@@ -231,13 +128,13 @@ else
 fi
 
 # ═══════════════════════════════════════════
-# Step 3: Network Platforms
+# Step 2: Network Platforms
 # ═══════════════════════════════════════════
 
-section "Step 3: Network Platforms"
+section "Step 2: Network Platforms"
 
 echo "  Which platforms do you have? NetClaw will only enable what you select."
-echo "  You can always re-run this wizard to add more later."
+echo "  You can always re-run this to add more later."
 echo ""
 
 # --- NetBox ---
@@ -349,47 +246,10 @@ else
 fi
 
 # ═══════════════════════════════════════════
-# Step 4: Slack Integration
+# Step 3: Your Identity
 # ═══════════════════════════════════════════
 
-section "Step 4: Slack Integration"
-
-echo "  NetClaw can send alerts, reports, and manage incidents in Slack."
-echo "  This requires a Slack bot with the right OAuth scopes."
-echo ""
-
-if yesno "Do you have a Slack workspace with a NetClaw bot?"; then
-    echo ""
-    echo -e "  ${DIM}Your Slack bot needs these scopes: assistant:write, chat:write,${NC}"
-    echo -e "  ${DIM}files:write, reactions:write, channels:read, users:read, etc.${NC}"
-    echo ""
-    prompt_secret SLACK_TOKEN "Slack Bot Token (xoxb-...)"
-    if [ -n "$SLACK_TOKEN" ]; then
-        set_env "SLACK_BOT_TOKEN" "$SLACK_TOKEN"
-        ok "Slack bot token saved"
-    fi
-
-    echo ""
-    echo "  Configure Slack channels (leave empty to skip):"
-    prompt SLACK_ALERTS "Alerts channel" "#netclaw-alerts"
-    prompt SLACK_REPORTS "Reports channel" "#netclaw-reports"
-    prompt SLACK_GENERAL "General channel" "#netclaw-general"
-    prompt SLACK_INCIDENTS "Incidents channel" "#incidents"
-
-    [ -n "$SLACK_ALERTS" ] && set_env "SLACK_CHANNEL_ALERTS" "$SLACK_ALERTS"
-    [ -n "$SLACK_REPORTS" ] && set_env "SLACK_CHANNEL_REPORTS" "$SLACK_REPORTS"
-    [ -n "$SLACK_GENERAL" ] && set_env "SLACK_CHANNEL_GENERAL" "$SLACK_GENERAL"
-    [ -n "$SLACK_INCIDENTS" ] && set_env "SLACK_CHANNEL_INCIDENTS" "$SLACK_INCIDENTS"
-    ok "Slack channels configured"
-else
-    skip "Slack integration"
-fi
-
-# ═══════════════════════════════════════════
-# Step 5: Your Identity
-# ═══════════════════════════════════════════
-
-section "Step 5: About You"
+section "Step 3: About You"
 
 echo "  Help NetClaw work better by telling it about yourself."
 echo "  This goes into USER.md (never leaves your machine)."
@@ -428,12 +288,9 @@ fi
 
 section "Setup Complete"
 
-echo "  Configuration saved to: ~/.openclaw/.env"
+echo "  Platform credentials saved to: ~/.openclaw/.env"
 echo ""
 echo "  What's configured:"
-
-# Check what was configured
-[ -n "${API_KEY:-}" ] || [ -n "${AWS_REGION:-}" ] || [ -n "${GCP_PROJECT:-}" ] && ok "AI Provider" || echo -e "  ${YELLOW}! AI Provider (set API key in ~/.openclaw/.env)${NC}"
 
 grep -q "^NETBOX_URL=" "$OPENCLAW_ENV" 2>/dev/null && ok "NetBox" || skip "NetBox"
 grep -q "^SERVICENOW_INSTANCE_URL=" "$OPENCLAW_ENV" 2>/dev/null && ok "ServiceNow" || skip "ServiceNow"
@@ -442,14 +299,14 @@ grep -q "^ISE_BASE=" "$OPENCLAW_ENV" 2>/dev/null && ok "Cisco ISE" || skip "Cisc
 grep -q "^F5_IP_ADDRESS=" "$OPENCLAW_ENV" 2>/dev/null && ok "F5 BIG-IP" || skip "F5 BIG-IP"
 grep -q "^CCC_HOST=" "$OPENCLAW_ENV" 2>/dev/null && ok "Catalyst Center" || skip "Catalyst Center"
 grep -q "^NVD_API_KEY=" "$OPENCLAW_ENV" 2>/dev/null && ok "NVD CVE Scanning" || skip "NVD CVE Scanning"
-grep -q "^SLACK_BOT_TOKEN=" "$OPENCLAW_ENV" 2>/dev/null && ok "Slack" || skip "Slack"
 
 echo ""
-echo -e "  ${BOLD}Next:${NC}"
+echo -e "  ${BOLD}Ready to go:${NC}"
 echo ""
-echo -e "    ${CYAN}openclaw gateway${NC}          # Terminal 1 — start the gateway"
-echo -e "    ${CYAN}openclaw chat --new${NC}       # Terminal 2 — talk to NetClaw"
+echo -e "    ${CYAN}openclaw gateway${NC}          # Terminal 1"
+echo -e "    ${CYAN}openclaw chat --new${NC}       # Terminal 2"
 echo ""
-echo -e "  Re-run this wizard anytime: ${BOLD}./scripts/setup.sh${NC}"
-echo -e "  Edit credentials directly:  ${BOLD}nano ~/.openclaw/.env${NC}"
+echo -e "  Reconfigure anytime:"
+echo -e "    ${CYAN}openclaw configure${NC}        # AI provider, gateway, channels"
+echo -e "    ${CYAN}./scripts/setup.sh${NC}        # Network platform credentials"
 echo ""
