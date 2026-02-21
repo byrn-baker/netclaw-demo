@@ -9,32 +9,25 @@ A CCIE-level AI network engineering coworker. Built on [OpenClaw](https://github
 ```bash
 git clone https://github.com/automateyournetwork/netclaw.git
 cd netclaw
-./scripts/install.sh          # installs OpenClaw, clones 15 MCP servers, deploys 32 skills, configures everything
+./scripts/install.sh          # installs everything, then launches the setup wizard
+```
 
-# Set your Anthropic API key
-echo 'ANTHROPIC_API_KEY=sk-ant-your-key-here' >> ~/.openclaw/.env
+That's it. The installer clones 15 MCP servers, deploys 32 skills, configures OpenClaw, then launches an **interactive setup wizard** that walks you through:
 
-# Add your network devices
-nano testbed/testbed.yaml
+1. **AI Provider** — Anthropic, OpenAI, AWS Bedrock, or Google Vertex AI
+2. **Network Devices** — opens your testbed editor
+3. **Platforms** — NetBox, ServiceNow, ACI, ISE, F5 BIG-IP, Catalyst Center, NVD CVE
+4. **Slack** — bot token and channel configuration
+5. **Your Identity** — name, role, timezone for USER.md
 
-# Start NetClaw
+After setup, start NetClaw:
+
+```bash
 openclaw gateway              # terminal 1
 openclaw chat --new           # terminal 2
 ```
 
-The installer handles everything: OpenClaw installation, `openclaw.json` config (`gateway.mode=local`), 12 Python/Node MCP servers, 2 npx MCP servers, 32 skills, 6 workspace MD files, 14 environment variables, and verification of all components. No separate `openclaw setup` or `openclaw onboard` needed.
-
-**Optional credentials** (add to `~/.openclaw/.env` for full feature set):
-
-| Service | Environment Variables |
-|---------|----------------------|
-| NVD CVE | `NVD_API_KEY` |
-| NetBox | `NETBOX_URL`, `NETBOX_TOKEN` |
-| ServiceNow | `SERVICENOW_INSTANCE_URL`, `SERVICENOW_USERNAME`, `SERVICENOW_PASSWORD` |
-| Cisco ACI | `APIC_URL`, `APIC_USERNAME`, `APIC_PASSWORD` |
-| Cisco ISE | `ISE_BASE`, `ISE_USERNAME`, `ISE_PASSWORD` |
-| F5 BIG-IP | `F5_IP_ADDRESS`, `F5_AUTH_STRING` |
-| Catalyst Center | `CCC_HOST`, `CCC_USER`, `CCC_PWD` |
+Re-run the wizard anytime: `./scripts/setup.sh`
 
 ---
 
@@ -425,7 +418,8 @@ netclaw/
 │   ├── f5-mcp-server/                    # F5 BIG-IP iControl REST
 │   └── catalyst-center-mcp/              # Cisco Catalyst Center / DNA-C
 ├── scripts/
-│   ├── install.sh                        # Full bootstrap installer (19 steps)
+│   ├── install.sh                        # Full bootstrap installer (20 steps)
+│   ├── setup.sh                          # Interactive setup wizard (API key, platforms, Slack)
 │   ├── mcp-call.py                       # MCP JSON-RPC protocol handler
 │   └── gait-stdio.py                     # GAIT server stdio wrapper
 ├── examples/
@@ -480,6 +474,7 @@ netclaw/
 17. **Deploys skills + workspace files** — Copies 32 skills and 6 MD files to `~/.openclaw/workspace/`
 18. **Verifies installation** — Checks 14 critical files exist (all MCP server scripts + core scripts)
 19. **Prints summary** — Lists all 15 MCP servers by category and all 32 skills by domain
+20. **Launches setup wizard** — Interactive `setup.sh` for API key, platform credentials, Slack, and personalization
 
 ---
 

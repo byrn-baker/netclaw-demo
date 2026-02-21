@@ -600,22 +600,36 @@ echo "  │   slack-user-context     User-aware interactions"
 echo "  └─────────────────────────────────────────────────────────────"
 echo ""
 
-log_info "Next steps:"
-echo ""
-echo "  1. Set your Anthropic API key (REQUIRED):"
-echo "     echo 'ANTHROPIC_API_KEY=sk-ant-your-key-here' >> ~/.openclaw/.env"
-echo ""
-echo "  2. Edit testbed/testbed.yaml with your network devices"
-echo ""
-echo "  3. (Optional) Add credentials for external platforms to ~/.openclaw/.env:"
-echo "     - NVD_API_KEY (NVD vulnerability database)"
-echo "     - NETBOX_URL, NETBOX_TOKEN (NetBox)"
-echo "     - SERVICENOW_INSTANCE_URL, USERNAME, PASSWORD (ServiceNow)"
-echo "     - APIC_URL, USERNAME, PASSWORD (Cisco ACI)"
-echo "     - ISE_BASE, USERNAME, PASSWORD (Cisco ISE)"
-echo "     - F5_IP_ADDRESS, F5_AUTH_STRING (F5 BIG-IP)"
-echo "     - CCC_HOST, CCC_USER, CCC_PWD (Catalyst Center)"
-echo ""
-echo "  4. Start the gateway:  openclaw gateway"
-echo "  5. Chat with NetClaw:  openclaw chat --new"
-echo ""
+# ═══════════════════════════════════════════
+# Launch Setup Wizard
+# ═══════════════════════════════════════════
+
+SETUP_SCRIPT="$NETCLAW_DIR/scripts/setup.sh"
+if [ -f "$SETUP_SCRIPT" ]; then
+    echo ""
+    echo -e "${CYAN}Installation complete. Now let's configure NetClaw for your environment.${NC}"
+    echo ""
+    read -rp "Run the setup wizard now? [Y/n] " RUN_SETUP
+    RUN_SETUP="${RUN_SETUP:-y}"
+    if [[ "$RUN_SETUP" =~ ^[Yy] ]]; then
+        bash "$SETUP_SCRIPT"
+    else
+        echo ""
+        log_info "Skipped setup wizard. Run it later with:"
+        echo "    ./scripts/setup.sh"
+        echo ""
+        log_info "Or configure manually:"
+        echo ""
+        echo "  1. Set your API key (REQUIRED):"
+        echo "     echo 'ANTHROPIC_API_KEY=sk-ant-your-key-here' >> ~/.openclaw/.env"
+        echo ""
+        echo "  2. Edit testbed/testbed.yaml with your network devices"
+        echo ""
+        echo "  3. Start the gateway:  openclaw gateway"
+        echo "  4. Chat with NetClaw:  openclaw chat --new"
+        echo ""
+    fi
+else
+    log_warn "Setup wizard not found at $SETUP_SCRIPT"
+    log_info "Configure manually: edit ~/.openclaw/.env with your credentials"
+fi
