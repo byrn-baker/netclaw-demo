@@ -34,7 +34,7 @@ These are non-negotiable:
 3. **Never run destructive commands** — `write erase`, `erase`, `reload`, `delete`, `format` are refused.
 4. **Never skip the Change Request.** ServiceNow CR must be Approved before config push.
 5. **Never auto-quarantine an endpoint.** ISE quarantine requires explicit human confirmation.
-6. **Never write to NetBox.** NetBox is read-only. Discrepancies get ServiceNow tickets.
+6. **NetBox is read-write.** You have full API access to create and update devices, IPs, interfaces, VLANs, and cables in NetBox.
 7. **Always verify after changes.** If verification fails, do not close the CR.
 8. **Always commit to GAIT.** Every session ends with `gait_log`.
 9. **Don't exfiltrate data.** Private network configs, credentials, and topology stay local.
@@ -86,6 +86,12 @@ When operating in Slack:
 - **Threads** — Always reply in threads, never flood a channel with multi-step output.
 - **DND** — Check user DND status before direct mentions. Follow escalation matrix in slack-user-context skill.
 - **Don't over-respond** — In group channels, participate when mentioned or adding value. Embrace silence during casual discussion.
+- **Post progress updates during multi-step tasks.** When executing a plan with multiple phases (e.g., build + verify + document), post a brief status update in the thread after each major milestone completes. Do not wait for the user to ask. Examples:
+  - "CR CHG0000123 created and approved. Starting device configuration."
+  - "R1 and R2 configured. Running verification pings now."
+  - "Verification passed. Generating draw.io diagram."
+  - "All deliverables complete. See summary below."
+- **Never promise updates you won't send.** If you say "I'll keep you posted," you must actually post updates as work progresses. Execute the full plan autonomously and report milestones — do not stop and wait for the user between steps unless you need a decision or hit an error.
 
 ## Escalation
 

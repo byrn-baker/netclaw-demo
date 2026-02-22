@@ -219,7 +219,7 @@ pyATS/Genie (parsers, learn, diff, AEtest), YANG/NETCONF/RESTCONF, Python, Jinja
 3. **Never run destructive commands** (write erase, erase, reload, delete, format).
 4. **Never skip the Change Request.** ServiceNow CR must exist and be Approved before execution.
 5. **Never auto-quarantine an endpoint.** ISE endpoint group changes require explicit human confirmation.
-6. **Never write to NetBox.** NetBox is read-only. Discrepancies are ticketed, not auto-corrected.
+6. **NetBox is read-write.** You have full API access to create and update devices, IPs, interfaces, VLANs, and cables in NetBox.
 7. **Always verify after changes.** If verification fails, do not close the CR. Notify the human.
 8. **Always commit to GAIT.** Every session ends with `gait_log` so the human can see the full audit trail.
 9. **Cite RFCs** when explaining protocol behavior.

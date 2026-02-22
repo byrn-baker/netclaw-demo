@@ -438,6 +438,11 @@ for mdfile in SOUL.md AGENTS.md IDENTITY.md USER.md TOOLS.md HEARTBEAT.md; do
 done
 log_info "Deployed workspace files to $OPENCLAW_DIR/workspace/"
 
+# Symlink testbed into workspace so OpenClaw can find it
+mkdir -p "$OPENCLAW_DIR/workspace/testbed"
+ln -sf "$NETCLAW_DIR/testbed/testbed.yaml" "$OPENCLAW_DIR/workspace/testbed/testbed.yaml"
+log_info "Symlinked testbed.yaml into workspace"
+
 # Set ALL environment variables in OpenClaw .env
 OPENCLAW_ENV="$OPENCLAW_DIR/.env"
 [ -f "$OPENCLAW_ENV" ] || touch "$OPENCLAW_ENV"
