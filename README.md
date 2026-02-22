@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="netclaw.jpg" alt="NetClaw — A CCIE-level AI agent that claws through your network" width="600">
+</p>
+
 # NetClaw
 
 A CCIE-level AI network engineering coworker. Built on [OpenClaw](https://github.com/openclaw/openclaw) with Anthropic Claude, 32 skills, and 15 MCP server backends for complete network automation with ITSM gating, source-of-truth reconciliation, immutable audit trails, and Slack-native operations.
@@ -76,7 +80,7 @@ Human (Slack / WebChat) --> NetClaw (CCIE Agent on OpenClaw)
                                 |-- INFRASTRUCTURE:
                                 |     MCP: Cisco ACI       --> APIC / ACI fabric
                                 |     MCP: Cisco ISE       --> Identity, posture, TrustSec
-                                |     MCP: NetBox          --> DCIM/IPAM source of truth (read-only)
+                                |     MCP: NetBox          --> DCIM/IPAM source of truth (read-write)
                                 |     MCP: ServiceNow      --> Incidents, Changes, CMDB
                                 |
                                 |-- SECURITY & COMPLIANCE:
@@ -121,7 +125,7 @@ NetClaw ships with the full set of OpenClaw workspace markdown files. These are 
 | 3 | Catalyst Center | [richbibby/catalyst-center-mcp](https://github.com/richbibby/catalyst-center-mcp) | stdio (Python) | DNA-C API — devices, clients, sites, interfaces |
 | 4 | Cisco ACI | [automateyournetwork/ACI_MCP](https://github.com/automateyournetwork/ACI_MCP) | stdio (Python) | APIC interaction, policy management, fabric health |
 | 5 | Cisco ISE | [automateyournetwork/ISE_MCP](https://github.com/automateyournetwork/ISE_MCP) | stdio (Python) | Identity policy, posture, TrustSec, endpoint control |
-| 6 | NetBox | [netboxlabs/netbox-mcp-server](https://github.com/netboxlabs/netbox-mcp-server) | stdio (Python) | Read-only DCIM/IPAM source of truth |
+| 6 | NetBox | [netboxlabs/netbox-mcp-server](https://github.com/netboxlabs/netbox-mcp-server) | stdio (Python) | Read-write DCIM/IPAM source of truth |
 | 7 | ServiceNow | [echelon-ai-labs/servicenow-mcp](https://github.com/echelon-ai-labs/servicenow-mcp) | stdio (Python) | Incidents, change requests, CMDB |
 | 8 | NVD CVE | [marcoeg/mcp-nvd](https://github.com/marcoeg/mcp-nvd) | stdio (Python) | NIST NVD vulnerability database with CVSS scoring |
 | 9 | Subnet Calculator | [automateyournetwork/GeminiCLI_SubnetCalculator_Extension](https://github.com/automateyournetwork/GeminiCLI_SubnetCalculator_Extension) | stdio (Python) | IPv4 + IPv6 CIDR subnet calculator |
@@ -339,7 +343,7 @@ NetClaw enforces non-negotiable constraints at every layer:
 
 **Never auto-quarantines an endpoint** — ISE endpoint group modification always requires explicit human confirmation.
 
-**Never writes to NetBox** — NetBox is read-only. Discrepancies are ticketed in ServiceNow, not auto-corrected.
+**NetBox is read-write** — NetClaw has full API access to create and update devices, IPs, interfaces, VLANs, and cables in NetBox.
 
 **Always verifies after changes** — if post-change verification fails, the CR is not closed and the human is notified.
 
