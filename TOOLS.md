@@ -28,6 +28,7 @@ All credentials are in `~/.openclaw/.env`. Never put credentials in skill files 
 - NVD API             → NVD_API_KEY
 - F5 BIG-IP           → F5_IP_ADDRESS, F5_AUTH_STRING
 - Catalyst Center     → CCC_HOST, CCC_USER, CCC_PWD
+- Microsoft Graph     → AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET
 ```
 
 ## Slack Integration
@@ -38,6 +39,19 @@ All credentials are in `~/.openclaw/.env`. Never put credentials in skill files 
 - #netclaw-reports    → Scheduled health reports, audit results
 - #netclaw-general    → General queries, P3/P4 notifications
 - #incidents          → Active incident threads
+```
+
+## Microsoft Teams Integration
+
+```
+### Teams Channels (if using Microsoft Graph for Teams delivery)
+- #netclaw-alerts     → P1/P2 critical alerts, CVE exposure
+- #netclaw-reports    → Health reports, audit results, reconciliation
+- #netclaw-changes    → Change request updates, completion notices
+- #network-general    → P3/P4 notifications, topology updates
+
+### SharePoint Sites
+- Network Engineering → Topology diagrams, audit reports, config backups
 ```
 
 ## SSH Access

@@ -245,6 +245,48 @@ else
     skip "NVD CVE scanning"
 fi
 
+# --- Microsoft Graph (Office 365) ---
+if yesno "Do you have a Microsoft 365 tenant? (Visio, SharePoint, Teams, OneDrive)"; then
+    echo ""
+    echo -e "  Microsoft Graph MCP requires an Azure AD app registration."
+    echo -e "  Register at: ${BOLD}https://portal.azure.com → Azure Active Directory → App registrations${NC}"
+    echo ""
+    echo -e "  Required API permissions (Application type):"
+    echo -e "    ${DIM}Files.ReadWrite.All${NC}   — Visio files on OneDrive/SharePoint"
+    echo -e "    ${DIM}Sites.ReadWrite.All${NC}   — SharePoint document libraries"
+    echo -e "    ${DIM}ChannelMessage.Send${NC}   — Post to Teams channels"
+    echo -e "    ${DIM}User.Read${NC}             — Basic profile"
+    echo ""
+    prompt AZURE_TENANT "Azure Tenant ID" ""
+    prompt AZURE_CLIENT "Azure Client ID (Application ID)" ""
+    prompt_secret AZURE_SECRET "Azure Client Secret"
+    [ -n "$AZURE_TENANT" ] && set_env "AZURE_TENANT_ID" "$AZURE_TENANT"
+    [ -n "$AZURE_CLIENT" ] && set_env "AZURE_CLIENT_ID" "$AZURE_CLIENT"
+    [ -n "$AZURE_SECRET" ] && set_env "AZURE_CLIENT_SECRET" "$AZURE_SECRET"
+    ok "Microsoft Graph (Office 365) configured"
+else
+    skip "Microsoft Graph (Office 365)"
+fi
+echo ""
+
+# --- GitHub ---
+if yesno "Do you have a GitHub account? (issues, PRs, config-as-code)"; then
+    echo ""
+    echo -e "  Create a Personal Access Token at: ${BOLD}https://github.com/settings/tokens${NC}"
+    echo -e "  Recommended scopes: ${DIM}repo, read:org, read:user, workflow${NC}"
+    echo ""
+    prompt_secret GH_PAT "GitHub Personal Access Token (ghp_...)"
+    if [ -n "$GH_PAT" ]; then
+        set_env "GITHUB_PERSONAL_ACCESS_TOKEN" "$GH_PAT"
+        ok "GitHub configured"
+    else
+        skip "GitHub PAT (no token provided)"
+    fi
+else
+    skip "GitHub"
+fi
+echo ""
+
 # ═══════════════════════════════════════════
 # Step 3: Your Identity
 # ═══════════════════════════════════════════
@@ -299,6 +341,8 @@ grep -q "^ISE_BASE=" "$OPENCLAW_ENV" 2>/dev/null && ok "Cisco ISE" || skip "Cisc
 grep -q "^F5_IP_ADDRESS=" "$OPENCLAW_ENV" 2>/dev/null && ok "F5 BIG-IP" || skip "F5 BIG-IP"
 grep -q "^CCC_HOST=" "$OPENCLAW_ENV" 2>/dev/null && ok "Catalyst Center" || skip "Catalyst Center"
 grep -q "^NVD_API_KEY=" "$OPENCLAW_ENV" 2>/dev/null && ok "NVD CVE Scanning" || skip "NVD CVE Scanning"
+grep -q "^AZURE_TENANT_ID=" "$OPENCLAW_ENV" 2>/dev/null && ok "Microsoft Graph (Office 365)" || skip "Microsoft Graph (Office 365)"
+grep -q "^GITHUB_PERSONAL_ACCESS_TOKEN=" "$OPENCLAW_ENV" 2>/dev/null && ok "GitHub" || skip "GitHub"
 
 echo ""
 echo -e "  ${BOLD}Ready to go:${NC}"
