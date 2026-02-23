@@ -38,7 +38,7 @@ clone_or_pull() {
 
 NETCLAW_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MCP_DIR="$NETCLAW_DIR/mcp-servers"
-TOTAL_STEPS=20
+TOTAL_STEPS=21
 
 echo "========================================="
 echo "  NetClaw - CCIE Network Agent"
@@ -382,10 +382,28 @@ pip3 install -r "$CATC_MCP_DIR/requirements.txt" 2>/dev/null || \
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 17: npx MCP servers (Draw.io, RFC)
+# Step 17: Microsoft Graph MCP (npx, no clone)
 # ═══════════════════════════════════════════
 
-log_step "17/$TOTAL_STEPS Caching npx-based MCP servers..."
+log_step "17/$TOTAL_STEPS Caching Microsoft Graph MCP Server..."
+echo "  Package: @microsoft/microsoft-graph-mcp"
+echo "  Auth: Azure AD app registration (Tenant ID, Client ID, Client Secret)"
+
+log_info "Pre-caching @microsoft/microsoft-graph-mcp..."
+npm cache add "@anthropic-ai/microsoft-graph-mcp" 2>/dev/null || \
+    npm cache add "@microsoft/microsoft-graph-mcp" 2>/dev/null || \
+    log_warn "Could not pre-cache Microsoft Graph MCP — will download on first use via npx"
+
+log_info "Microsoft Graph MCP ready: npx -y @anthropic-ai/microsoft-graph-mcp"
+echo "  Requires: AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET in ~/.openclaw/.env"
+
+echo ""
+
+# ═══════════════════════════════════════════
+# Step 18: npx MCP servers (Draw.io, RFC)
+# ═══════════════════════════════════════════
+
+log_step "18/$TOTAL_STEPS Caching npx-based MCP servers..."
 
 for pkg in "@drawio/mcp" "@mjpitz/mcp-rfc"; do
     log_info "Pre-caching $pkg..."
@@ -395,10 +413,10 @@ done
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 18: Deploy skills and set environment
+# Step 19: Deploy skills and set environment
 # ═══════════════════════════════════════════
 
-log_step "18/$TOTAL_STEPS Deploying skills and configuration..."
+log_step "19/$TOTAL_STEPS Deploying skills and configuration..."
 
 PYATS_SCRIPT="$PYATS_MCP_DIR/pyats_mcp_server.py"
 TESTBED_PATH="$NETCLAW_DIR/testbed/testbed.yaml"
@@ -502,10 +520,10 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 19: Verify installation
+# Step 20: Verify installation
 # ═══════════════════════════════════════════
 
-log_step "19/$TOTAL_STEPS Verifying installation..."
+log_step "20/$TOTAL_STEPS Verifying installation..."
 
 SERVERS_OK=0
 SERVERS_FAIL=0
@@ -541,10 +559,10 @@ log_info "Verification: $SERVERS_OK OK, $SERVERS_FAIL FAILED"
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 20: Summary
+# Step 21: Summary
 # ═══════════════════════════════════════════
 
-log_step "20/$TOTAL_STEPS Installation Summary"
+log_step "21/$TOTAL_STEPS Installation Summary"
 echo ""
 echo "========================================="
 echo "  NetClaw Installation Complete"
@@ -553,7 +571,7 @@ echo ""
 
 SKILL_COUNT=$(ls -d "$NETCLAW_DIR/workspace/skills/"*/ 2>/dev/null | wc -l)
 
-echo "MCP Servers Installed (15):"
+echo "MCP Servers Installed (16):"
 echo "  ┌─────────────────────────────────────────────────────────────"
 echo "  │ NETWORK DEVICE AUTOMATION:"
 echo "  │   pyATS              Cisco device CLI, Genie parsers"
@@ -565,6 +583,9 @@ echo "  │   Cisco ACI           APIC / ACI fabric management"
 echo "  │   Cisco ISE           Identity, posture, TrustSec"
 echo "  │   NetBox              DCIM/IPAM source of truth (read-only)"
 echo "  │   ServiceNow          ITSM: incidents, changes, CMDB"
+echo "  │"
+echo "  │ OFFICE 365 / MICROSOFT:"
+echo "  │   Microsoft Graph     OneDrive, SharePoint, Visio, Teams, Exchange"
 echo "  │"
 echo "  │ SECURITY & COMPLIANCE:"
 echo "  │   NVD CVE             NIST vulnerability database (Python)"
@@ -611,6 +632,11 @@ echo "  │   ise-posture-audit      ISE posture & TrustSec audit"
 echo "  │   ise-incident-response  Endpoint investigation & quarantine"
 echo "  │   servicenow-change-workflow  Full ITSM change lifecycle"
 echo "  │   gait-session-tracking  Mandatory audit trail"
+echo "  │"
+echo "  │ Microsoft 365 Skills:"
+echo "  │   msgraph-files          OneDrive/SharePoint file operations"
+echo "  │   msgraph-visio          Visio diagram generation from network data"
+echo "  │   msgraph-teams          Teams notifications and channel delivery"
 echo "  │"
 echo "  │ Reference & Utility Skills:"
 echo "  │   nvd-cve                NVD vulnerability search (Python)"

@@ -4,7 +4,7 @@
 
 # NetClaw
 
-A CCIE-level AI network engineering coworker. Built on [OpenClaw](https://github.com/openclaw/openclaw) with Anthropic Claude, 32 skills, and 15 MCP server backends for complete network automation with ITSM gating, source-of-truth reconciliation, immutable audit trails, and Slack-native operations.
+A CCIE-level AI network engineering coworker. Built on [OpenClaw](https://github.com/openclaw/openclaw) with Anthropic Claude, 35 skills, and 16 MCP server backends for complete network automation with ITSM gating, source-of-truth reconciliation, immutable audit trails, Slack-native operations, and Microsoft 365 integration.
 
 ---
 
@@ -16,7 +16,7 @@ cd netclaw
 ./scripts/install.sh          # installs everything, then launches the setup wizard
 ```
 
-That's it. The installer clones 15 MCP servers, deploys 32 skills, then launches a two-phase setup:
+That's it. The installer clones 16 MCP servers, deploys 35 skills, then launches a two-phase setup:
 
 **Phase 1: `openclaw onboard`** (OpenClaw's built-in wizard)
 - Pick your AI provider (Anthropic, OpenAI, Bedrock, Vertex, 30+ options)
@@ -26,7 +26,7 @@ That's it. The installer clones 15 MCP servers, deploys 32 skills, then launches
 
 **Phase 2: `./scripts/setup.sh`** (NetClaw platform credentials)
 - Network devices (testbed.yaml editor)
-- Platform credentials (NetBox, ServiceNow, ACI, ISE, F5, Catalyst Center, NVD)
+- Platform credentials (NetBox, ServiceNow, ACI, ISE, F5, Catalyst Center, NVD, Microsoft Graph)
 - Your identity (name, role, timezone for USER.md)
 
 After setup, start NetClaw:
@@ -63,6 +63,9 @@ NetClaw is an autonomous network engineering agent powered by Claude that can:
 - **Diagram** your network with Draw.io topology maps (color-coded by reconciliation status)
 - **Visualize** protocol hierarchies as interactive Markmap mind maps
 - **Reference** IETF RFCs and Wikipedia for standards-compliant configuration
+- **Store** reports, config backups, and diagrams on SharePoint via Microsoft Graph
+- **Generate** Visio topology diagrams from CDP/LLDP discovery and upload to SharePoint
+- **Notify** via Microsoft Teams — health alerts, change updates, and report delivery to Teams channels
 - **Audit** every action in an immutable Git-based trail (GAIT) — there is always an answer to "what did the AI do and why"
 
 ---
@@ -82,6 +85,9 @@ Human (Slack / WebChat) --> NetClaw (CCIE Agent on OpenClaw)
                                 |     MCP: Cisco ISE       --> Identity, posture, TrustSec
                                 |     MCP: NetBox          --> DCIM/IPAM source of truth (read-write)
                                 |     MCP: ServiceNow      --> Incidents, Changes, CMDB
+                                |
+                                |-- MICROSOFT 365:
+                                |     MCP: Microsoft Graph  --> OneDrive, SharePoint, Visio, Teams
                                 |
                                 |-- SECURITY & COMPLIANCE:
                                 |     MCP: NVD CVE         --> NIST vulnerability database
@@ -116,7 +122,7 @@ NetClaw ships with the full set of OpenClaw workspace markdown files. These are 
 
 ---
 
-## MCP Servers (15)
+## MCP Servers (16)
 
 | # | MCP Server | Repository | Transport | Function |
 |---|------------|------------|-----------|----------|
@@ -127,19 +133,20 @@ NetClaw ships with the full set of OpenClaw workspace markdown files. These are 
 | 5 | Cisco ISE | [automateyournetwork/ISE_MCP](https://github.com/automateyournetwork/ISE_MCP) | stdio (Python) | Identity policy, posture, TrustSec, endpoint control |
 | 6 | NetBox | [netboxlabs/netbox-mcp-server](https://github.com/netboxlabs/netbox-mcp-server) | stdio (Python) | Read-write DCIM/IPAM source of truth |
 | 7 | ServiceNow | [echelon-ai-labs/servicenow-mcp](https://github.com/echelon-ai-labs/servicenow-mcp) | stdio (Python) | Incidents, change requests, CMDB |
-| 8 | NVD CVE | [marcoeg/mcp-nvd](https://github.com/marcoeg/mcp-nvd) | stdio (Python) | NIST NVD vulnerability database with CVSS scoring |
-| 9 | Subnet Calculator | [automateyournetwork/GeminiCLI_SubnetCalculator_Extension](https://github.com/automateyournetwork/GeminiCLI_SubnetCalculator_Extension) | stdio (Python) | IPv4 + IPv6 CIDR subnet calculator |
-| 10 | GAIT | [automateyournetwork/gait_mcp](https://github.com/automateyournetwork/gait_mcp) | stdio (Python) | Git-based AI tracking and audit |
-| 11 | Wikipedia | [automateyournetwork/Wikipedia_MCP](https://github.com/automateyournetwork/Wikipedia_MCP) | stdio (Python) | Standards and technology context |
-| 12 | Markmap | [automateyournetwork/markmap_mcp](https://github.com/automateyournetwork/markmap_mcp) | stdio (Node) | Hierarchical mind map generation |
-| 13 | Draw.io | [@drawio/mcp](https://github.com/jgraph/drawio-mcp) | npx | Network topology diagram generation |
-| 14 | RFC Lookup | [@mjpitz/mcp-rfc](https://github.com/mjpitz/mcp-rfc) | npx | IETF RFC search and retrieval |
+| 8 | Microsoft Graph | [@anthropic-ai/microsoft-graph-mcp](https://www.npmjs.com/package/@anthropic-ai/microsoft-graph-mcp) | npx | OneDrive, SharePoint, Visio, Teams, Exchange via Graph API |
+| 9 | NVD CVE | [marcoeg/mcp-nvd](https://github.com/marcoeg/mcp-nvd) | stdio (Python) | NIST NVD vulnerability database with CVSS scoring |
+| 10 | Subnet Calculator | [automateyournetwork/GeminiCLI_SubnetCalculator_Extension](https://github.com/automateyournetwork/GeminiCLI_SubnetCalculator_Extension) | stdio (Python) | IPv4 + IPv6 CIDR subnet calculator |
+| 11 | GAIT | [automateyournetwork/gait_mcp](https://github.com/automateyournetwork/gait_mcp) | stdio (Python) | Git-based AI tracking and audit |
+| 12 | Wikipedia | [automateyournetwork/Wikipedia_MCP](https://github.com/automateyournetwork/Wikipedia_MCP) | stdio (Python) | Standards and technology context |
+| 13 | Markmap | [automateyournetwork/markmap_mcp](https://github.com/automateyournetwork/markmap_mcp) | stdio (Node) | Hierarchical mind map generation |
+| 14 | Draw.io | [@drawio/mcp](https://github.com/jgraph/drawio-mcp) | npx | Network topology diagram generation |
+| 15 | RFC Lookup | [@mjpitz/mcp-rfc](https://github.com/mjpitz/mcp-rfc) | npx | IETF RFC search and retrieval |
 
 All MCP servers communicate via stdio (JSON-RPC 2.0) through `scripts/mcp-call.py`. No persistent connections, no port management.
 
 ---
 
-## Skills (32)
+## Skills (35)
 
 ### pyATS Device Skills (9)
 
@@ -182,6 +189,14 @@ All MCP servers communicate via stdio (JSON-RPC 2.0) through `scripts/mcp-call.p
 | **catc-inventory** | Device inventory via Catalyst Center: filter by hostname/IP/platform/role/reachability, site hierarchy, interface details. Cross-reference with pyATS. |
 | **catc-client-ops** | Client monitoring: wired/wireless clients, filter by SSID/band/site/OS, client details by MAC, count analytics, time-based trending. |
 | **catc-troubleshoot** | CatC troubleshooting: device unreachable, client connectivity, interface down, site-wide outage triage. Integration with pyATS for CLI-level follow-up. |
+
+### Microsoft 365 Skills (3)
+
+| Skill | What It Does |
+|-------|-------------|
+| **msgraph-files** | OneDrive/SharePoint file operations: upload, download, search, organize network documentation, config backups, audit reports, and diagram artifacts |
+| **msgraph-visio** | Visio diagram generation from CDP/LLDP discovery data. Upload .vsdx files to SharePoint, create sharing links. Physical, logical, reconciliation, and ACI fabric diagram types. |
+| **msgraph-teams** | Teams channel notifications: health alerts, security alerts, change completion, incident updates, report delivery, diagram sharing. Severity-coded HTML messages with threading. |
 
 ### Reference & Utility Skills (6)
 
@@ -318,6 +333,16 @@ f5-health-check
 --> GAIT audit
 ```
 
+### Visio Topology to SharePoint
+```
+pyats-topology + msgraph-visio + msgraph-files
+--> CDP/LLDP/ARP discovery (pCall across fleet)
+--> Generate topology diagram
+--> Upload .vsdx to SharePoint Network Engineering/Topology/
+--> Post sharing link to Teams #netclaw-reports
+--> GAIT audit
+```
+
 ### Catalyst Center Client Investigation
 ```
 catc-client-ops + catc-troubleshoot
@@ -376,9 +401,9 @@ netclaw/
 ├── TOOLS.md                              # Local infrastructure notes (edit this)
 ├── HEARTBEAT.md                          # Periodic health check checklist
 ├── MISSION01.md                          # Completed — core pyATS + 11 skills
-├── MISSION02.md                          # Completed — full platform, 32 skills
+├── MISSION02.md                          # Completed — full platform, 35 skills
 ├── workspace/
-│   └── skills/                           # 32 skill definitions (source of truth)
+│   └── skills/                           # 35 skill definitions (source of truth)
 │       ├── pyats-network/                # Core device automation (8 MCP tools)
 │       ├── pyats-health-check/           # Health + NetBox cross-ref + pCall
 │       ├── pyats-routing/                # OSPF, BGP, EIGRP, IS-IS analysis
@@ -401,6 +426,9 @@ netclaw/
 │       ├── catc-inventory/              # Catalyst Center device inventory
 │       ├── catc-client-ops/             # Catalyst Center client monitoring
 │       ├── catc-troubleshoot/           # Catalyst Center troubleshooting
+│       ├── msgraph-files/                # OneDrive/SharePoint file operations
+│       ├── msgraph-visio/                # Visio diagram generation
+│       ├── msgraph-teams/                # Teams channel notifications
 │       ├── nvd-cve/                      # NVD vulnerability search (CVSS)
 │       ├── subnet-calculator/            # IPv4 + IPv6 CIDR calculator
 │       ├── wikipedia-research/           # Protocol history & context
@@ -481,12 +509,13 @@ netclaw/
 13. **Clones Subnet Calculator MCP** — `git clone` (enhanced with IPv6 support)
 14. **Clones F5 BIG-IP MCP** — `git clone` + `pip3 install` dependencies
 15. **Clones Catalyst Center MCP** — `git clone` + `pip3 install` dependencies
-16. **Caches npx packages** — `npm cache add` for Draw.io and RFC servers
-17. **Deploys skills + workspace files** — Copies 32 skills and 6 MD files to `~/.openclaw/workspace/`
-18. **Verifies installation** — Checks 14 critical files exist (all MCP server scripts + core scripts)
-19. **Prints summary** — Lists all 15 MCP servers by category and all 32 skills by domain
-20. **Launches `openclaw onboard`** — OpenClaw's built-in wizard for AI provider, gateway, and channel setup
-21. **Launches `setup.sh`** — NetClaw-specific wizard for platform credentials and personalization
+16. **Caches Microsoft Graph MCP** — `npm cache add` for Graph API (OneDrive, SharePoint, Visio, Teams)
+17. **Caches npx packages** — `npm cache add` for Draw.io and RFC servers
+18. **Deploys skills + workspace files** — Copies 35 skills and 6 MD files to `~/.openclaw/workspace/`
+19. **Verifies installation** — Checks 14 critical files exist (all MCP server scripts + core scripts)
+20. **Prints summary** — Lists all 16 MCP servers by category and all 35 skills by domain
+21. **Launches `openclaw onboard`** — OpenClaw's built-in wizard for AI provider, gateway, and channel setup
+22. **Launches `setup.sh`** — NetClaw-specific wizard for platform credentials and personalization
 
 ---
 
@@ -532,6 +561,7 @@ Optional (for full feature set):
 - NVD API key (free from https://nvd.nist.gov/developers/request-an-api-key)
 - F5 BIG-IP management access with iControl REST enabled
 - Cisco Catalyst Center (DNA Center) with API credentials
+- Microsoft 365 tenant with Azure AD app registration (for Graph/Visio/Teams skills)
 - Slack workspace with NetClaw bot installed (for Slack skills)
 
 ---
@@ -571,6 +601,12 @@ Ask NetClaw anything you'd ask a senior network engineer:
 "Calculate a /22 for the 10.50.0.0 network"
 --> subnet-calculator: VLSM breakdown, usable hosts, wildcard mask, CIDR notation
 
+"Generate a Visio topology diagram and upload it to SharePoint"
+--> pyats-topology (CDP/LLDP discovery) + msgraph-visio (generate .vsdx) + msgraph-files (upload to SharePoint)
+
+"Post the health report to Teams"
+--> pyats-health-check + msgraph-teams (send HTML-formatted report to #netclaw-reports)
+
 "Show me the OSPF topology as a mind map"
 --> pyats-routing (OSPF neighbors/database) + markmap-viz (generate mind map)
 
@@ -587,4 +623,4 @@ See `examples/` for detailed workflow walkthroughs.
 | Mission | Status | Summary |
 |---|---|---|
 | MISSION01 | Complete | Core pyATS agent, 7 skills, Markmap, Draw.io, RFC, NVD CVE, SOUL v1 |
-| MISSION02 | Complete | Full platform — 15 MCP servers, 32 skills (9 pyATS, 7 domain, 3 F5, 3 CatC, 6 utility, 4 Slack), 6 workspace files, SOUL v2 |
+| MISSION02 | Complete | Full platform — 16 MCP servers, 35 skills (9 pyATS, 7 domain, 3 F5, 3 CatC, 3 M365, 6 utility, 4 Slack), 6 workspace files, SOUL v2 |
