@@ -4,7 +4,7 @@
 
 # NetClaw
 
-A CCIE-level AI network engineering coworker. Built on [OpenClaw](https://github.com/openclaw/openclaw) with Anthropic Claude, 35 skills, and 16 MCP server backends for complete network automation with ITSM gating, source-of-truth reconciliation, immutable audit trails, Slack-native operations, and Microsoft 365 integration.
+A CCIE-level AI network engineering coworker. Built on [OpenClaw](https://github.com/openclaw/openclaw) with Anthropic Claude, 38 skills, and 18 MCP server backends for complete network automation with ITSM gating, source-of-truth reconciliation, immutable audit trails, packet capture analysis, GitHub config-as-code, Slack-native operations, and Microsoft 365 integration.
 
 ---
 
@@ -16,7 +16,7 @@ cd netclaw
 ./scripts/install.sh          # installs everything, then launches the setup wizard
 ```
 
-That's it. The installer clones 16 MCP servers, deploys 35 skills, then launches a two-phase setup:
+That's it. The installer clones 18 MCP servers, deploys 38 skills, then launches a two-phase setup:
 
 **Phase 1: `openclaw onboard`** (OpenClaw's built-in wizard)
 - Pick your AI provider (Anthropic, OpenAI, Bedrock, Vertex, 30+ options)
@@ -26,7 +26,7 @@ That's it. The installer clones 16 MCP servers, deploys 35 skills, then launches
 
 **Phase 2: `./scripts/setup.sh`** (NetClaw platform credentials)
 - Network devices (testbed.yaml editor)
-- Platform credentials (NetBox, ServiceNow, ACI, ISE, F5, Catalyst Center, NVD, Microsoft Graph)
+- Platform credentials (NetBox, ServiceNow, ACI, ISE, F5, Catalyst Center, NVD, Microsoft Graph, GitHub)
 - Your identity (name, role, timezone for USER.md)
 
 After setup, start NetClaw:
@@ -66,6 +66,8 @@ NetClaw is an autonomous network engineering agent powered by Claude that can:
 - **Store** reports, config backups, and diagrams on SharePoint via Microsoft Graph
 - **Generate** Visio topology diagrams from CDP/LLDP discovery and upload to SharePoint
 - **Notify** via Microsoft Teams — health alerts, change updates, and report delivery to Teams channels
+- **Analyze** packet captures — upload a pcap to Slack and NetClaw runs deep tshark analysis: protocol hierarchy, conversations, endpoints, DNS/HTTP extraction, expert info, and filtered inspection
+- **Track** network changes in GitHub — create issues from findings, commit config backups, open PRs for changes, link to ServiceNow CRs
 - **Audit** every action in an immutable Git-based trail (GAIT) — there is always an answer to "what did the AI do and why"
 
 ---
@@ -91,6 +93,12 @@ Human (Slack / WebChat) --> NetClaw (CCIE Agent on OpenClaw)
                                 |
                                 |-- SECURITY & COMPLIANCE:
                                 |     MCP: NVD CVE         --> NIST vulnerability database
+                                |
+                                |-- VERSION CONTROL:
+                                |     MCP: GitHub           --> Issues, PRs, code search, Actions (Docker)
+                                |
+                                |-- PACKET ANALYSIS:
+                                |     MCP: Packet Buddy     --> pcap/pcapng deep analysis via tshark
                                 |
                                 |-- UTILITIES:
                                 |     MCP: Subnet Calc     --> IPv4 + IPv6 CIDR calculator
@@ -122,7 +130,7 @@ NetClaw ships with the full set of OpenClaw workspace markdown files. These are 
 
 ---
 
-## MCP Servers (16)
+## MCP Servers (18)
 
 | # | MCP Server | Repository | Transport | Function |
 |---|------------|------------|-----------|----------|
@@ -134,19 +142,21 @@ NetClaw ships with the full set of OpenClaw workspace markdown files. These are 
 | 6 | NetBox | [netboxlabs/netbox-mcp-server](https://github.com/netboxlabs/netbox-mcp-server) | stdio (Python) | Read-write DCIM/IPAM source of truth |
 | 7 | ServiceNow | [echelon-ai-labs/servicenow-mcp](https://github.com/echelon-ai-labs/servicenow-mcp) | stdio (Python) | Incidents, change requests, CMDB |
 | 8 | Microsoft Graph | [@anthropic-ai/microsoft-graph-mcp](https://www.npmjs.com/package/@anthropic-ai/microsoft-graph-mcp) | npx | OneDrive, SharePoint, Visio, Teams, Exchange via Graph API |
-| 9 | NVD CVE | [marcoeg/mcp-nvd](https://github.com/marcoeg/mcp-nvd) | stdio (Python) | NIST NVD vulnerability database with CVSS scoring |
-| 10 | Subnet Calculator | [automateyournetwork/GeminiCLI_SubnetCalculator_Extension](https://github.com/automateyournetwork/GeminiCLI_SubnetCalculator_Extension) | stdio (Python) | IPv4 + IPv6 CIDR subnet calculator |
-| 11 | GAIT | [automateyournetwork/gait_mcp](https://github.com/automateyournetwork/gait_mcp) | stdio (Python) | Git-based AI tracking and audit |
-| 12 | Wikipedia | [automateyournetwork/Wikipedia_MCP](https://github.com/automateyournetwork/Wikipedia_MCP) | stdio (Python) | Standards and technology context |
-| 13 | Markmap | [automateyournetwork/markmap_mcp](https://github.com/automateyournetwork/markmap_mcp) | stdio (Node) | Hierarchical mind map generation |
-| 14 | Draw.io | [@drawio/mcp](https://github.com/jgraph/drawio-mcp) | npx | Network topology diagram generation |
-| 15 | RFC Lookup | [@mjpitz/mcp-rfc](https://github.com/mjpitz/mcp-rfc) | npx | IETF RFC search and retrieval |
+| 9 | GitHub | [github/github-mcp-server](https://github.com/github/github-mcp-server) | Docker (Go) | Issues, PRs, code search, Actions, config-as-code workflows |
+| 10 | Packet Buddy | Built-in | stdio (Python) | pcap/pcapng deep analysis via tshark — upload pcaps to Slack |
+| 11 | NVD CVE | [marcoeg/mcp-nvd](https://github.com/marcoeg/mcp-nvd) | stdio (Python) | NIST NVD vulnerability database with CVSS scoring |
+| 12 | Subnet Calculator | [automateyournetwork/GeminiCLI_SubnetCalculator_Extension](https://github.com/automateyournetwork/GeminiCLI_SubnetCalculator_Extension) | stdio (Python) | IPv4 + IPv6 CIDR subnet calculator |
+| 13 | GAIT | [automateyournetwork/gait_mcp](https://github.com/automateyournetwork/gait_mcp) | stdio (Python) | Git-based AI tracking and audit |
+| 14 | Wikipedia | [automateyournetwork/Wikipedia_MCP](https://github.com/automateyournetwork/Wikipedia_MCP) | stdio (Python) | Standards and technology context |
+| 15 | Markmap | [automateyournetwork/markmap_mcp](https://github.com/automateyournetwork/markmap_mcp) | stdio (Node) | Hierarchical mind map generation |
+| 16 | Draw.io | [@drawio/mcp](https://github.com/jgraph/drawio-mcp) | npx | Network topology diagram generation |
+| 17 | RFC Lookup | [@mjpitz/mcp-rfc](https://github.com/mjpitz/mcp-rfc) | npx | IETF RFC search and retrieval |
 
-All MCP servers communicate via stdio (JSON-RPC 2.0) through `scripts/mcp-call.py`. No persistent connections, no port management.
+All MCP servers communicate via stdio (JSON-RPC 2.0) through `scripts/mcp-call.py`. GitHub MCP runs via Docker. No persistent connections, no port management.
 
 ---
 
-## Skills (35)
+## Skills (38)
 
 ### pyATS Device Skills (9)
 
@@ -197,6 +207,18 @@ All MCP servers communicate via stdio (JSON-RPC 2.0) through `scripts/mcp-call.p
 | **msgraph-files** | OneDrive/SharePoint file operations: upload, download, search, organize network documentation, config backups, audit reports, and diagram artifacts |
 | **msgraph-visio** | Visio diagram generation from CDP/LLDP discovery data. Upload .vsdx files to SharePoint, create sharing links. Physical, logical, reconciliation, and ACI fabric diagram types. |
 | **msgraph-teams** | Teams channel notifications: health alerts, security alerts, change completion, incident updates, report delivery, diagram sharing. Severity-coded HTML messages with threading. |
+
+### GitHub Skills (1)
+
+| Skill | What It Does |
+|-------|-------------|
+| **github-ops** | Config-as-code workflows: create issues from network findings, commit config backups to repos, open PRs for changes with ServiceNow CR references, search code for configuration patterns, trigger Actions workflows. |
+
+### Packet Analysis Skills (1)
+
+| Skill | What It Does |
+|-------|-------------|
+| **packet-analysis** | Deep pcap analysis via tshark. Upload a `.pcap` or `.pcapng` file to Slack and NetClaw analyzes it: protocol hierarchy, IP/TCP/UDP conversations, top endpoints, DNS queries, HTTP requests, expert info (retransmissions, errors), filtered packet inspection, and full JSON decode. 12 MCP tools for comprehensive L2-L7 packet investigation. |
 
 ### Reference & Utility Skills (6)
 
@@ -352,6 +374,29 @@ catc-client-ops + catc-troubleshoot
 --> GAIT audit
 ```
 
+### Packet Capture Analysis (Slack Upload)
+```
+packet-analysis
+--> User uploads .pcap file to Slack channel
+--> NetClaw downloads and saves the file
+--> pcap_summary: packet count, duration, capture size
+--> pcap_protocol_hierarchy: protocol breakdown (TCP 45%, UDP 30%, DNS 15%...)
+--> pcap_conversations: who talked to whom (IP pairs, byte counts)
+--> pcap_expert_info: retransmissions, RSTs, errors flagged by tshark
+--> pcap_filter + pcap_packet_detail: drill into suspect packets
+--> AI analysis: plain-English summary of findings and recommendations
+```
+
+### Config-as-Code (GitHub)
+```
+github-ops
+--> Network finding discovered (e.g., security audit failure)
+--> Create GitHub issue with device, symptom, recommended fix
+--> After remediation: commit updated config to repo
+--> Open PR with change details + ServiceNow CR reference
+--> GAIT audit trail links to the PR
+```
+
 ---
 
 ## Safety
@@ -401,9 +446,9 @@ netclaw/
 ├── TOOLS.md                              # Local infrastructure notes (edit this)
 ├── HEARTBEAT.md                          # Periodic health check checklist
 ├── MISSION01.md                          # Completed — core pyATS + 11 skills
-├── MISSION02.md                          # Completed — full platform, 35 skills
+├── MISSION02.md                          # Completed — full platform, 38 skills
 ├── workspace/
-│   └── skills/                           # 35 skill definitions (source of truth)
+│   └── skills/                           # 38 skill definitions (source of truth)
 │       ├── pyats-network/                # Core device automation (8 MCP tools)
 │       ├── pyats-health-check/           # Health + NetBox cross-ref + pCall
 │       ├── pyats-routing/                # OSPF, BGP, EIGRP, IS-IS analysis
@@ -435,6 +480,8 @@ netclaw/
 │       ├── markmap-viz/                  # Mind map visualization
 │       ├── drawio-diagram/              # Draw.io network diagrams
 │       ├── rfc-lookup/                   # IETF RFC search
+│       ├── github-ops/                  # GitHub issues, PRs, config-as-code
+│       ├── packet-analysis/             # pcap analysis via tshark + Slack upload
 │       ├── slack-network-alerts/         # Slack alert delivery
 │       ├── slack-report-delivery/        # Slack report formatting
 │       ├── slack-incident-workflow/      # Slack incident lifecycle
@@ -455,9 +502,10 @@ netclaw/
 │   ├── mcp-nvd/                          # NVD CVE database (Python)
 │   ├── subnet-calculator-mcp/            # IPv4 + IPv6 subnet calculator
 │   ├── f5-mcp-server/                    # F5 BIG-IP iControl REST
-│   └── catalyst-center-mcp/              # Cisco Catalyst Center / DNA-C
+│   ├── catalyst-center-mcp/              # Cisco Catalyst Center / DNA-C
+│   └── packet-buddy-mcp/                 # pcap analysis via tshark (built-in)
 ├── scripts/
-│   ├── install.sh                        # Full bootstrap installer (20 steps)
+│   ├── install.sh                        # Full bootstrap installer (23 steps)
 │   ├── setup.sh                          # Interactive setup wizard (API key, platforms, Slack)
 │   ├── mcp-call.py                       # MCP JSON-RPC protocol handler
 │   └── gait-stdio.py                     # GAIT server stdio wrapper
@@ -496,26 +544,27 @@ netclaw/
 
 1. **Checks prerequisites** — Node.js >= 18, Python 3, pip3, git, npx
 2. **Installs OpenClaw** — `npm install -g openclaw@latest`
-3. **Creates mcp-servers/** — directory for all cloned backends
-4. **Clones pyATS MCP** — `git clone` + `pip3 install -r requirements.txt`
-5. **Clones Markmap MCP** — `git clone` + `npm install` + `npm run build`
-6. **Clones GAIT MCP** — `git clone` + `pip3 install gait-ai fastmcp`
-7. **Clones NetBox MCP** — `git clone` + `pip3 install` dependencies
-8. **Clones ServiceNow MCP** — `git clone` + `pip3 install` dependencies
-9. **Clones ACI MCP** — `git clone` + `pip3 install` dependencies
-10. **Clones ISE MCP** — `git clone` + `pip3 install` dependencies
-11. **Clones Wikipedia MCP** — `git clone` + `pip3 install` dependencies
-12. **Clones NVD CVE MCP** — `git clone` + `pip3 install -e .`
-13. **Clones Subnet Calculator MCP** — `git clone` (enhanced with IPv6 support)
-14. **Clones F5 BIG-IP MCP** — `git clone` + `pip3 install` dependencies
-15. **Clones Catalyst Center MCP** — `git clone` + `pip3 install` dependencies
-16. **Caches Microsoft Graph MCP** — `npm cache add` for Graph API (OneDrive, SharePoint, Visio, Teams)
-17. **Caches npx packages** — `npm cache add` for Draw.io and RFC servers
-18. **Deploys skills + workspace files** — Copies 35 skills and 6 MD files to `~/.openclaw/workspace/`
-19. **Verifies installation** — Checks 14 critical files exist (all MCP server scripts + core scripts)
-20. **Prints summary** — Lists all 16 MCP servers by category and all 35 skills by domain
-21. **Launches `openclaw onboard`** — OpenClaw's built-in wizard for AI provider, gateway, and channel setup
-22. **Launches `setup.sh`** — NetClaw-specific wizard for platform credentials and personalization
+3. **Runs OpenClaw onboard** — AI provider, gateway, channels, daemon service
+4. **Creates mcp-servers/** — directory for all cloned backends
+5. **Clones pyATS MCP** — `git clone` + `pip3 install -r requirements.txt`
+6. **Clones Markmap MCP** — `git clone` + `npm install` + `npm run build`
+7. **Clones GAIT MCP** — `git clone` + `pip3 install gait-ai fastmcp`
+8. **Clones NetBox MCP** — `git clone` + `pip3 install` dependencies
+9. **Clones ServiceNow MCP** — `git clone` + `pip3 install` dependencies
+10. **Clones ACI MCP** — `git clone` + `pip3 install` dependencies
+11. **Clones ISE MCP** — `git clone` + `pip3 install` dependencies
+12. **Clones Wikipedia MCP** — `git clone` + `pip3 install` dependencies
+13. **Clones NVD CVE MCP** — `git clone` + `pip3 install -e .`
+14. **Clones Subnet Calculator MCP** — `git clone` (enhanced with IPv6 support)
+15. **Clones F5 BIG-IP MCP** — `git clone` + `pip3 install` dependencies
+16. **Clones Catalyst Center MCP** — `git clone` + `pip3 install` dependencies
+17. **Caches Microsoft Graph MCP** — `npm cache add` for Graph API (OneDrive, SharePoint, Visio, Teams)
+18. **Caches npx packages** — `npm cache add` for Draw.io and RFC servers
+19. **Pulls GitHub MCP** — `docker pull ghcr.io/github/github-mcp-server` (requires Docker)
+20. **Installs Packet Buddy MCP** — verifies/installs tshark, creates pcap upload directory
+21. **Deploys skills + workspace files** — Copies 38 skills and 6 MD files to `~/.openclaw/workspace/`
+22. **Verifies installation** — Checks all MCP server scripts + core scripts exist
+23. **Prints summary** — Lists all 18 MCP servers by category and all 38 skills by domain
 
 ---
 
@@ -561,6 +610,9 @@ Optional (for full feature set):
 - NVD API key (free from https://nvd.nist.gov/developers/request-an-api-key)
 - F5 BIG-IP management access with iControl REST enabled
 - Cisco Catalyst Center (DNA Center) with API credentials
+- Docker (for GitHub MCP server)
+- tshark / Wireshark (for Packet Buddy pcap analysis — `apt install tshark`)
+- GitHub PAT with repo scope (for GitHub MCP — https://github.com/settings/tokens)
 - Microsoft 365 tenant with Azure AD app registration (for Graph/Visio/Teams skills)
 - Slack workspace with NetClaw bot installed (for Slack skills)
 
@@ -612,6 +664,18 @@ Ask NetClaw anything you'd ask a senior network engineer:
 
 "What does RFC 4271 say about BGP hold timers?"
 --> rfc-lookup: fetch RFC 4271, extract relevant section
+
+[upload capture.pcap to Slack] "What's in this capture?"
+--> packet-analysis: summary, protocol hierarchy, conversations, expert info, AI findings
+
+"Analyze the DNS traffic in that pcap"
+--> packet-analysis: pcap_dns_queries, pcap_filter (dns), plain-English analysis
+
+"Create a GitHub issue for the BGP flapping on R3"
+--> github-ops: create issue with device details, symptoms, logs, recommended fix
+
+"Commit R1's running config to the network-configs repo"
+--> github-ops: create branch, commit config file, open PR with change summary
 ```
 
 See `examples/` for detailed workflow walkthroughs.
@@ -623,4 +687,4 @@ See `examples/` for detailed workflow walkthroughs.
 | Mission | Status | Summary |
 |---|---|---|
 | MISSION01 | Complete | Core pyATS agent, 7 skills, Markmap, Draw.io, RFC, NVD CVE, SOUL v1 |
-| MISSION02 | Complete | Full platform — 16 MCP servers, 35 skills (9 pyATS, 7 domain, 3 F5, 3 CatC, 3 M365, 6 utility, 4 Slack), 6 workspace files, SOUL v2 |
+| MISSION02 | Complete | Full platform — 18 MCP servers, 38 skills (9 pyATS, 7 domain, 3 F5, 3 CatC, 3 M365, 1 GitHub, 1 packet analysis, 6 utility, 4 Slack), 6 workspace files, SOUL v2 |
