@@ -38,7 +38,7 @@ clone_or_pull() {
 
 NETCLAW_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MCP_DIR="$NETCLAW_DIR/mcp-servers"
-TOTAL_STEPS=28
+TOTAL_STEPS=29
 
 echo "========================================="
 echo "  NetClaw - CCIE Network Agent"
@@ -679,10 +679,49 @@ log_info "GCP MCP servers ready (4 remote HTTP endpoints — hosted by Google)"
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 26: Deploy skills and set environment
+# Step 26: ContainerLab MCP Server (Python)
 # ═══════════════════════════════════════════
 
-log_step "26/$TOTAL_STEPS Deploying skills and configuration..."
+log_step "26/$TOTAL_STEPS Installing ContainerLab MCP Server..."
+echo "  Source: Built-in Python MCP server for ContainerLab API"
+echo "  Deploy and manage containerized network labs (SR Linux, cEOS, FRR, etc.)"
+
+CLAB_MCP_SCRIPT="$NETCLAW_DIR/scripts/clab_mcp_server.py"
+
+if [ -f "$CLAB_MCP_SCRIPT" ]; then
+    log_info "ContainerLab MCP server found: $CLAB_MCP_SCRIPT"
+
+    # Install dependencies (all likely already present from other servers)
+    pip3 install requests fastmcp python-dotenv 2>/dev/null || \
+        pip3 install --break-system-packages requests fastmcp python-dotenv 2>/dev/null || \
+        log_warn "ContainerLab MCP dependencies install failed"
+
+    # Verify the script is importable
+    if python3 -c "import fastmcp, requests" 2>/dev/null; then
+        log_info "ContainerLab MCP ready: python3 -u $CLAB_MCP_SCRIPT"
+    else
+        log_warn "ContainerLab MCP dependencies not importable — check fastmcp and requests"
+    fi
+else
+    log_warn "ContainerLab MCP server not found at $CLAB_MCP_SCRIPT"
+fi
+
+echo ""
+echo "  Prerequisite: ContainerLab API server (clab-api-server) must be running."
+echo "  Create a Linux user on the API server host:"
+echo "    sudo groupadd -f clab_admins && sudo groupadd -f clab_api"
+echo "    sudo useradd -m -s /bin/bash netclaw && sudo usermod -aG clab_admins netclaw"
+echo "    sudo passwd netclaw"
+echo "  If the API server runs in Docker, restart it: docker restart clab-api-server"
+echo ""
+
+echo ""
+
+# ═══════════════════════════════════════════
+# Step 27: Deploy skills and set environment
+# ═══════════════════════════════════════════
+
+log_step "27/$TOTAL_STEPS Deploying skills and configuration..."
 
 PYATS_SCRIPT="$PYATS_MCP_DIR/pyats_mcp_server.py"
 TESTBED_PATH="$NETCLAW_DIR/testbed/testbed.yaml"
@@ -747,6 +786,8 @@ declare -A ENV_VARS=(
     ["F5_MCP_SCRIPT"]="$F5_MCP_DIR/F5MCPserver.py"
     ["CATC_MCP_SCRIPT"]="$CATC_MCP_DIR/catalyst-center-mcp.py"
     ["PACKET_BUDDY_MCP_SCRIPT"]="$PACKET_BUDDY_MCP_DIR/server.py"
+    ["CLAB_MCP_SCRIPT"]="$NETCLAW_DIR/scripts/clab_mcp_server.py"
+    ["NETCLAW_DIR"]="$NETCLAW_DIR"
 )
 
 for key in "${!ENV_VARS[@]}"; do
@@ -787,10 +828,10 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 27: Verify installation
+# Step 28: Verify installation
 # ═══════════════════════════════════════════
 
-log_step "27/$TOTAL_STEPS Verifying installation..."
+log_step "28/$TOTAL_STEPS Verifying installation..."
 
 SERVERS_OK=0
 SERVERS_FAIL=0
@@ -867,6 +908,15 @@ else
     SERVERS_FAIL=$((SERVERS_FAIL + 1))
 fi
 
+# ContainerLab MCP is a Python script in scripts/
+if [ -f "$NETCLAW_DIR/scripts/clab_mcp_server.py" ]; then
+    log_info "ContainerLab MCP: OK"
+    SERVERS_OK=$((SERVERS_OK + 1))
+else
+    log_warn "ContainerLab MCP: NOT FOUND (scripts/clab_mcp_server.py missing)"
+    SERVERS_FAIL=$((SERVERS_FAIL + 1))
+fi
+
 verify_file "MCP Call Script" "$NETCLAW_DIR/scripts/mcp-call.py"
 
 echo ""
@@ -874,10 +924,10 @@ log_info "Verification: $SERVERS_OK OK, $SERVERS_FAIL FAILED"
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 28: Summary
+# Step 29: Summary
 # ═══════════════════════════════════════════
 
-log_step "28/$TOTAL_STEPS Installation Summary"
+log_step "29/$TOTAL_STEPS Installation Summary"
 echo ""
 echo "========================================="
 echo "  NetClaw Installation Complete"
@@ -886,7 +936,7 @@ echo ""
 
 SKILL_COUNT=$(ls -d "$NETCLAW_DIR/workspace/skills/"*/ 2>/dev/null | wc -l)
 
-echo "MCP Servers Installed (31):"
+echo "MCP Servers Installed (32):"
 echo "  ┌─────────────────────────────────────────────────────────────"
 echo "  │ NETWORK DEVICE AUTOMATION:"
 echo "  │   pyATS              Cisco device CLI, Genie parsers"
@@ -907,6 +957,7 @@ echo "  │   Cisco FMC           Secure Firewall policy search, FTD targeting, 
 echo "  │"
 echo "  │ LAB & SIMULATION:"
 echo "  │   Cisco CML           Lab lifecycle, node mgmt, topology, packet capture"
+echo "  │   ContainerLab        Containerized labs (SR Linux, cEOS, FRR) via API"
 echo "  │"
 echo "  │ OFFICE 365 / MICROSOFT:"
 echo "  │   Microsoft Graph     OneDrive, SharePoint, Visio, Teams, Exchange"
@@ -1013,6 +1064,9 @@ echo "  │   cml-topology-builder    Add nodes, interfaces, links, build topolo
 echo "  │   cml-node-operations     Console, CLI exec, start/stop nodes, configs"
 echo "  │   cml-packet-capture      Start/stop/download pcap on CML links"
 echo "  │   cml-admin               Users, groups, system info, licensing"
+echo "  │"
+echo "  │ ContainerLab Skills:"
+echo "  │   clab-lab-management     Deploy, inspect, exec, destroy containerized labs"
 echo "  │"
 echo "  │ Reference & Utility Skills:"
 echo "  │   nvd-cve                NVD vulnerability search (Python)"
