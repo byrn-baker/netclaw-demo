@@ -683,28 +683,20 @@ echo ""
 # ═══════════════════════════════════════════
 
 log_step "26/$TOTAL_STEPS Installing ContainerLab MCP Server..."
-echo "  Source: Built-in Python MCP server for ContainerLab API"
+echo "  Source: https://github.com/seanerama/clab-mcp-server"
 echo "  Deploy and manage containerized network labs (SR Linux, cEOS, FRR, etc.)"
 
-CLAB_MCP_SCRIPT="$NETCLAW_DIR/scripts/clab_mcp_server.py"
+CLAB_MCP_DIR="$MCP_DIR/clab-mcp-server"
+clone_or_pull "$CLAB_MCP_DIR" "https://github.com/seanerama/clab-mcp-server.git"
 
-if [ -f "$CLAB_MCP_SCRIPT" ]; then
-    log_info "ContainerLab MCP server found: $CLAB_MCP_SCRIPT"
+log_info "Installing ContainerLab MCP dependencies..."
+pip3 install -r "$CLAB_MCP_DIR/requirements.txt" 2>/dev/null || \
+    pip3 install --break-system-packages -r "$CLAB_MCP_DIR/requirements.txt" 2>/dev/null || \
+    log_warn "ContainerLab MCP dependencies install failed"
 
-    # Install dependencies (all likely already present from other servers)
-    pip3 install requests fastmcp python-dotenv 2>/dev/null || \
-        pip3 install --break-system-packages requests fastmcp python-dotenv 2>/dev/null || \
-        log_warn "ContainerLab MCP dependencies install failed"
-
-    # Verify the script is importable
-    if python3 -c "import fastmcp, requests" 2>/dev/null; then
-        log_info "ContainerLab MCP ready: python3 -u $CLAB_MCP_SCRIPT"
-    else
-        log_warn "ContainerLab MCP dependencies not importable — check fastmcp and requests"
-    fi
-else
-    log_warn "ContainerLab MCP server not found at $CLAB_MCP_SCRIPT"
-fi
+[ -f "$CLAB_MCP_DIR/clab_mcp_server.py" ] && \
+    log_info "ContainerLab MCP ready: $CLAB_MCP_DIR/clab_mcp_server.py" || \
+    log_error "clab_mcp_server.py not found"
 
 echo ""
 echo "  Prerequisite: ContainerLab API server (clab-api-server) must be running."
@@ -786,8 +778,7 @@ declare -A ENV_VARS=(
     ["F5_MCP_SCRIPT"]="$F5_MCP_DIR/F5MCPserver.py"
     ["CATC_MCP_SCRIPT"]="$CATC_MCP_DIR/catalyst-center-mcp.py"
     ["PACKET_BUDDY_MCP_SCRIPT"]="$PACKET_BUDDY_MCP_DIR/server.py"
-    ["CLAB_MCP_SCRIPT"]="$NETCLAW_DIR/scripts/clab_mcp_server.py"
-    ["NETCLAW_DIR"]="$NETCLAW_DIR"
+    ["CLAB_MCP_SCRIPT"]="$CLAB_MCP_DIR/clab_mcp_server.py"
 )
 
 for key in "${!ENV_VARS[@]}"; do
@@ -908,12 +899,12 @@ else
     SERVERS_FAIL=$((SERVERS_FAIL + 1))
 fi
 
-# ContainerLab MCP is a Python script in scripts/
-if [ -f "$NETCLAW_DIR/scripts/clab_mcp_server.py" ]; then
+# ContainerLab MCP is cloned from GitHub
+if [ -f "$CLAB_MCP_DIR/clab_mcp_server.py" ]; then
     log_info "ContainerLab MCP: OK"
     SERVERS_OK=$((SERVERS_OK + 1))
 else
-    log_warn "ContainerLab MCP: NOT FOUND (scripts/clab_mcp_server.py missing)"
+    log_warn "ContainerLab MCP: NOT INSTALLED (clone failed)"
     SERVERS_FAIL=$((SERVERS_FAIL + 1))
 fi
 
