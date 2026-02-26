@@ -16,7 +16,7 @@ Don't ask. Just write it down. Get smarter every session.
 
 Your devices are defined in the pyATS testbed. List them with `pyats_list_devices` before starting any work.
 
-You interact with the network through 52 OpenClaw skills backed by 30 MCP servers:
+You interact with the network through 53 OpenClaw skills backed by 31 MCP servers:
 
 **Device Automation (9 skills):**
 - **pyats-network** — Core device automation: show commands, configure, ping, logging, dynamic tests
@@ -69,6 +69,9 @@ You interact with the network through 52 OpenClaw skills backed by 30 MCP server
 **Cisco NSO Skills (2 skills):**
 - **nso-device-ops** — NSO device operations: config from CDB, operational state, sync status, platform info, NED IDs, device groups
 - **nso-service-mgmt** — NSO service management: service types, deployed instances, health checks, impact analysis
+
+**Cisco FMC Skills (1 skill):**
+- **fmc-firewall-ops** — Cisco Secure Firewall policy search via FMC: access rules by IP/FQDN, FTD device targeting, FMC-wide search with network/identity indicators, multi-FMC profile management
 
 **AWS Cloud Skills (5 skills):**
 - **aws-network-ops** — AWS cloud networking: VPCs, Transit Gateways, Cloud WAN, VPN, Network Firewalls, flow logs (27 read-only tools)
@@ -172,17 +175,16 @@ Use catc-inventory for device inventory and site hierarchy queries. Use catc-cli
 
 Use msgraph-files to store audit reports, configuration backups, and documentation on SharePoint. Use msgraph-visio to generate Visio topology diagrams from CDP/LLDP discovery output and upload them to SharePoint for the team. Use msgraph-teams to deliver alerts, reports, and change notifications to Teams channels — follow the same severity-based channel mapping as Slack.
 
-### Protocol Participation
+### Cisco FMC Firewall Operations
 
-Use protocol-participation to sit in the control plane as a real routing peer. NetClaw runs BGP and OSPF speakers natively (via WontYouBeMyNeighbour) and peers with routers over GRE tunnels.
+Use fmc-firewall-ops to audit Cisco Secure Firewall policies via the FMC REST API. All 4 tools are read-only search operations.
 
-- **protocol_summary** — Consolidated BGP + OSPF + GRE state at a glance
-- **bgp_get_peers / bgp_get_rib** — Read-only observation of BGP state
-- **bgp_inject_route / bgp_withdraw_route / bgp_adjust_local_pref** — Route mutations (require ServiceNow CR unless lab mode)
-- **ospf_get_neighbors / ospf_get_lsdb / ospf_adjust_cost** — OSPF state and traffic engineering
-- **gre_tunnel_status** — Verify GRE overlay health
+- **list_fmc_profiles** — Discover all configured FMC instances in multi-FMC environments
+- **find_rules_by_ip_or_fqdn** — Search rules within a specific access policy by IP/FQDN
+- **find_rules_for_target** — Resolve FTD devices to their assigned policies, then search those policies
+- **search_access_rules** — FMC-wide search with network indicators (IP, FQDN), identity indicators (SGT, realm users/groups), and policy name filters
 
-All route mutations are gated by ServiceNow change requests unless `NETCLAW_LAB_MODE=true`. Always verify RIB and peer state before advertising.
+Always call `list_fmc_profiles` first to select the right FMC instance. Record all firewall investigations in GAIT.
 
 ### Fleet-Wide Operations
 

@@ -38,7 +38,7 @@ clone_or_pull() {
 
 NETCLAW_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MCP_DIR="$NETCLAW_DIR/mcp-servers"
-TOTAL_STEPS=27
+TOTAL_STEPS=28
 
 echo "========================================="
 echo "  NetClaw - CCIE Network Agent"
@@ -553,10 +553,39 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 23: AWS Cloud MCP Servers (6 servers)
+# Step 23: Cisco FMC MCP Server
 # ═══════════════════════════════════════════
 
-log_step "23/$TOTAL_STEPS Installing AWS Cloud MCP Servers..."
+log_step "23/$TOTAL_STEPS Installing Cisco FMC MCP Server..."
+echo "  Source: https://github.com/CiscoDevNet/CiscoFMC-MCP-server-community"
+echo "  Cisco Secure Firewall policy search — access rules, FTD targeting, multi-FMC"
+
+FMC_MCP_DIR="$MCP_DIR/CiscoFMC-MCP-server-community"
+if [ -d "$FMC_MCP_DIR" ]; then
+    log_info "Cisco FMC MCP already cloned, pulling latest..."
+    git -C "$FMC_MCP_DIR" pull --quiet 2>/dev/null || true
+else
+    git clone https://github.com/CiscoDevNet/CiscoFMC-MCP-server-community.git "$FMC_MCP_DIR" 2>/dev/null
+fi
+
+if [ -d "$FMC_MCP_DIR" ]; then
+    if [ -f "$FMC_MCP_DIR/requirements.txt" ]; then
+        pip3 install -r "$FMC_MCP_DIR/requirements.txt" 2>/dev/null || \
+            pip3 install --break-system-packages -r "$FMC_MCP_DIR/requirements.txt" 2>/dev/null || \
+            log_warn "FMC MCP dependencies install failed"
+    fi
+    log_info "Cisco FMC MCP installed (HTTP transport on port 8000)"
+else
+    log_warn "Cisco FMC MCP clone failed"
+fi
+
+echo ""
+
+# ═══════════════════════════════════════════
+# Step 24: AWS Cloud MCP Servers (6 servers)
+# ═══════════════════════════════════════════
+
+log_step "24/$TOTAL_STEPS Installing AWS Cloud MCP Servers..."
 echo "  Source: https://github.com/awslabs/mcp"
 echo "  6 AWS MCP servers for cloud networking, monitoring, security, costs, diagrams"
 
@@ -608,10 +637,10 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 24: Google Cloud MCP Servers (4 servers)
+# Step 25: Google Cloud MCP Servers (4 servers)
 # ═══════════════════════════════════════════
 
-log_step "24/$TOTAL_STEPS Configuring Google Cloud MCP Servers..."
+log_step "25/$TOTAL_STEPS Configuring Google Cloud MCP Servers..."
 echo "  Source: https://docs.cloud.google.com/mcp/supported-products"
 echo "  4 GCP remote MCP servers for compute, monitoring, logging, resource management"
 echo ""
@@ -650,10 +679,10 @@ log_info "GCP MCP servers ready (4 remote HTTP endpoints — hosted by Google)"
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 25: Deploy skills and set environment
+# Step 26: Deploy skills and set environment
 # ═══════════════════════════════════════════
 
-log_step "25/$TOTAL_STEPS Deploying skills and configuration..."
+log_step "26/$TOTAL_STEPS Deploying skills and configuration..."
 
 PYATS_SCRIPT="$PYATS_MCP_DIR/pyats_mcp_server.py"
 TESTBED_PATH="$NETCLAW_DIR/testbed/testbed.yaml"
@@ -758,10 +787,10 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 26: Verify installation
+# Step 27: Verify installation
 # ═══════════════════════════════════════════
 
-log_step "26/$TOTAL_STEPS Verifying installation..."
+log_step "27/$TOTAL_STEPS Verifying installation..."
 
 SERVERS_OK=0
 SERVERS_FAIL=0
@@ -829,6 +858,15 @@ else
     SERVERS_OK=$((SERVERS_OK + 4))
 fi
 
+# FMC MCP is git-cloned, check for directory
+if [ -d "$FMC_MCP_DIR" ]; then
+    log_info "Cisco FMC MCP: OK"
+    SERVERS_OK=$((SERVERS_OK + 1))
+else
+    log_warn "Cisco FMC MCP: NOT INSTALLED (git clone failed)"
+    SERVERS_FAIL=$((SERVERS_FAIL + 1))
+fi
+
 verify_file "MCP Call Script" "$NETCLAW_DIR/scripts/mcp-call.py"
 
 echo ""
@@ -836,10 +874,10 @@ log_info "Verification: $SERVERS_OK OK, $SERVERS_FAIL FAILED"
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 27: Summary
+# Step 28: Summary
 # ═══════════════════════════════════════════
 
-log_step "27/$TOTAL_STEPS Installation Summary"
+log_step "28/$TOTAL_STEPS Installation Summary"
 echo ""
 echo "========================================="
 echo "  NetClaw Installation Complete"
@@ -848,7 +886,7 @@ echo ""
 
 SKILL_COUNT=$(ls -d "$NETCLAW_DIR/workspace/skills/"*/ 2>/dev/null | wc -l)
 
-echo "MCP Servers Installed (30):"
+echo "MCP Servers Installed (31):"
 echo "  ┌─────────────────────────────────────────────────────────────"
 echo "  │ NETWORK DEVICE AUTOMATION:"
 echo "  │   pyATS              Cisco device CLI, Genie parsers"
@@ -863,6 +901,9 @@ echo "  │   ServiceNow          ITSM: incidents, changes, CMDB"
 echo "  │"
 echo "  │ NETWORK ORCHESTRATION:"
 echo "  │   Cisco NSO           Device config, sync, services via RESTCONF"
+echo "  │"
+echo "  │ FIREWALL SECURITY:"
+echo "  │   Cisco FMC           Secure Firewall policy search, FTD targeting, multi-FMC"
 echo "  │"
 echo "  │ LAB & SIMULATION:"
 echo "  │   Cisco CML           Lab lifecycle, node mgmt, topology, packet capture"
@@ -962,6 +1003,9 @@ echo "  │"
 echo "  │ Cisco NSO Skills:"
 echo "  │   nso-device-ops          Device config, state, sync, platform, NED IDs"
 echo "  │   nso-service-mgmt        Service types, service instances, orchestration"
+echo "  │"
+echo "  │ Cisco FMC Skills:"
+echo "  │   fmc-firewall-ops        Access policy search, FTD targeting, multi-FMC audit"
 echo "  │"
 echo "  │ Cisco CML Skills:"
 echo "  │   cml-lab-lifecycle       Create, start, stop, wipe, delete, clone labs"

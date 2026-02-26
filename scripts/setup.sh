@@ -382,6 +382,30 @@ else
 fi
 echo ""
 
+# --- Cisco FMC (Secure Firewall) ---
+if yesno "Do you have a Cisco Secure Firewall Management Center (FMC)?"; then
+    echo ""
+    echo -e "  FMC MCP connects via HTTP to the FMC REST API for firewall policy search."
+    echo -e "  Requires FMC with API access enabled."
+    echo ""
+    prompt FMC_URL "FMC Base URL (https://fmc.example.com)" ""
+    prompt FMC_USER "FMC API Username" ""
+    prompt_secret FMC_PASS "FMC API Password"
+    if yesno "Verify SSL certificate?" "y"; then
+        FMC_VERIFY="true"
+    else
+        FMC_VERIFY="false"
+    fi
+    [ -n "$FMC_URL" ] && set_env "FMC_BASE_URL" "$FMC_URL"
+    [ -n "$FMC_USER" ] && set_env "FMC_USERNAME" "$FMC_USER"
+    [ -n "$FMC_PASS" ] && set_env "FMC_PASSWORD" "$FMC_PASS"
+    set_env "FMC_VERIFY_SSL" "$FMC_VERIFY"
+    ok "Cisco FMC configured"
+else
+    skip "Cisco FMC"
+fi
+echo ""
+
 # ═══════════════════════════════════════════
 # Step 3: Your Identity
 # ═══════════════════════════════════════════
@@ -442,6 +466,7 @@ grep -q "^CML_URL=" "$OPENCLAW_ENV" 2>/dev/null && ok "Cisco CML" || skip "Cisco
 grep -q "^NSO_ADDRESS=" "$OPENCLAW_ENV" 2>/dev/null && ok "Cisco NSO" || skip "Cisco NSO"
 grep -q "^AWS_ACCESS_KEY_ID=" "$OPENCLAW_ENV" 2>/dev/null && ok "AWS Cloud" || skip "AWS Cloud"
 grep -q "^GCP_PROJECT_ID=" "$OPENCLAW_ENV" 2>/dev/null && ok "Google Cloud" || skip "Google Cloud"
+grep -q "^FMC_BASE_URL=" "$OPENCLAW_ENV" 2>/dev/null && ok "Cisco FMC" || skip "Cisco FMC"
 
 echo ""
 echo -e "  ${BOLD}Ready to go:${NC}"

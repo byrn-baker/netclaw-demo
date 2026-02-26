@@ -4,7 +4,7 @@
 
 # NetClaw
 
-A CCIE-level AI network engineering coworker. Built on [OpenClaw](https://github.com/openclaw/openclaw) with Anthropic Claude, 52 skills, and 30 MCP server backends for complete network automation with ITSM gating, source-of-truth reconciliation, immutable audit trails, packet capture analysis, GitHub config-as-code, Cisco CML lab simulation, Cisco NSO orchestration, AWS cloud networking, Slack-native operations, and Microsoft 365 integration.
+A CCIE-level AI network engineering coworker. Built on [OpenClaw](https://github.com/openclaw/openclaw) with Anthropic Claude, 53 skills, and 31 MCP server backends for complete network automation with ITSM gating, source-of-truth reconciliation, immutable audit trails, packet capture analysis, GitHub config-as-code, Cisco CML lab simulation, Cisco NSO orchestration, AWS cloud networking, Cisco Secure Firewall policy auditing, Slack-native operations, and Microsoft 365 integration.
 
 ---
 
@@ -16,7 +16,7 @@ cd netclaw
 ./scripts/install.sh          # installs everything, then launches the setup wizard
 ```
 
-That's it. The installer clones 30 MCP servers, deploys 52 skills, then launches a two-phase setup:
+That's it. The installer clones 31 MCP servers, deploys 53 skills, then launches a two-phase setup:
 
 **Phase 1: `openclaw onboard`** (OpenClaw's built-in wizard)
 - Pick your AI provider (Anthropic, OpenAI, Bedrock, Vertex, 30+ options)
@@ -26,7 +26,7 @@ That's it. The installer clones 30 MCP servers, deploys 52 skills, then launches
 
 **Phase 2: `./scripts/setup.sh`** (NetClaw platform credentials)
 - Network devices (testbed.yaml editor)
-- Platform credentials (NetBox, ServiceNow, ACI, ISE, F5, Catalyst Center, NVD, Microsoft Graph, GitHub, CML, NSO, AWS, GCP)
+- Platform credentials (NetBox, ServiceNow, ACI, ISE, F5, Catalyst Center, NVD, Microsoft Graph, GitHub, CML, NSO, FMC, AWS, GCP)
 - Your identity (name, role, timezone for USER.md)
 
 After setup, start NetClaw:
@@ -55,6 +55,7 @@ NetClaw is an autonomous network engineering agent powered by Claude that can:
 - **Reconcile** NetBox source of truth against live device state — flag IP drift, undocumented links, missing interfaces
 - **Manage** ACI fabric — health audits, policy analysis, safe tenant/VRF/BD/EPG changes with fault delta rollback
 - **Investigate** endpoints via ISE — auth history, posture, profiling, human-authorized quarantine
+- **Audit** Cisco Secure Firewall policies via FMC — search access rules by IP/FQDN, resolve FTD device policies, cross-FMC consistency checks, and SGT-based policy review
 - **Scan** for CVE vulnerabilities against the NVD database with CVSS severity correlation and exposure confirmation
 - **Manage** F5 BIG-IP load balancers — virtual servers, pools, iRules, stats, and change management
 - **Operate** Catalyst Center — device inventory, client monitoring, site management, and troubleshooting
@@ -110,6 +111,9 @@ Human (Slack / WebChat) --> NetClaw (CCIE Agent on OpenClaw)
                                 |-- NETWORK ORCHESTRATION:
                                 |     MCP: Cisco NSO          --> Device config, sync, services via RESTCONF
                                 |
+                                |-- FIREWALL SECURITY:
+                                |     MCP: Cisco FMC          --> Access policy search, FTD targeting, multi-FMC
+                                |
                                 |-- LAB & SIMULATION:
                                 |     MCP: Cisco CML         --> Lab lifecycle, topology, nodes, captures
                                 |
@@ -157,7 +161,7 @@ NetClaw ships with the full set of OpenClaw workspace markdown files. These are 
 
 ---
 
-## MCP Servers (30)
+## MCP Servers (31)
 
 | # | MCP Server | Repository | Transport | Function |
 |---|------------|------------|-----------|----------|
@@ -173,29 +177,30 @@ NetClaw ships with the full set of OpenClaw workspace markdown files. These are 
 | 10 | Packet Buddy | Built-in | stdio (Python) | pcap/pcapng deep analysis via tshark — upload pcaps to Slack |
 | 11 | Cisco CML | [xorrkaz/cml-mcp](https://github.com/xorrkaz/cml-mcp) | stdio (Python) | Lab lifecycle, topology, nodes, links, captures, CLI exec, admin |
 | 12 | Cisco NSO | [NSO-developer/cisco-nso-mcp-server](https://github.com/NSO-developer/cisco-nso-mcp-server) | stdio (Python) | Device config, state, sync, services, NED IDs via RESTCONF |
-| 13 | AWS Network | [awslabs/aws-network-mcp-server](https://github.com/awslabs/mcp) | uvx (Python) | VPC, TGW, Cloud WAN, VPN, Network Firewall, flow logs (27 tools) |
-| 14 | AWS CloudWatch | [awslabs/cloudwatch-mcp-server](https://github.com/awslabs/mcp) | uvx (Python) | CloudWatch metrics, alarms, Logs Insights queries |
-| 15 | AWS IAM | [awslabs/iam-mcp-server](https://github.com/awslabs/mcp) | uvx (Python) | IAM users, roles, policies (read-only mode) |
-| 16 | AWS CloudTrail | [awslabs/cloudtrail-mcp-server](https://github.com/awslabs/mcp) | uvx (Python) | API event audit trail, security investigation |
-| 17 | AWS Cost Explorer | [awslabs/cost-explorer-mcp-server](https://github.com/awslabs/mcp) | uvx (Python) | Spending analysis, forecasts, anomaly detection |
-| 18 | AWS Diagram | [awslabs/aws-diagram-mcp-server](https://github.com/awslabs/mcp) | uvx (Python) | Architecture diagrams from live infrastructure (graphviz) |
-| 19 | GCP Compute Engine | [Google Cloud](https://docs.cloud.google.com/compute/docs/reference/mcp) | Remote HTTP | VMs, disks, templates, instance groups, snapshots (28 tools) |
-| 20 | GCP Cloud Monitoring | [Google Cloud](https://docs.cloud.google.com/monitoring/api/ref_v3/mcp) | Remote HTTP | Time series metrics, alert policies, active alerts (6 tools) |
-| 21 | GCP Cloud Logging | [Google Cloud](https://docs.cloud.google.com/logging/docs/reference/v2/mcp) | Remote HTTP | Log search, VPC flow logs, firewall logs, audit logs (6 tools) |
-| 22 | GCP Resource Manager | [Google Cloud](https://docs.cloud.google.com/mcp/supported-products) | Remote HTTP | Project discovery (1 tool) |
-| 23 | NVD CVE | [marcoeg/mcp-nvd](https://github.com/marcoeg/mcp-nvd) | stdio (Python) | NIST NVD vulnerability database with CVSS scoring |
-| 24 | Subnet Calculator | [automateyournetwork/GeminiCLI_SubnetCalculator_Extension](https://github.com/automateyournetwork/GeminiCLI_SubnetCalculator_Extension) | stdio (Python) | IPv4 + IPv6 CIDR subnet calculator |
-| 25 | GAIT | [automateyournetwork/gait_mcp](https://github.com/automateyournetwork/gait_mcp) | stdio (Python) | Git-based AI tracking and audit |
-| 26 | Wikipedia | [automateyournetwork/Wikipedia_MCP](https://github.com/automateyournetwork/Wikipedia_MCP) | stdio (Python) | Standards and technology context |
-| 27 | Markmap | [automateyournetwork/markmap_mcp](https://github.com/automateyournetwork/markmap_mcp) | stdio (Node) | Hierarchical mind map generation |
-| 28 | Draw.io | [@drawio/mcp](https://github.com/jgraph/drawio-mcp) | npx | Network topology diagram generation |
-| 29 | RFC Lookup | [@mjpitz/mcp-rfc](https://github.com/mjpitz/mcp-rfc) | npx | IETF RFC search and retrieval |
+| 13 | Cisco FMC | [CiscoDevNet/CiscoFMC-MCP-server-community](https://github.com/CiscoDevNet/CiscoFMC-MCP-server-community) | HTTP (Python) | Secure Firewall access policy search, FTD targeting, multi-FMC (4 tools) |
+| 14 | AWS Network | [awslabs/aws-network-mcp-server](https://github.com/awslabs/mcp) | uvx (Python) | VPC, TGW, Cloud WAN, VPN, Network Firewall, flow logs (27 tools) |
+| 15 | AWS CloudWatch | [awslabs/cloudwatch-mcp-server](https://github.com/awslabs/mcp) | uvx (Python) | CloudWatch metrics, alarms, Logs Insights queries |
+| 16 | AWS IAM | [awslabs/iam-mcp-server](https://github.com/awslabs/mcp) | uvx (Python) | IAM users, roles, policies (read-only mode) |
+| 17 | AWS CloudTrail | [awslabs/cloudtrail-mcp-server](https://github.com/awslabs/mcp) | uvx (Python) | API event audit trail, security investigation |
+| 18 | AWS Cost Explorer | [awslabs/cost-explorer-mcp-server](https://github.com/awslabs/mcp) | uvx (Python) | Spending analysis, forecasts, anomaly detection |
+| 19 | AWS Diagram | [awslabs/aws-diagram-mcp-server](https://github.com/awslabs/mcp) | uvx (Python) | Architecture diagrams from live infrastructure (graphviz) |
+| 20 | GCP Compute Engine | [Google Cloud](https://docs.cloud.google.com/compute/docs/reference/mcp) | Remote HTTP | VMs, disks, templates, instance groups, snapshots (28 tools) |
+| 21 | GCP Cloud Monitoring | [Google Cloud](https://docs.cloud.google.com/monitoring/api/ref_v3/mcp) | Remote HTTP | Time series metrics, alert policies, active alerts (6 tools) |
+| 22 | GCP Cloud Logging | [Google Cloud](https://docs.cloud.google.com/logging/docs/reference/v2/mcp) | Remote HTTP | Log search, VPC flow logs, firewall logs, audit logs (6 tools) |
+| 23 | GCP Resource Manager | [Google Cloud](https://docs.cloud.google.com/mcp/supported-products) | Remote HTTP | Project discovery (1 tool) |
+| 24 | NVD CVE | [marcoeg/mcp-nvd](https://github.com/marcoeg/mcp-nvd) | stdio (Python) | NIST NVD vulnerability database with CVSS scoring |
+| 25 | Subnet Calculator | [automateyournetwork/GeminiCLI_SubnetCalculator_Extension](https://github.com/automateyournetwork/GeminiCLI_SubnetCalculator_Extension) | stdio (Python) | IPv4 + IPv6 CIDR subnet calculator |
+| 26 | GAIT | [automateyournetwork/gait_mcp](https://github.com/automateyournetwork/gait_mcp) | stdio (Python) | Git-based AI tracking and audit |
+| 27 | Wikipedia | [automateyournetwork/Wikipedia_MCP](https://github.com/automateyournetwork/Wikipedia_MCP) | stdio (Python) | Standards and technology context |
+| 28 | Markmap | [automateyournetwork/markmap_mcp](https://github.com/automateyournetwork/markmap_mcp) | stdio (Node) | Hierarchical mind map generation |
+| 29 | Draw.io | [@drawio/mcp](https://github.com/jgraph/drawio-mcp) | npx | Network topology diagram generation |
+| 30 | RFC Lookup | [@mjpitz/mcp-rfc](https://github.com/mjpitz/mcp-rfc) | npx | IETF RFC search and retrieval |
 
-All MCP servers communicate via stdio (JSON-RPC 2.0) through `scripts/mcp-call.py`. GitHub MCP runs via Docker. CML MCP is pip-installed (`cml-mcp`). NSO MCP is pip-installed (`cisco-nso-mcp-server`). AWS MCPs run via `uvx` (uv tool runner). GCP MCPs are remote HTTP endpoints hosted by Google (OAuth 2.0 auth). No persistent connections, no port management.
+All MCP servers communicate via stdio (JSON-RPC 2.0) through `scripts/mcp-call.py`. GitHub MCP runs via Docker. CML MCP is pip-installed (`cml-mcp`). NSO MCP is pip-installed (`cisco-nso-mcp-server`). FMC MCP runs as an HTTP server on port 8000. AWS MCPs run via `uvx` (uv tool runner). GCP MCPs are remote HTTP endpoints hosted by Google (OAuth 2.0 auth). No persistent connections, no port management.
 
 ---
 
-## Skills (52)
+## Skills (53)
 
 ### pyATS Device Skills (9)
 
@@ -275,6 +280,12 @@ All MCP servers communicate via stdio (JSON-RPC 2.0) through `scripts/mcp-call.p
 |-------|-------------|
 | **nso-device-ops** | NSO device operations: retrieve full config from NSO's CDB, inspect operational state, check device sync status, sync-from-device to pull live config into NSO, get platform info (model, serial, OS), list NED IDs and device groups. RESTCONF API. |
 | **nso-service-mgmt** | NSO service management: discover available service types (L3VPN, ACL, QoS, etc.), list deployed service instances, service health checks via sync verification, pre-change impact analysis (which services touch a device), service inventory reporting. |
+
+### Cisco FMC Skills (1)
+
+| Skill | What It Does |
+|-------|-------------|
+| **fmc-firewall-ops** | Cisco Secure Firewall policy search via FMC REST API (4 tools): list FMC profiles for multi-FMC environments, search access rules by IP/FQDN within a policy, resolve FTD devices to their assigned policies and search, FMC-wide rule search with network indicators (IP, FQDN), identity indicators (SGT, realm users/groups), and policy name filters. Read-only firewall rule audit, connectivity verification ("can Host A reach Host B?"), SGT policy review, and cross-FMC consistency analysis. |
 
 ### AWS Cloud Skills (5)
 
@@ -689,6 +700,16 @@ cml-packet-capture + packet-analysis
 --> AI analysis: "BGP OPEN/KEEPALIVE exchange completed in 2.3s, no NOTIFICATION errors"
 ```
 
+### FMC Firewall Rule Audit
+```
+fmc-firewall-ops
+--> list_fmc_profiles: discover all managed FMC instances
+--> search_access_rules: search by IP/FQDN across all policies
+--> For each match: rule name, action (allow/block), zones, networks, ports
+--> Cross-reference: overly permissive rules (any/any), redundant, shadowed
+--> Report: formatted rule table with security assessment
+```
+
 ### AWS VPC Network Audit
 ```
 aws-network-ops
@@ -848,6 +869,7 @@ netclaw/
 │       ├── cml-admin/                  # CML users, groups, system, licensing
 │       ├── nso-device-ops/             # NSO device config, state, sync, platform
 │       ├── nso-service-mgmt/           # NSO service types and instances
+│       ├── fmc-firewall-ops/          # FMC access policy search, FTD targeting
 │       ├── aws-network-ops/           # AWS VPC, TGW, Cloud WAN, VPN, Firewall (27 tools)
 │       ├── aws-cloud-monitoring/      # AWS CloudWatch metrics, alarms, flow logs
 │       ├── aws-security-audit/        # AWS IAM + CloudTrail security posture
@@ -877,9 +899,10 @@ netclaw/
 │   ├── subnet-calculator-mcp/            # IPv4 + IPv6 subnet calculator
 │   ├── f5-mcp-server/                    # F5 BIG-IP iControl REST
 │   ├── catalyst-center-mcp/              # Cisco Catalyst Center / DNA-C
-│   └── packet-buddy-mcp/                 # pcap analysis via tshark (built-in)
+│   ├── packet-buddy-mcp/                 # pcap analysis via tshark (built-in)
+│   └── CiscoFMC-MCP-server-community/   # Cisco FMC firewall policy search
 ├── scripts/
-│   ├── install.sh                        # Full bootstrap installer (27 steps)
+│   ├── install.sh                        # Full bootstrap installer (28 steps)
 │   ├── setup.sh                          # Interactive setup wizard (API key, platforms, Slack)
 │   ├── mcp-call.py                       # MCP JSON-RPC protocol handler
 │   └── gait-stdio.py                     # GAIT server stdio wrapper
@@ -938,11 +961,12 @@ netclaw/
 20. **Installs Packet Buddy MCP** — verifies/installs tshark, creates pcap upload directory
 21. **Installs CML MCP** — `pip3 install cml-mcp` (requires Python 3.12+, CML 2.9+)
 22. **Installs NSO MCP** — `pip3 install cisco-nso-mcp-server` (requires Python 3.12+, NSO with RESTCONF)
-23. **Installs AWS Cloud MCP Servers** — Installs `uv` (Astral), validates 6 AWS MCP packages via `uvx` (Network, CloudWatch, IAM, CloudTrail, Cost Explorer, Diagram)
-24. **Configures GCP Cloud MCP Servers** — Checks for `gcloud` CLI and credentials; 4 remote HTTP servers hosted by Google (Compute Engine, Cloud Monitoring, Cloud Logging, Resource Manager)
-25. **Deploys skills + workspace files** — Copies 52 skills and 6 MD files to `~/.openclaw/workspace/`
-26. **Verifies installation** — Checks all MCP server scripts + core scripts exist
-27. **Prints summary** — Lists all 30 MCP servers by category and all 52 skills by domain
+23. **Installs FMC MCP** — `git clone` + `pip3 install -r requirements.txt` for Cisco Secure Firewall policy search (HTTP transport, port 8000)
+24. **Installs AWS Cloud MCP Servers** — Installs `uv` (Astral), validates 6 AWS MCP packages via `uvx` (Network, CloudWatch, IAM, CloudTrail, Cost Explorer, Diagram)
+25. **Configures GCP Cloud MCP Servers** — Checks for `gcloud` CLI and credentials; 4 remote HTTP servers hosted by Google (Compute Engine, Cloud Monitoring, Cloud Logging, Resource Manager)
+26. **Deploys skills + workspace files** — Copies 53 skills and 6 MD files to `~/.openclaw/workspace/`
+27. **Verifies installation** — Checks all MCP server scripts + core scripts exist
+28. **Prints summary** — Lists all 31 MCP servers by category and all 53 skills by domain
 
 ---
 
@@ -993,6 +1017,7 @@ Optional (for full feature set):
 - GitHub PAT with repo scope (for GitHub MCP — https://github.com/settings/tokens)
 - Cisco CML 2.9+ with API access and Python 3.12+ (for CML lab management)
 - Cisco NSO with RESTCONF API enabled and Python 3.12+ (for NSO orchestration)
+- Cisco Secure Firewall Management Center (FMC) with API access (for firewall policy search)
 - AWS account with IAM credentials (`AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY`) for AWS cloud skills
 - graphviz (`apt install graphviz` or `brew install graphviz`) for AWS architecture diagrams
 - Google Cloud project with service account or `gcloud` CLI (for GCP Compute, Monitoring, Logging skills)
@@ -1087,6 +1112,15 @@ Ask NetClaw anything you'd ask a senior network engineer:
 "What's the CML server capacity?"
 --> cml-admin: get_system_info (CPU, RAM, disk), get_licensing (node count), resource planning report
 
+"What firewall rules exist for 10.1.1.0/24?"
+--> fmc-firewall-ops: list_fmc_profiles, search_access_rules with network indicator, formatted rule table
+
+"Can 10.1.1.50 reach 10.2.1.100 on port 443 through the firewall?"
+--> fmc-firewall-ops: find_rules_for_target (FTD device), find_rules_by_ip_or_fqdn (source + dest), port/action analysis
+
+"Audit SGT policies across all FMCs"
+--> fmc-firewall-ops: list_fmc_profiles, search_access_rules with SGT identity indicator per FMC, consistency report
+
 "Show me all our AWS VPCs"
 --> aws-network-ops: list_vpcs, get_vpc_network_details for each, formatted architecture summary
 
@@ -1130,4 +1164,4 @@ See `examples/` for detailed workflow walkthroughs.
 | Mission | Status | Summary |
 |---|---|---|
 | MISSION01 | Complete | Core pyATS agent, 7 skills, Markmap, Draw.io, RFC, NVD CVE, SOUL v1 |
-| MISSION02 | Complete | Full platform — 30 MCP servers, 52 skills (9 pyATS, 7 domain, 3 F5, 3 CatC, 3 M365, 1 GitHub, 1 packet analysis, 5 CML, 2 NSO, 5 AWS, 3 GCP, 6 utility, 4 Slack), 6 workspace files, SOUL v2 |
+| MISSION02 | Complete | Full platform — 31 MCP servers, 53 skills (9 pyATS, 7 domain, 3 F5, 3 CatC, 3 M365, 1 GitHub, 1 packet analysis, 5 CML, 2 NSO, 1 FMC, 5 AWS, 3 GCP, 6 utility, 4 Slack), 6 workspace files, SOUL v2 |
