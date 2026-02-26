@@ -654,7 +654,7 @@ if command -v gcloud &> /dev/null; then
     log_info "gcloud CLI found (version: $GCLOUD_VERSION)"
 
     # Check for application-default credentials
-    if [ -f "$HOME/.config/gcloud/application_default_credentials.json" ] || [ -n "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
+    if [ -f "$HOME/.config/gcloud/application_default_credentials.json" ] || [ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]; then
         log_info "Google Cloud credentials detected"
     else
         log_info "No application-default credentials found"
@@ -882,7 +882,7 @@ else
 fi
 
 # GCP MCPs are remote HTTP — check if gcloud is available for auth
-if command -v gcloud &> /dev/null || [ -n "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
+if command -v gcloud &> /dev/null || [ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]; then
     log_info "GCP MCP Servers (4): OK (remote HTTP — gcloud or service account available)"
     SERVERS_OK=$((SERVERS_OK + 4))
 else
