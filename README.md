@@ -4,7 +4,7 @@
 
 # NetClaw
 
-A CCIE-level AI network engineering coworker. Built on [OpenClaw](https://github.com/openclaw/openclaw) with Anthropic Claude, 77 skills, and 42 MCP server backends for complete network automation with ITSM gating, source-of-truth reconciliation, immutable audit trails, packet capture analysis, GitHub config-as-code, Cisco CML lab simulation, Cisco NSO orchestration, Cisco Meraki Dashboard management, Cisco ThousandEyes network intelligence, AWS cloud networking, Cisco Secure Firewall policy auditing, Itential network orchestration, Juniper JunOS device automation, Arista CloudVision Portal monitoring, F5 BIG-IP pyATS iControl REST coverage, UML diagram generation, live BGP/OSPF control-plane participation, Slack-native operations, and Microsoft 365 integration.
+A CCIE-level AI network engineering coworker. Built on [OpenClaw](https://github.com/openclaw/openclaw) with Anthropic Claude, 78 skills, and 32 MCP server backends for complete network automation with ITSM gating, source-of-truth reconciliation, immutable audit trails, packet capture analysis, GitHub config-as-code, Cisco CML lab simulation, ContainerLab containerized network labs, Cisco NSO orchestration, Cisco Meraki Dashboard management, Cisco ThousandEyes network intelligence, AWS cloud networking, Cisco Secure Firewall policy auditing, Itential network orchestration, Juniper JunOS device automation, Arista CloudVision Portal monitoring, F5 BIG-IP pyATS iControl REST coverage, UML diagram generation, live BGP/OSPF control-plane participation, Slack-native operations, and Microsoft 365 integration.
 
 ---
 
@@ -16,7 +16,7 @@ cd netclaw
 ./scripts/install.sh          # installs everything, then launches the setup wizard
 ```
 
-That's it. The installer clones 42 MCP servers, deploys 77 skills, then launches a two-phase setup:
+That's it. The installer clones 32 MCP servers, deploys 78 skills, then launches a two-phase setup:
 
 **Phase 1: `openclaw onboard`** (OpenClaw's built-in wizard)
 - Pick your AI provider (Anthropic, OpenAI, Bedrock, Vertex, 30+ options)
@@ -26,7 +26,7 @@ That's it. The installer clones 42 MCP servers, deploys 77 skills, then launches
 
 **Phase 2: `./scripts/setup.sh`** (NetClaw platform credentials)
 - Network devices (testbed.yaml editor)
-- Platform credentials (NetBox, Nautobot, Infrahub, Itential, ServiceNow, ACI, ISE, F5, Catalyst Center, NVD, Microsoft Graph, GitHub, CML, NSO, Meraki, FMC, ThousandEyes, RADKit, AWS, GCP)
+- Platform credentials (NetBox, Nautobot, Infrahub, Itential, ServiceNow, ACI, ISE, F5, Catalyst Center, NVD, Microsoft Graph, GitHub, CML, NSO, Meraki, FMC, ThousandEyes, RADKit, ContainerLab, AWS, GCP)
 - Your identity (name, role, timezone for USER.md)
 
 After setup, start NetClaw:
@@ -79,6 +79,7 @@ NetClaw is an autonomous network engineering agent powered by Claude that can:
 - **Track** network changes in GitHub — create issues from findings, commit config backups, open PRs for changes, link to ServiceNow CRs
 - **Orchestrate** network services via Cisco NSO — retrieve device configs from NSO's CDB, check sync status, inspect operational state, discover service types and deployed instances, platform inventory, and NED management — all via RESTCONF from Slack
 - **Simulate** network topologies in Cisco CML — create labs, add nodes, wire links, start/stop labs, execute CLI commands, capture packets on lab links, and manage CML users — all from natural language via Slack
+- **Deploy** containerized network labs via ContainerLab — deploy multi-vendor topologies (SR Linux, cEOS, IOS XR, NX-OS, FRR, cRPD), inspect running labs, execute commands on nodes, and destroy labs when done — all through the ContainerLab API
 - **Inspect** AWS cloud networking — VPCs, Transit Gateways, Cloud WAN, VPN tunnels, Network Firewalls, flow logs, ENI details, and route tables via 27 read-only AWS Network tools
 - **Monitor** AWS CloudWatch — query metrics (VPN tunnel state, NAT GW drops, TGW traffic), check alarms, run Logs Insights queries, analyze VPC flow logs
 - **Audit** AWS security — IAM users/roles/policies (read-only), CloudTrail API event history, credential rotation compliance, MFA enforcement
@@ -142,6 +143,7 @@ Human (Slack / WebChat) --> NetClaw (CCIE Agent on OpenClaw)
                                 |
                                 |-- LAB & SIMULATION:
                                 |     MCP: Cisco CML         --> Lab lifecycle, topology, nodes, captures
+                                |     MCP: ContainerLab      --> Containerized labs (SR Linux, cEOS, FRR) via API
                                 |
                                 |-- AWS CLOUD:
                                 |     MCP: AWS Network        --> VPC, TGW, Cloud WAN, VPN, Firewall (27 tools)
@@ -233,12 +235,13 @@ NetClaw ships with the full set of OpenClaw workspace markdown files. These are 
 | 39 | Arista CVP | [noredistribution/mcp-cvp-fun](https://github.com/noredistribution/mcp-cvp-fun) | stdio (Python/uv) | CloudVision Portal REST API — device inventory, events, connectivity monitor, tag management (4 tools) |
 | 40 | UML MCP | [antoinebou12/uml-mcp](https://github.com/antoinebou12/uml-mcp) | stdio (Python) | 27+ UML/diagram types via Kroki — class, sequence, nwdiag, rackdiag, packetdiag, C4, Mermaid, D2, Graphviz, ERD, BPMN (2 tools) |
 | 41 | Protocol MCP | [automateyournetwork/WontYouBeMyNeighbour](https://github.com/automateyournetwork/WontYouBeMyNeighbour) | stdio (Python) | Live BGP/OSPF/GRE control-plane participation — peer with routers, inject/withdraw routes, query RIB/LSDB, adjust metrics (10 tools) |
+| 42 | ContainerLab | [seanerama/clab-mcp-server](https://github.com/seanerama/clab-mcp-server) | stdio (Python) | Containerized network labs via ContainerLab API — deploy, inspect, exec, destroy labs (SR Linux, cEOS, IOS XR, NX-OS, FRR, cRPD) (6 tools) | `CLAB_API_SERVER_URL`, `CLAB_API_USERNAME`, `CLAB_API_PASSWORD` |
 
-All MCP servers communicate via stdio (JSON-RPC 2.0) through `scripts/mcp-call.py`. GitHub MCP runs via Docker. CML MCP is pip-installed (`cml-mcp`). NSO MCP is pip-installed (`cisco-nso-mcp-server`). FMC MCP runs as an HTTP server on port 8000. Meraki Magic MCP runs via FastMCP stdio (~804 Dashboard API endpoints). ThousandEyes community MCP runs via stdio (9 read-only tools); ThousandEyes official MCP is a remote HTTP endpoint hosted by Cisco at `https://api.thousandeyes.com/mcp` (~20 tools via `npx mcp-remote`). RADKit MCP runs via FastMCP stdio with certificate-based cloud relay auth (5 tools for remote device access). Nautobot MCP runs via MCP SDK stdio (5 IPAM tools, alternative to NetBox). Infrahub MCP runs via stdio (10 tools for schema-driven SoT, GraphQL queries, and versioned branches). Itential MCP is pip-installed (`itential-mcp`) and runs via stdio (65+ tools for network automation orchestration). JunOS MCP runs via stdio (10 tools for PyEZ/NETCONF device automation). Arista CVP MCP runs via uv/stdio (4 tools for CloudVision Portal device inventory, events, connectivity monitoring, and tag management). UML MCP runs via stdio (2 tools for 27+ diagram types via Kroki multi-engine rendering). Protocol MCP runs via stdio (10 tools for live BGP/OSPF/GRE control-plane participation using scapy-based protocol speakers). AWS MCPs run via `uvx` (uv tool runner). GCP MCPs are remote HTTP endpoints hosted by Google (OAuth 2.0 auth). No persistent connections, no port management.
+All MCP servers communicate via stdio (JSON-RPC 2.0) through `scripts/mcp-call.py`. GitHub MCP runs via Docker. CML MCP is pip-installed (`cml-mcp`). NSO MCP is pip-installed (`cisco-nso-mcp-server`). FMC MCP runs as an HTTP server on port 8000. Meraki Magic MCP runs via FastMCP stdio (~804 Dashboard API endpoints). ThousandEyes community MCP runs via stdio (9 read-only tools); ThousandEyes official MCP is a remote HTTP endpoint hosted by Cisco at `https://api.thousandeyes.com/mcp` (~20 tools via `npx mcp-remote`). RADKit MCP runs via FastMCP stdio with certificate-based cloud relay auth (5 tools for remote device access). Nautobot MCP runs via MCP SDK stdio (5 IPAM tools, alternative to NetBox). Infrahub MCP runs via stdio (10 tools for schema-driven SoT, GraphQL queries, and versioned branches). Itential MCP is pip-installed (`itential-mcp`) and runs via stdio (65+ tools for network automation orchestration). JunOS MCP runs via stdio (10 tools for PyEZ/NETCONF device automation). Arista CVP MCP runs via uv/stdio (4 tools for CloudVision Portal device inventory, events, connectivity monitoring, and tag management). UML MCP runs via stdio (2 tools for 27+ diagram types via Kroki multi-engine rendering). Protocol MCP runs via stdio (10 tools for live BGP/OSPF/GRE control-plane participation using scapy-based protocol speakers). ContainerLab MCP runs via stdio (6 tools for containerized lab lifecycle management via the ContainerLab API — requires clab-api-server running). AWS MCPs run via `uvx` (uv tool runner). GCP MCPs are remote HTTP endpoints hosted by Google (OAuth 2.0 auth). No persistent connections, no port management.
 
 ---
 
-## Skills (77)
+## Skills (78)
 
 ### pyATS Device Skills (9)
 
@@ -342,6 +345,12 @@ All MCP servers communicate via stdio (JSON-RPC 2.0) through `scripts/mcp-call.p
 | **cml-node-operations** | Node operations: start/stop individual nodes, set startup configs (IOS, NX-OS, IOS-XR templates), execute CLI commands via pyATS, retrieve console logs for troubleshooting, download running configs, wipe and reconfigure nodes. |
 | **cml-packet-capture** | Capture packets on CML lab links: start/stop captures with BPF filters, download pcap files, and hand off to Packet Buddy for deep tshark analysis. Protocol-specific capture workflows for BGP, OSPF, STP, ICMP troubleshooting. |
 | **cml-admin** | CML server administration: user/group management, system info (CPU, RAM, disk), licensing status, resource usage monitoring, capacity planning for new labs. |
+
+### ContainerLab Skills (1)
+
+| Skill | What It Does |
+|-------|-------------|
+| **clab-lab-management** | Containerized network lab lifecycle via ContainerLab API (6 tools): authenticate with clab-api-server, list running labs, deploy multi-vendor topologies (SR Linux, cEOS, IOS XR, NX-OS, FTDv, FRR, cRPD, generic Linux), inspect lab details with management IPs, execute commands on individual or all nodes, and graceful lab destruction with cleanup. Supports spine-leaf fabrics, multi-vendor interop labs, and protocol testing topologies. Requires ContainerLab API server running (Docker or native). GAIT audit trail. |
 
 ### Cisco NSO Skills (2)
 
@@ -1236,9 +1245,9 @@ netclaw/
 ├── TOOLS.md                              # Local infrastructure notes (edit this)
 ├── HEARTBEAT.md                          # Periodic health check checklist
 ├── MISSION01.md                          # Completed — core pyATS + 11 skills
-├── MISSION02.md                          # Completed — full platform, 44 skills, 19 MCP
+├── MISSION02.md                          # Completed — full platform, 78 skills, 32 MCP
 ├── workspace/
-│   └── skills/                           # 77 skill definitions (source of truth)
+│   └── skills/                           # 78 skill definitions (source of truth)
 │       ├── pyats-network/                # Core device automation (8 MCP tools)
 │       ├── pyats-health-check/           # Health + NetBox cross-ref + pCall
 │       ├── pyats-routing/                # OSPF, BGP, EIGRP, IS-IS analysis
@@ -1297,6 +1306,7 @@ netclaw/
 │       ├── junos-network/           # Juniper JunOS PyEZ/NETCONF automation
 │       ├── arista-cvp/              # Arista CloudVision Portal inventory, events, tags
 │       ├── protocol-participation/ # Live BGP/OSPF/GRE control-plane participation (10 tools)
+│       ├── clab-lab-management/  # ContainerLab deploy, inspect, exec, destroy labs (6 tools)
 │       ├── meraki-network-ops/       # Meraki org inventory, networks, devices, clients
 │       ├── meraki-wireless-ops/      # Meraki SSIDs, RF profiles, channel utilization
 │       ├── meraki-switch-ops/        # Meraki switch ports, VLANs, ACLs, QoS
@@ -1344,11 +1354,12 @@ netclaw/
 │   ├── junos-mcp-server/            # Juniper JunOS PyEZ/NETCONF (10 tools)
 │   ├── mcp-cvp-fun/                # Arista CloudVision Portal (4 tools)
 │   ├── uml-mcp/                         # 27+ diagram types via Kroki (2 tools)
-│   └── protocol-mcp/                   # BGP/OSPF/GRE protocol speakers (10 tools)
+│   ├── protocol-mcp/                   # BGP/OSPF/GRE protocol speakers (10 tools)
+│   └── clab-mcp-server/               # ContainerLab API client (6 tools)
 ├── lab/
 │   └── frr-testbed/                     # Docker FRR 3-router lab for protocol testing
 ├── scripts/
-│   ├── install.sh                        # Full bootstrap installer (40 steps)
+│   ├── install.sh                        # Full bootstrap installer (41 steps)
 │   ├── setup.sh                          # Interactive setup wizard (API key, platforms, Slack)
 │   ├── mcp-call.py                       # MCP JSON-RPC protocol handler
 │   └── gait-stdio.py                     # GAIT server stdio wrapper
@@ -1420,11 +1431,12 @@ netclaw/
 33. **Configures GCP Cloud MCP Servers** — Checks for `gcloud` CLI and credentials; 4 remote HTTP servers hosted by Google (Compute Engine, Cloud Monitoring, Cloud Logging, Resource Manager)
 34. **Installs JunOS MCP** — `git clone` + `pip3 install -r requirements.txt` for Juniper JunOS device automation via PyEZ/NETCONF (10 tools: CLI execution, config management, Jinja2 templates, device facts, batch operations). Python 3.10+ required.
 35. **Installs UML MCP** — `git clone` + `pip3 install -e .` for 27+ diagram types via Kroki multi-engine rendering (2 tools: generate_uml, generate_diagram_url). Python 3.10+ required. nwdiag (network), rackdiag (rack), packetdiag (protocol headers), sequence, state, class, C4, Mermaid, D2, Graphviz, ERD, BPMN.
-36. **Installs Protocol MCP** — `pip3 install -r requirements.txt` (scapy, networkx, mcp, fastmcp) for live BGP/OSPF/GRE control-plane participation (10 tools: peer with routers, inject/withdraw routes, query RIB/LSDB, adjust metrics). Protocol speakers from WontYouBeMyNeighbour.
-37. **Protocol Peering Wizard** — Optional interactive configuration: router ID, local AS, BGP peer IP/AS, OSPF areas, GRE tunnels, lab mode. Writes protocol environment variables to `~/.openclaw/.env`. Optionally creates GRE tunnel (requires sudo).
-38. **Deploys skills + workspace files** — Copies 77 skills and 6 MD files to `~/.openclaw/workspace/`
-39. **Verifies installation** — Checks all MCP server scripts + core scripts exist
-40. **Prints summary** — Lists all 42 MCP servers by category and all 77 skills by domain
+36. **Installs ContainerLab MCP** — `git clone` + `pip3 install -r requirements.txt` for containerized network lab management (6 tools: authenticate, list, deploy, inspect, exec, destroy). Supports SR Linux, cEOS, IOS XR, NX-OS, FRR, cRPD node kinds. Requires ContainerLab API server running.
+37. **Installs Protocol MCP** — `pip3 install -r requirements.txt` (scapy, networkx, mcp, fastmcp) for live BGP/OSPF/GRE control-plane participation (10 tools: peer with routers, inject/withdraw routes, query RIB/LSDB, adjust metrics). Protocol speakers from WontYouBeMyNeighbour.
+38. **Protocol Peering Wizard** — Optional interactive configuration: router ID, local AS, BGP peer IP/AS, OSPF areas, GRE tunnels, lab mode. Writes protocol environment variables to `~/.openclaw/.env`. Optionally creates GRE tunnel (requires sudo).
+39. **Deploys skills + workspace files** — Copies 78 skills and 6 MD files to `~/.openclaw/workspace/`
+40. **Verifies installation** — Checks all MCP server scripts + core scripts exist
+41. **Prints summary** — Lists all 32 MCP servers by category and all 78 skills by domain
 
 ---
 
@@ -1738,4 +1750,4 @@ See `examples/` for detailed workflow walkthroughs.
 | Mission | Status | Summary |
 |---|---|---|
 | MISSION01 | Complete | Core pyATS agent, 7 skills, Markmap, Draw.io, RFC, NVD CVE, SOUL v1 |
-| MISSION02 | Complete | Full platform — 42 MCP servers, 77 skills (18 pyATS, 9 domain, 3 F5, 3 CatC, 3 M365, 1 GitHub, 1 packet analysis, 5 CML, 2 NSO, 1 Itential, 1 FMC, 1 RADKit, 5 Meraki, 2 ThousandEyes, 5 AWS, 3 GCP, 1 JunOS, 1 Arista CVP, 1 UML, 1 protocol participation, 7 utility, 4 Slack), 6 workspace files, SOUL v2 |
+| MISSION02 | Complete | Full platform — 32 MCP servers, 78 skills (18 pyATS, 9 domain, 3 F5, 3 CatC, 3 M365, 1 GitHub, 1 packet analysis, 5 CML, 1 ContainerLab, 2 NSO, 1 Itential, 1 FMC, 1 RADKit, 5 Meraki, 2 ThousandEyes, 5 AWS, 3 GCP, 1 JunOS, 1 Arista CVP, 1 UML, 1 protocol participation, 6 utility, 4 Slack), 6 workspace files, SOUL v2 |
