@@ -543,6 +543,34 @@ else
 fi
 echo ""
 
+# --- ContainerLab ---
+if yesno "Do you have a ContainerLab API server running?"; then
+    echo ""
+    echo -e "  ContainerLab MCP lets NetClaw deploy and manage containerized network labs."
+    echo -e "  Requires a running ContainerLab API server (clab-api-server)."
+    echo ""
+    echo -e "  ${BOLD}Prerequisite:${NC} A Linux user must exist on the ContainerLab host."
+    echo -e "  The API server authenticates via PAM. Run this on the clab host first:"
+    echo ""
+    echo -e "    ${DIM}sudo groupadd -f clab_admins && sudo groupadd -f clab_api${NC}"
+    echo -e "    ${DIM}sudo useradd -m -s /bin/bash netclaw 2>/dev/null || true${NC}"
+    echo -e "    ${DIM}sudo usermod -aG clab_admins netclaw && sudo passwd netclaw${NC}"
+    echo ""
+    echo -e "  ${BOLD}If clab-api-server runs in Docker:${NC} restart it after creating the user:"
+    echo -e "    ${DIM}docker restart clab-api-server${NC}"
+    echo ""
+    prompt CLAB_URL "ContainerLab API Server URL" "http://localhost:8080"
+    prompt CLAB_USER "ContainerLab Username" "netclaw"
+    prompt_secret CLAB_PASS "ContainerLab Password"
+    [ -n "$CLAB_URL" ] && set_env "CLAB_API_SERVER_URL" "$CLAB_URL"
+    [ -n "$CLAB_USER" ] && set_env "CLAB_API_USERNAME" "$CLAB_USER"
+    [ -n "$CLAB_PASS" ] && set_env "CLAB_API_PASSWORD" "$CLAB_PASS"
+    ok "ContainerLab configured"
+else
+    skip "ContainerLab"
+fi
+echo ""
+
 # ═══════════════════════════════════════════
 # Step 3: Your Identity
 # ═══════════════════════════════════════════
@@ -613,6 +641,7 @@ grep -q "^FMC_BASE_URL=" "$OPENCLAW_ENV" 2>/dev/null && ok "Cisco FMC" || skip "
 grep -q "^TE_TOKEN=" "$OPENCLAW_ENV" 2>/dev/null && ok "Cisco ThousandEyes" || skip "Cisco ThousandEyes"
 grep -q "^RADKIT_IDENTITY=" "$OPENCLAW_ENV" 2>/dev/null && ok "Cisco RADKit" || skip "Cisco RADKit"
 [ -d "$NETCLAW_DIR/mcp-servers/uml-mcp" ] && ok "UML Diagrams (Kroki — no credentials required)" || skip "UML Diagrams"
+grep -q "^CLAB_API_SERVER_URL=" "$OPENCLAW_ENV" 2>/dev/null && ok "ContainerLab" || skip "ContainerLab"
 grep -q "^NETCLAW_ROUTER_ID=" "$OPENCLAW_ENV" 2>/dev/null && ok "Protocol Participation (BGP/OSPF/GRE)" || skip "Protocol Participation"
 
 echo ""

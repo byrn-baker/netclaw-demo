@@ -38,7 +38,7 @@ clone_or_pull() {
 
 NETCLAW_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MCP_DIR="$NETCLAW_DIR/mcp-servers"
-TOTAL_STEPS=40
+TOTAL_STEPS=41
 
 echo "========================================="
 echo "  NetClaw - CCIE Network Agent"
@@ -1008,7 +1008,7 @@ if command -v gcloud &> /dev/null; then
     log_info "gcloud CLI found (version: $GCLOUD_VERSION)"
 
     # Check for application-default credentials
-    if [ -f "$HOME/.config/gcloud/application_default_credentials.json" ] || [ -n "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
+    if [ -f "$HOME/.config/gcloud/application_default_credentials.json" ] || [ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]; then
         log_info "Google Cloud credentials detected"
     else
         log_info "No application-default credentials found"
@@ -1076,10 +1076,41 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 36: Protocol MCP Server (BGP + OSPF + GRE)
+# Step 36: ContainerLab MCP Server (Python)
 # ═══════════════════════════════════════════
 
-log_step "36/$TOTAL_STEPS Installing Protocol MCP Server..."
+log_step "36/$TOTAL_STEPS Installing ContainerLab MCP Server..."
+echo "  Source: https://github.com/seanerama/clab-mcp-server"
+echo "  Deploy and manage containerized network labs (SR Linux, cEOS, FRR, etc.)"
+
+CLAB_MCP_DIR="$MCP_DIR/clab-mcp-server"
+clone_or_pull "$CLAB_MCP_DIR" "https://github.com/seanerama/clab-mcp-server.git"
+
+log_info "Installing ContainerLab MCP dependencies..."
+pip3 install -r "$CLAB_MCP_DIR/requirements.txt" 2>/dev/null || \
+    pip3 install --break-system-packages -r "$CLAB_MCP_DIR/requirements.txt" 2>/dev/null || \
+    log_warn "ContainerLab MCP dependencies install failed"
+
+[ -f "$CLAB_MCP_DIR/clab_mcp_server.py" ] && \
+    log_info "ContainerLab MCP ready: $CLAB_MCP_DIR/clab_mcp_server.py" || \
+    log_error "clab_mcp_server.py not found"
+
+echo ""
+echo "  Prerequisite: ContainerLab API server (clab-api-server) must be running."
+echo "  Create a Linux user on the API server host:"
+echo "    sudo groupadd -f clab_admins && sudo groupadd -f clab_api"
+echo "    sudo useradd -m -s /bin/bash netclaw && sudo usermod -aG clab_admins netclaw"
+echo "    sudo passwd netclaw"
+echo "  If the API server runs in Docker, restart it: docker restart clab-api-server"
+echo ""
+
+echo ""
+
+# ═══════════════════════════════════════════
+# Step 37: Protocol MCP Server (BGP + OSPF + GRE)
+# ═══════════════════════════════════════════
+
+log_step "37/$TOTAL_STEPS Installing Protocol MCP Server..."
 echo "  Source: WontYouBeMyNeighbour BGP/OSPFv3/GRE modules"
 echo "  Live control-plane participation — BGP peering, OSPF adjacency, GRE tunnels (10 tools)"
 
@@ -1107,10 +1138,10 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 37: Protocol Peering Wizard (optional)
+# Step 38: Protocol Peering Wizard (optional)
 # ═══════════════════════════════════════════
 
-log_step "37/$TOTAL_STEPS Protocol Peering Configuration (optional)..."
+log_step "38/$TOTAL_STEPS Protocol Peering Configuration (optional)..."
 echo ""
 echo "  NetClaw can participate in BGP/OSPF as a real routing peer."
 echo "  This requires a GRE tunnel to a network device and protocol configuration."
@@ -1175,10 +1206,10 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 38: Deploy skills and set environment
+# Step 39: Deploy skills and set environment
 # ═══════════════════════════════════════════
 
-log_step "38/$TOTAL_STEPS Deploying skills and configuration..."
+log_step "39/$TOTAL_STEPS Deploying skills and configuration..."
 
 PYATS_SCRIPT="$PYATS_MCP_DIR/pyats_mcp_server.py"
 TESTBED_PATH="$NETCLAW_DIR/testbed/testbed.yaml"
@@ -1244,6 +1275,7 @@ declare -A ENV_VARS=(
     ["CATC_MCP_SCRIPT"]="$CATC_MCP_DIR/catalyst-center-mcp.py"
     ["PACKET_BUDDY_MCP_SCRIPT"]="$PACKET_BUDDY_MCP_DIR/server.py"
     ["PROTOCOL_MCP_SCRIPT"]="$PROTOCOL_MCP_DIR/server.py"
+    ["CLAB_MCP_SCRIPT"]="$CLAB_MCP_DIR/clab_mcp_server.py"
 )
 
 for key in "${!ENV_VARS[@]}"; do
@@ -1284,10 +1316,10 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 39: Verify installation
+# Step 40: Verify installation
 # ═══════════════════════════════════════════
 
-log_step "39/$TOTAL_STEPS Verifying installation..."
+log_step "40/$TOTAL_STEPS Verifying installation..."
 
 SERVERS_OK=0
 SERVERS_FAIL=0
@@ -1424,7 +1456,7 @@ else
 fi
 
 # GCP MCPs are remote HTTP — check if gcloud is available for auth
-if command -v gcloud &> /dev/null || [ -n "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
+if command -v gcloud &> /dev/null || [ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]; then
     log_info "GCP MCP Servers (4): OK (remote HTTP — gcloud or service account available)"
     SERVERS_OK=$((SERVERS_OK + 4))
 else
@@ -1504,6 +1536,15 @@ else
     SERVERS_FAIL=$((SERVERS_FAIL + 1))
 fi
 
+# ContainerLab MCP is cloned from GitHub
+if [ -f "$CLAB_MCP_DIR/clab_mcp_server.py" ]; then
+    log_info "ContainerLab MCP: OK (6 tools, stdio)"
+    SERVERS_OK=$((SERVERS_OK + 1))
+else
+    log_warn "ContainerLab MCP: NOT INSTALLED (clone failed)"
+    SERVERS_FAIL=$((SERVERS_FAIL + 1))
+fi
+
 # Protocol MCP is bundled with NetClaw
 if [ -d "$PROTOCOL_MCP_DIR" ] && [ -f "$PROTOCOL_MCP_DIR/server.py" ]; then
     log_info "Protocol MCP: OK (10 tools, stdio — BGP + OSPF + GRE)"
@@ -1520,10 +1561,10 @@ log_info "Verification: $SERVERS_OK OK, $SERVERS_FAIL FAILED"
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 40: Summary
+# Step 41: Summary
 # ═══════════════════════════════════════════
 
-log_step "40/$TOTAL_STEPS Installation Summary"
+log_step "41/$TOTAL_STEPS Installation Summary"
 echo ""
 echo "========================================="
 echo "  NetClaw Installation Complete"
@@ -1532,7 +1573,7 @@ echo ""
 
 SKILL_COUNT=$(ls -d "$NETCLAW_DIR/workspace/skills/"*/ 2>/dev/null | wc -l)
 
-echo "MCP Servers Installed (42):"
+echo "MCP Servers Installed (32):"
 echo "  ┌─────────────────────────────────────────────────────────────"
 echo "  │ NETWORK DEVICE AUTOMATION:"
 echo "  │   pyATS              Cisco device CLI, Genie parsers"
@@ -1569,6 +1610,7 @@ echo "  │   ThousandEyes (official)   Alerts, outages, BGP, instant tests, end
 echo "  │"
 echo "  │ LAB & SIMULATION:"
 echo "  │   Cisco CML           Lab lifecycle, node mgmt, topology, packet capture"
+echo "  │   ContainerLab        Containerized labs (SR Linux, cEOS, FRR) via API"
 echo "  │"
 echo "  │ OFFICE 365 / MICROSOFT:"
 echo "  │   Microsoft Graph     OneDrive, SharePoint, Visio, Teams, Exchange"
@@ -1718,6 +1760,9 @@ echo "  │   cml-topology-builder    Add nodes, interfaces, links, build topolo
 echo "  │   cml-node-operations     Console, CLI exec, start/stop nodes, configs"
 echo "  │   cml-packet-capture      Start/stop/download pcap on CML links"
 echo "  │   cml-admin               Users, groups, system info, licensing"
+echo "  │"
+echo "  │ ContainerLab Skills:"
+echo "  │   clab-lab-management     Deploy, inspect, exec, destroy containerized labs"
 echo "  │"
 echo "  │ Protocol Participation Skills:"
 echo "  │   protocol-participation BGP peering, OSPF adjacency, GRE tunnels, route injection (10 tools)"
