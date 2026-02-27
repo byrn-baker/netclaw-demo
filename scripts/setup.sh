@@ -642,6 +642,10 @@ grep -q "^TE_TOKEN=" "$OPENCLAW_ENV" 2>/dev/null && ok "Cisco ThousandEyes" || s
 grep -q "^RADKIT_IDENTITY=" "$OPENCLAW_ENV" 2>/dev/null && ok "Cisco RADKit" || skip "Cisco RADKit"
 [ -d "$NETCLAW_DIR/mcp-servers/uml-mcp" ] && ok "UML Diagrams (Kroki — no credentials required)" || skip "UML Diagrams"
 grep -q "^CLAB_API_SERVER_URL=" "$OPENCLAW_ENV" 2>/dev/null && ok "ContainerLab" || skip "ContainerLab"
+grep -q "^VMANAGE_IP=" "$OPENCLAW_ENV" 2>/dev/null && ok "Cisco SD-WAN" || skip "Cisco SD-WAN"
+grep -q "^GRAFANA_URL=" "$OPENCLAW_ENV" 2>/dev/null && ok "Grafana" || skip "Grafana"
+grep -q "^PROMETHEUS_URL=" "$OPENCLAW_ENV" 2>/dev/null && ok "Prometheus" || skip "Prometheus"
+grep -q "^KUBESHARK_MCP_URL=" "$OPENCLAW_ENV" 2>/dev/null && ok "Kubeshark" || skip "Kubeshark"
 grep -q "^NETCLAW_ROUTER_ID=" "$OPENCLAW_ENV" 2>/dev/null && ok "Protocol Participation (BGP/OSPF/GRE)" || skip "Protocol Participation"
 
 echo ""

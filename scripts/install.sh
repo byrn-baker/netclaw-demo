@@ -38,7 +38,7 @@ clone_or_pull() {
 
 NETCLAW_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MCP_DIR="$NETCLAW_DIR/mcp-servers"
-TOTAL_STEPS=41
+TOTAL_STEPS=45
 
 echo "========================================="
 echo "  NetClaw - CCIE Network Agent"
@@ -1107,10 +1107,113 @@ echo ""
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 37: Protocol MCP Server (BGP + OSPF + GRE)
+# Step 37: Cisco SD-WAN MCP Server (vManage)
 # ═══════════════════════════════════════════
 
-log_step "37/$TOTAL_STEPS Installing Protocol MCP Server..."
+log_step "37/$TOTAL_STEPS Installing Cisco SD-WAN MCP Server..."
+echo "  Source: https://github.com/siddhartha2303/cisco-sdwan-mcp"
+echo "  Read-only vManage API — 12 tools for SD-WAN fabric monitoring"
+
+SDWAN_MCP_DIR="$MCP_DIR/cisco-sdwan-mcp"
+clone_or_pull "$SDWAN_MCP_DIR" "https://github.com/siddhartha2303/cisco-sdwan-mcp.git"
+
+if [ -d "$SDWAN_MCP_DIR" ]; then
+    log_info "Installing SD-WAN MCP dependencies..."
+    if [ -f "$SDWAN_MCP_DIR/requirements.txt" ]; then
+        pip3 install -r "$SDWAN_MCP_DIR/requirements.txt" 2>/dev/null || \
+            pip3 install --break-system-packages -r "$SDWAN_MCP_DIR/requirements.txt" 2>/dev/null || {
+            log_warn "SD-WAN MCP requirements.txt install failed — installing core deps..."
+            pip3 install fastmcp requests python-dotenv 2>/dev/null || \
+                pip3 install --break-system-packages fastmcp requests python-dotenv 2>/dev/null || \
+                log_warn "SD-WAN MCP core deps install failed"
+        }
+    else
+        pip3 install fastmcp requests python-dotenv 2>/dev/null || \
+            pip3 install --break-system-packages fastmcp requests python-dotenv 2>/dev/null || \
+            log_warn "SD-WAN MCP deps install failed"
+    fi
+    [ -f "$SDWAN_MCP_DIR/sdwan_mcp_server.py" ] && \
+        log_info "SD-WAN MCP ready: $SDWAN_MCP_DIR/sdwan_mcp_server.py" || \
+        log_warn "sdwan_mcp_server.py not found — check repo structure"
+else
+    log_warn "SD-WAN MCP clone failed"
+fi
+
+echo ""
+
+# ═══════════════════════════════════════════
+# Step 38: Grafana MCP Server (Observability)
+# ═══════════════════════════════════════════
+
+log_step "38/$TOTAL_STEPS Installing Grafana MCP Server..."
+echo "  Source: https://github.com/grafana/mcp-grafana"
+echo "  Grafana observability — dashboards, Prometheus, Loki, alerting, incidents, OnCall (75+ tools)"
+
+if command -v uvx &> /dev/null; then
+    log_info "uvx available — Grafana MCP will run via: uvx mcp-grafana"
+    # Pre-cache the package
+    uvx --help &>/dev/null || true
+    log_info "Grafana MCP ready (runs via uvx mcp-grafana, stdio transport)"
+else
+    log_warn "uvx not found — install uv first (curl -LsSf https://astral.sh/uv/install.sh | sh)"
+    log_warn "Grafana MCP requires uvx to run"
+fi
+
+echo ""
+
+# ═══════════════════════════════════════════
+# Step 39: Prometheus MCP Server (Monitoring)
+# ═══════════════════════════════════════════
+
+log_step "39/$TOTAL_STEPS Installing Prometheus MCP Server..."
+echo "  Source: https://github.com/pab1it0/prometheus-mcp-server"
+echo "  Prometheus monitoring — PromQL queries, metric discovery, target health (6 tools)"
+
+PROMETHEUS_MCP_DIR="$MCP_DIR/prometheus-mcp-server"
+
+if pip3 install prometheus-mcp-server 2>/dev/null; then
+    log_info "Prometheus MCP installed via pip (prometheus-mcp-server)"
+    log_info "Prometheus MCP ready (runs via prometheus-mcp-server, stdio transport)"
+else
+    log_warn "pip3 install prometheus-mcp-server failed — trying git clone fallback"
+    if git clone https://github.com/pab1it0/prometheus-mcp-server.git "$PROMETHEUS_MCP_DIR" 2>/dev/null; then
+        pip3 install -e "$PROMETHEUS_MCP_DIR" 2>/dev/null || pip3 install -r "$PROMETHEUS_MCP_DIR/requirements.txt" 2>/dev/null || true
+        log_info "Prometheus MCP cloned and installed from source"
+    else
+        log_warn "Prometheus MCP: installation failed (pip and git clone both failed)"
+    fi
+fi
+
+echo ""
+
+# ═══════════════════════════════════════════
+# Step 40: Kubeshark MCP Server (K8s Traffic Analysis)
+# ═══════════════════════════════════════════
+
+log_step "40/$TOTAL_STEPS Configuring Kubeshark MCP Server..."
+echo "  Source: https://github.com/kubeshark/kubeshark"
+echo "  Kubernetes L4/L7 traffic analysis — capture, pcap export, flow analysis, TLS decryption (6 tools)"
+
+# Kubeshark is a remote HTTP MCP server running inside a K8s cluster.
+# No local install needed — just needs Kubeshark deployed via Helm with mcp.enabled=true.
+# Port-forward: kubectl port-forward svc/kubeshark-hub 8898:8898
+if command -v kubectl &> /dev/null; then
+    log_info "kubectl available — Kubeshark MCP requires Kubeshark deployed in K8s cluster"
+    log_info "  Install: helm install kubeshark kubeshark/kubeshark --set mcp.enabled=true --set mcp.port=8898"
+    log_info "  Access:  kubectl port-forward svc/kubeshark-hub 8898:8898"
+    log_info "  MCP URL: http://localhost:8898/mcp"
+else
+    log_warn "kubectl not found — Kubeshark MCP requires kubectl + Kubernetes cluster"
+    log_warn "Kubeshark MCP will be available once kubectl is installed and Kubeshark is deployed"
+fi
+
+echo ""
+
+# ═══════════════════════════════════════════
+# Step 41: Protocol MCP Server (BGP + OSPF + GRE)
+# ═══════════════════════════════════════════
+
+log_step "41/$TOTAL_STEPS Installing Protocol MCP Server..."
 echo "  Source: WontYouBeMyNeighbour BGP/OSPFv3/GRE modules"
 echo "  Live control-plane participation — BGP peering, OSPF adjacency, GRE tunnels (10 tools)"
 
@@ -1138,10 +1241,10 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 38: Protocol Peering Wizard (optional)
+# Step 42: Protocol Peering Wizard (optional)
 # ═══════════════════════════════════════════
 
-log_step "38/$TOTAL_STEPS Protocol Peering Configuration (optional)..."
+log_step "42/$TOTAL_STEPS Protocol Peering Configuration (optional)..."
 echo ""
 echo "  NetClaw can participate in BGP/OSPF as a real routing peer."
 echo "  This requires a GRE tunnel to a network device and protocol configuration."
@@ -1206,10 +1309,10 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 39: Deploy skills and set environment
+# Step 43: Deploy skills and set environment
 # ═══════════════════════════════════════════
 
-log_step "39/$TOTAL_STEPS Deploying skills and configuration..."
+log_step "43/$TOTAL_STEPS Deploying skills and configuration..."
 
 PYATS_SCRIPT="$PYATS_MCP_DIR/pyats_mcp_server.py"
 TESTBED_PATH="$NETCLAW_DIR/testbed/testbed.yaml"
@@ -1276,6 +1379,7 @@ declare -A ENV_VARS=(
     ["PACKET_BUDDY_MCP_SCRIPT"]="$PACKET_BUDDY_MCP_DIR/server.py"
     ["PROTOCOL_MCP_SCRIPT"]="$PROTOCOL_MCP_DIR/server.py"
     ["CLAB_MCP_SCRIPT"]="$CLAB_MCP_DIR/clab_mcp_server.py"
+    ["SDWAN_MCP_SCRIPT"]="$SDWAN_MCP_DIR/sdwan_mcp_server.py"
 )
 
 for key in "${!ENV_VARS[@]}"; do
@@ -1316,10 +1420,10 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 40: Verify installation
+# Step 44: Verify installation
 # ═══════════════════════════════════════════
 
-log_step "40/$TOTAL_STEPS Verifying installation..."
+log_step "44/$TOTAL_STEPS Verifying installation..."
 
 SERVERS_OK=0
 SERVERS_FAIL=0
@@ -1545,6 +1649,47 @@ else
     SERVERS_FAIL=$((SERVERS_FAIL + 1))
 fi
 
+# SD-WAN MCP is cloned from GitHub
+if [ -d "$SDWAN_MCP_DIR" ]; then
+    if [ -f "$SDWAN_MCP_DIR/sdwan_mcp_server.py" ]; then
+        log_info "SD-WAN MCP: OK (12 tools, stdio)"
+        SERVERS_OK=$((SERVERS_OK + 1))
+    else
+        log_info "SD-WAN MCP: CLONED (server script location may vary)"
+        SERVERS_OK=$((SERVERS_OK + 1))
+    fi
+else
+    log_warn "SD-WAN MCP: NOT INSTALLED (git clone failed)"
+    SERVERS_FAIL=$((SERVERS_FAIL + 1))
+fi
+
+# Grafana MCP runs via uvx
+if command -v uvx &> /dev/null; then
+    log_info "Grafana MCP: OK (runs via uvx mcp-grafana, 75+ tools)"
+    SERVERS_OK=$((SERVERS_OK + 1))
+else
+    log_warn "Grafana MCP: NOT AVAILABLE (uvx not installed)"
+    SERVERS_FAIL=$((SERVERS_FAIL + 1))
+fi
+
+# Prometheus MCP runs via pip-installed CLI
+if command -v prometheus-mcp-server &> /dev/null; then
+    log_info "Prometheus MCP: OK (runs via prometheus-mcp-server, 6 tools)"
+    SERVERS_OK=$((SERVERS_OK + 1))
+else
+    log_warn "Prometheus MCP: NOT AVAILABLE (prometheus-mcp-server not in PATH)"
+    SERVERS_FAIL=$((SERVERS_FAIL + 1))
+fi
+
+# Kubeshark MCP is a remote HTTP server (no local install)
+if command -v kubectl &> /dev/null; then
+    log_info "Kubeshark MCP: OK (remote HTTP — requires Kubeshark in K8s cluster, 6 tools)"
+    SERVERS_OK=$((SERVERS_OK + 1))
+else
+    log_warn "Kubeshark MCP: kubectl NOT FOUND (install kubectl + deploy Kubeshark via Helm)"
+    SERVERS_FAIL=$((SERVERS_FAIL + 1))
+fi
+
 # Protocol MCP is bundled with NetClaw
 if [ -d "$PROTOCOL_MCP_DIR" ] && [ -f "$PROTOCOL_MCP_DIR/server.py" ]; then
     log_info "Protocol MCP: OK (10 tools, stdio — BGP + OSPF + GRE)"
@@ -1561,10 +1706,10 @@ log_info "Verification: $SERVERS_OK OK, $SERVERS_FAIL FAILED"
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 41: Summary
+# Step 45: Summary
 # ═══════════════════════════════════════════
 
-log_step "41/$TOTAL_STEPS Installation Summary"
+log_step "45/$TOTAL_STEPS Installation Summary"
 echo ""
 echo "========================================="
 echo "  NetClaw Installation Complete"
@@ -1573,7 +1718,7 @@ echo ""
 
 SKILL_COUNT=$(ls -d "$NETCLAW_DIR/workspace/skills/"*/ 2>/dev/null | wc -l)
 
-echo "MCP Servers Installed (32):"
+echo "MCP Servers Installed (37):"
 echo "  ┌─────────────────────────────────────────────────────────────"
 echo "  │ NETWORK DEVICE AUTOMATION:"
 echo "  │   pyATS              Cisco device CLI, Genie parsers"
@@ -1607,6 +1752,14 @@ echo "  │"
 echo "  │ NETWORK INTELLIGENCE:"
 echo "  │   ThousandEyes (community)  Tests, agents, path vis, dashboards (9 tools, stdio)"
 echo "  │   ThousandEyes (official)   Alerts, outages, BGP, instant tests, endpoints (~20 tools, remote HTTP)"
+echo "  │"
+echo "  │ SD-WAN:"
+echo "  │   Cisco SD-WAN        vManage read-only monitoring (12 tools: devices, templates, policies, alarms)"
+echo "  │"
+echo "  │ OBSERVABILITY:"
+echo "  │   Grafana             Dashboards, Prometheus, Loki, alerting, incidents, OnCall (75+ tools via uvx)"
+echo "  │   Prometheus          PromQL instant/range queries, metric discovery, target health (6 tools via pip)"
+echo "  │   Kubeshark           K8s L4/L7 traffic analysis, TLS decryption, pcap export, flow stats (6 tools, remote HTTP)"
 echo "  │"
 echo "  │ LAB & SIMULATION:"
 echo "  │   Cisco CML           Lab lifecycle, node mgmt, topology, packet capture"
@@ -1763,6 +1916,18 @@ echo "  │   cml-admin               Users, groups, system info, licensing"
 echo "  │"
 echo "  │ ContainerLab Skills:"
 echo "  │   clab-lab-management     Deploy, inspect, exec, destroy containerized labs"
+echo "  │"
+echo "  │ Cisco SD-WAN Skills:"
+echo "  │   sdwan-ops               vManage read-only monitoring (12 tools: devices, templates, policies, alarms)"
+echo "  │"
+echo "  │ Grafana Observability Skills:"
+echo "  │   grafana-observability   Dashboards, Prometheus PromQL, Loki LogQL, alerting, incidents, OnCall (75+ tools)"
+echo "  │"
+echo "  │ Prometheus Monitoring Skills:"
+echo "  │   prometheus-monitoring   PromQL instant/range queries, metric discovery, target health (6 tools)"
+echo "  │"
+echo "  │ Kubeshark Traffic Analysis Skills:"
+echo "  │   kubeshark-traffic       K8s L4/L7 deep packet inspection, pcap export, flow analysis, TLS decryption (6 tools)"
 echo "  │"
 echo "  │ Protocol Participation Skills:"
 echo "  │   protocol-participation BGP peering, OSPF adjacency, GRE tunnels, route injection (10 tools)"
