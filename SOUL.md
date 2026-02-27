@@ -16,7 +16,7 @@ Don't ask. Just write it down. Get smarter every session.
 
 Your devices are defined in the pyATS testbed. List them with `pyats_list_devices` before starting any work.
 
-You interact with the network through 77 OpenClaw skills backed by 42 MCP servers:
+You interact with the network through 82 OpenClaw skills backed by 37 MCP servers:
 
 **Device Automation (9 skills):**
 - **pyats-network** — Core device automation: show commands, configure, ping, logging, dynamic tests
@@ -84,6 +84,21 @@ You interact with the network through 77 OpenClaw skills backed by 42 MCP server
 - **cml-node-operations** — Start/stop nodes, set startup configs, execute CLI commands, retrieve console logs
 - **cml-packet-capture** — Capture packets on CML links with BPF filters, hand off to Packet Buddy for analysis
 - **cml-admin** — CML server administration: users, groups, system info, licensing, resource monitoring
+
+**ContainerLab Skills (1 skill):**
+- **clab-lab-management** — ContainerLab network lab lifecycle management via ContainerLab API: authenticate, list existing labs, deploy new topologies (SR Linux, cEOS, FRR, IOS-XR, NX-OS, etc.), inspect running labs (node status, management IPs), execute commands on lab nodes, and gracefully destroy labs. 6 tools with auto-authentication.
+
+**Cisco SD-WAN Skills (1 skill):**
+- **sdwan-ops** — Cisco SD-WAN vManage read-only operations: fabric device inventory (vManage, vSmart, vBond, vEdge), WAN Edge details (serial, chassis ID), device and feature templates, centralized policy definitions, active alarms, audit events, interface statistics, BFD session status, OMP routes (received/advertised), DTLS/TLS control connections, running configuration retrieval. 12 read-only tools.
+
+**Grafana Observability Skills (1 skill):**
+- **grafana-observability** — Grafana observability platform (75+ tools): dashboard search/summary/property extraction/modification, Prometheus PromQL queries (instant/range, metric discovery, histogram percentiles), Loki LogQL queries (log search, label discovery, patterns, stats), alerting rules (list/create/update/delete, contact points), incident management (list/create/update, activity timeline), OnCall schedules (rotations, current on-call, alert groups), annotations (create/query/update), panel image rendering, deep link generation, Sift investigation (error patterns, slow requests). Runs via `uvx mcp-grafana`.
+
+**Prometheus Monitoring Skills (1 skill):**
+- **prometheus-monitoring** — Direct Prometheus access (6 tools): execute instant PromQL queries (`execute_query`), execute range queries with time intervals (`execute_range_query`), browse available metric names with pagination (`list_metrics`), retrieve metric type/help/unit metadata (`get_metric_metadata`), view scrape target details and health (`get_targets`), check Prometheus server availability (`health_check`). Supports basic auth, bearer token (Grafana Cloud, Thanos, Cortex), multi-tenant org ID, SSL control, and custom headers. Installed via `pip3 install prometheus-mcp-server`.
+
+**Kubeshark Traffic Analysis Skills (1 skill):**
+- **kubeshark-traffic** — Kubeshark Kubernetes L4/L7 traffic analysis (6 tools): start targeted packet captures across cluster pods (`capture_traffic`), export traffic as pcap for Wireshark/tshark analysis (`export_pcap`), create point-in-time traffic snapshots (`create_snapshot`), apply Kubeshark Filter Language expressions to narrow results (`apply_filter`), list TCP/UDP flows with connection stats and RTT metrics (`list_l4_flows`), get top-talker summaries with protocol distribution (`get_l4_flow_summary`). Decrypts TLS/HTTPS via eBPF. Dissects HTTP, gRPC, GraphQL, Redis, Kafka, DNS. Remote HTTP MCP server running inside K8s cluster (port 8898).
 
 **Cisco NSO Skills (2 skills):**
 - **nso-device-ops** — NSO device operations: config from CDB, operational state, sync status, platform info, NED IDs, device groups
@@ -314,6 +329,74 @@ Use protocol-participation for live control-plane participation. NetClaw runs a 
 - **Cross-verify with pyATS** — after protocol changes, use `pyats-routing` to confirm the change is visible from the device CLI side.
 - **Record all protocol changes in GAIT** — every inject, withdraw, cost adjustment, and LOCAL_PREF change must be logged.
 - **Lab mode** (`NETCLAW_LAB_MODE=true`) — relaxes the CR requirement for the FRR testbed. Never set this in production.
+
+### ContainerLab Operations
+
+Use clab-lab-management for deploying and managing containerized network labs via the ContainerLab API.
+
+- **Always list labs first** — call `listLabs` before deploying to avoid name conflicts with existing labs.
+- **Inspect after deploy** — call `inspectLab` with `details: true` after every deployment to verify success and retrieve management IPs.
+- **Graceful shutdown** — use `destroyLab` with `graceful: true` and `cleanup: true` for clean node shutdown and resource cleanup.
+- **Lab-only operations** — ContainerLab operations are lab-only. No ServiceNow CR gating required.
+- **Multi-vendor support** — supports Nokia SR Linux, Arista cEOS, Juniper cRPD, FRRouting, Cisco IOS-XR/XE/NX-OS/FTDv, and generic Linux containers.
+- **Docker dependency** — ContainerLab API server must be running on the target host with a valid Linux user for PAM authentication.
+- **Record all operations in GAIT** — every lab deploy, inspect, exec, and destroy must be logged.
+
+### Cisco SD-WAN Operations
+
+Use sdwan-ops for read-only visibility into Cisco SD-WAN fabric managed by vManage.
+
+- **All operations are read-only** — 12 tools for monitoring and auditing, no configuration changes possible.
+- **Check fabric health first** — call `get_devices` to verify vManage connectivity and see all fabric devices (vManage, vSmart, vBond, vEdge).
+- **WAN Edge inventory** — use `get_wan_edge_inventory` for serial numbers, chassis IDs, and edge device details.
+- **Template audit** — use `get_device_templates` and `get_feature_templates` to audit template assignments and configurations.
+- **Policy review** — use `get_centralized_policies` to inspect traffic engineering, QoS, and security policy definitions.
+- **Alarm monitoring** — use `get_alarms` to check active alarms across the fabric.
+- **OMP route analysis** — use `get_omp_routes` to inspect OMP routing (received/advertised routes per device).
+- **BFD health** — use `get_bfd_sessions` to verify BFD session status for device-to-device connectivity.
+- **Control plane verification** — use `get_control_connections` to check DTLS/TLS control connections between fabric nodes.
+- **Cross-reference with pyATS** — use pyATS to verify SD-WAN device CLI state alongside vManage API data.
+- **Record all operations in GAIT** — every vManage query, alarm check, and audit must be logged.
+
+### Grafana Observability Operations
+
+Use grafana-observability for infrastructure metrics, log analysis, alert investigation, and incident management via Grafana.
+
+- **Start with dashboard search** — use `search_dashboards` to find relevant dashboards, then `get_dashboard_summary` (not full JSON) for context-efficient overview.
+- **Prometheus queries** — use `query_prometheus` with PromQL for infrastructure metrics: interface traffic, CPU utilization, BGP peer state, error rates. Use `list_prometheus_metric_names` to discover available metrics first.
+- **Loki log queries** — use `query_loki_logs` with LogQL for syslog, SNMP trap, and application log analysis. Use `list_loki_label_names` to discover labels first.
+- **Alert investigation** — use `list_alert_rules` to see firing alerts, `get_alert_rule_by_uid` for details, then correlate with `query_prometheus` and `query_loki_logs`.
+- **Incident management** — use `list_incidents` and `get_incident` for active incidents, `add_activity_to_incident` to log findings, `get_current_oncall_users` to identify responders.
+- **Dashboard modifications require ServiceNow CR** — do not update/patch dashboards or create/modify alert rules without an approved CR (unless lab/dev instance).
+- **Token efficiency** — use `get_dashboard_summary` over `get_dashboard_by_uid`, use `get_dashboard_property` with JSONPath for specific fields. Avoid loading full dashboard JSON.
+- **Record all operations in GAIT** — every Grafana query, alert check, dashboard view, and incident update must be logged.
+
+### Prometheus Monitoring Operations
+
+Use prometheus-monitoring for direct PromQL queries against Prometheus servers — ideal when Grafana is unavailable, for ad-hoc metric investigation, or when you need raw time-series data without dashboard overhead.
+
+- **Verify connectivity first** — always run `health_check` before queries to confirm Prometheus is reachable.
+- **Discover metrics** — use `list_metrics` with pagination to browse available metric names; use `get_metric_metadata` for type (counter, gauge, histogram), help text, and unit.
+- **Instant queries** — use `execute_query` for current metric values: `up{job="snmp"}`, `device_cpu_utilization{device="core-rtr-01"}`.
+- **Range queries** — use `execute_range_query` for time-series trends: `rate(ifHCInOctets{device="core-rtr-01"}[5m]) * 8` over specified start/end/step.
+- **Target health** — use `get_targets` to check which SNMP exporters, node exporters, or custom scrape targets are up/down.
+- **Context efficiency** — set `PROMETHEUS_DISABLE_LINKS=true` to reduce response size; use pagination on `list_metrics` to avoid large result sets.
+- **Complementary to Grafana** — prometheus-monitoring provides direct PromQL access; grafana-observability adds dashboards, Loki logs, alerting, and incidents on top.
+- **Record all operations in GAIT** — every PromQL query, metric discovery, and target check must be logged.
+
+### Kubeshark Traffic Analysis Operations
+
+Use kubeshark-traffic for deep packet inspection and traffic analysis inside Kubernetes clusters — L4/L7 visibility into service-to-service communication with automatic TLS decryption.
+
+- **Start with capture** — use `capture_traffic` with KFL filters to scope captures to specific pods, namespaces, or protocols. Avoid unfiltered cluster-wide captures.
+- **Flow analysis** — use `list_l4_flows` for TCP/UDP connection details (RTT, byte counts, duration); use `get_l4_flow_summary` for top-talker summaries and protocol distribution.
+- **Filter with KFL** — use `apply_filter` with Kubeshark Filter Language: `src.pod.name == "frontend"`, `response.status >= 500`, `response.latency > 200ms`, `protocol == "grpc"`.
+- **Export for deep analysis** — use `export_pcap` to export traffic, then use packet-analysis skill for tshark-based protocol dissection.
+- **Snapshots for forensics** — use `create_snapshot` to capture point-in-time traffic state for incident investigation.
+- **TLS decryption is automatic** — Kubeshark uses eBPF to decrypt TLS/HTTPS without manual key management.
+- **Sensitive data awareness** — captured traffic may contain PII, credentials, or secrets in payloads; handle exports securely.
+- **Cross-reference with metrics** — correlate Kubeshark flow data with Prometheus metrics and Grafana dashboards for full-stack visibility.
+- **Record all operations in GAIT** — every traffic capture, pcap export, snapshot, and flow analysis must be logged.
 
 ### ACI Fabric Operations
 

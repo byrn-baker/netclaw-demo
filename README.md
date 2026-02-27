@@ -4,7 +4,7 @@
 
 # NetClaw
 
-A CCIE-level AI network engineering coworker. Built on [OpenClaw](https://github.com/openclaw/openclaw) with Anthropic Claude, 78 skills, and 32 MCP server backends for complete network automation with ITSM gating, source-of-truth reconciliation, immutable audit trails, packet capture analysis, GitHub config-as-code, Cisco CML lab simulation, ContainerLab containerized network labs, Cisco NSO orchestration, Cisco Meraki Dashboard management, Cisco ThousandEyes network intelligence, AWS cloud networking, Cisco Secure Firewall policy auditing, Itential network orchestration, Juniper JunOS device automation, Arista CloudVision Portal monitoring, F5 BIG-IP pyATS iControl REST coverage, UML diagram generation, live BGP/OSPF control-plane participation, Slack-native operations, and Microsoft 365 integration.
+A CCIE-level AI network engineering coworker. Built on [OpenClaw](https://github.com/openclaw/openclaw) with Anthropic Claude, 82 skills, and 37 MCP server backends for complete network automation with ITSM gating, source-of-truth reconciliation, immutable audit trails, packet capture analysis, GitHub config-as-code, Cisco CML lab simulation, ContainerLab containerized network labs, Cisco NSO orchestration, Cisco SD-WAN vManage monitoring, Grafana observability (dashboards, Prometheus, Loki, alerting, incidents), Prometheus direct PromQL monitoring, Kubeshark Kubernetes traffic analysis, Cisco Meraki Dashboard management, Cisco ThousandEyes network intelligence, AWS cloud networking, Cisco Secure Firewall policy auditing, Itential network orchestration, Juniper JunOS device automation, Arista CloudVision Portal monitoring, F5 BIG-IP pyATS iControl REST coverage, UML diagram generation, live BGP/OSPF control-plane participation, Slack-native operations, and Microsoft 365 integration.
 
 ---
 
@@ -16,7 +16,7 @@ cd netclaw
 ./scripts/install.sh          # installs everything, then launches the setup wizard
 ```
 
-That's it. The installer clones 32 MCP servers, deploys 78 skills, then launches a two-phase setup:
+That's it. The installer clones 37 MCP servers, deploys 82 skills, then launches a two-phase setup:
 
 **Phase 1: `openclaw onboard`** (OpenClaw's built-in wizard)
 - Pick your AI provider (Anthropic, OpenAI, Bedrock, Vertex, 30+ options)
@@ -26,7 +26,7 @@ That's it. The installer clones 32 MCP servers, deploys 78 skills, then launches
 
 **Phase 2: `./scripts/setup.sh`** (NetClaw platform credentials)
 - Network devices (testbed.yaml editor)
-- Platform credentials (NetBox, Nautobot, Infrahub, Itential, ServiceNow, ACI, ISE, F5, Catalyst Center, NVD, Microsoft Graph, GitHub, CML, NSO, Meraki, FMC, ThousandEyes, RADKit, ContainerLab, AWS, GCP)
+- Platform credentials (NetBox, Nautobot, Infrahub, Itential, ServiceNow, ACI, ISE, F5, Catalyst Center, NVD, Microsoft Graph, GitHub, CML, NSO, Meraki, FMC, ThousandEyes, RADKit, AWS, GCP, ContainerLab, SD-WAN, Grafana, Prometheus, Kubeshark)
 - Your identity (name, role, timezone for USER.md)
 
 After setup, start NetClaw:
@@ -61,6 +61,10 @@ NetClaw is an autonomous network engineering agent powered by Claude that can:
 - **Access** remote devices via Cisco RADKit cloud relay — discover device inventory, inspect device attributes and capabilities, execute CLI commands with timeout/truncation controls, and perform SNMP GET operations on air-gapped or cloud-unreachable devices without direct SSH/SNMP connectivity
 - **Automate** Juniper JunOS devices via PyEZ/NETCONF — CLI command execution, configuration management, Jinja2 template rendering, device facts collection, and batch operations across router fleets
 - **Monitor** Arista fabric via CloudVision Portal REST API — device inventory, event stream, connectivity monitor status, and device tag management for fleet-wide health assessment
+- **Monitor** Cisco SD-WAN fabric via vManage API (read-only) — device inventory (vManage, vSmart, vBond, vEdge), WAN Edge serial/chassis details, device and feature templates, centralized policies, active alarms, audit events, interface statistics, BFD session health, OMP route analysis, DTLS/TLS control connections, and running config retrieval
+- **Observe** infrastructure via Grafana (75+ tools) — search/view/modify dashboards, query Prometheus metrics with PromQL (interface traffic, CPU, BGP state, error rates, histogram percentiles), query Loki logs with LogQL (syslog, SNMP traps, application logs), manage alerting rules and contact points, track incidents with timeline activities, view OnCall schedules and current responders, annotate dashboards, render panel images, and generate deep links
+- **Query** Prometheus directly (6 tools) — execute instant and range PromQL queries, browse available metrics with pagination, retrieve metric metadata (type, help, unit), inspect scrape target health and status, and verify Prometheus server availability. Supports basic auth, bearer tokens (Grafana Cloud, Thanos, Cortex), and multi-tenant org IDs
+- **Inspect** Kubernetes traffic with Kubeshark (6 tools) — capture L4/L7 traffic across cluster pods, export pcaps for Wireshark analysis, create point-in-time snapshots, filter with KFL expressions, list TCP/UDP flows with RTT metrics, and get top-talker summaries. Automatic TLS decryption via eBPF. Dissects HTTP, gRPC, GraphQL, Redis, Kafka, DNS
 - **Participate** in BGP and OSPF as a live routing peer — inject/withdraw routes, query RIB/LSDB, adjust LOCAL_PREF and OSPF cost, peer with real routers over GRE tunnels via native protocol speakers (RFC 4271/5340)
 - **Scan** for CVE vulnerabilities against the NVD database with CVSS severity correlation and exposure confirmation
 - **Manage** F5 BIG-IP load balancers — virtual servers, pools, iRules, stats, and change management
@@ -138,6 +142,14 @@ Human (Slack / WebChat) --> NetClaw (CCIE Agent on OpenClaw)
                                 |-- REMOTE DEVICE ACCESS:
                                 |     MCP: Cisco RADKit  --> Cloud-relayed CLI, SNMP, device inventory (5 tools, stdio)
                                 |
+                                |-- SD-WAN:
+                                |     MCP: Cisco SD-WAN      --> vManage API (12 read-only tools: devices, templates, policies, alarms)
+                                |
+                                |-- OBSERVABILITY:
+                                |     MCP: Grafana            --> Dashboards, Prometheus, Loki, alerting, incidents, OnCall (75+ tools via uvx)
+                                |     MCP: Prometheus         --> Direct PromQL queries, metric discovery, target health (6 tools via pip)
+                                |     MCP: Kubeshark          --> K8s L4/L7 traffic capture, TLS decryption, pcap export, flow analysis (6 tools, remote HTTP)
+                                |
                                 |-- PROTOCOL PARTICIPATION:
                                 |     MCP: Protocol MCP      --> BGP/OSPF/GRE speakers (10 tools, scapy)
                                 |
@@ -190,7 +202,7 @@ NetClaw ships with the full set of OpenClaw workspace markdown files. These are 
 
 ---
 
-## MCP Servers (42)
+## MCP Servers (37)
 
 | # | MCP Server | Repository | Transport | Function |
 |---|------------|------------|-----------|----------|
@@ -235,13 +247,17 @@ NetClaw ships with the full set of OpenClaw workspace markdown files. These are 
 | 39 | Arista CVP | [noredistribution/mcp-cvp-fun](https://github.com/noredistribution/mcp-cvp-fun) | stdio (Python/uv) | CloudVision Portal REST API — device inventory, events, connectivity monitor, tag management (4 tools) |
 | 40 | UML MCP | [antoinebou12/uml-mcp](https://github.com/antoinebou12/uml-mcp) | stdio (Python) | 27+ UML/diagram types via Kroki — class, sequence, nwdiag, rackdiag, packetdiag, C4, Mermaid, D2, Graphviz, ERD, BPMN (2 tools) |
 | 41 | Protocol MCP | [automateyournetwork/WontYouBeMyNeighbour](https://github.com/automateyournetwork/WontYouBeMyNeighbour) | stdio (Python) | Live BGP/OSPF/GRE control-plane participation — peer with routers, inject/withdraw routes, query RIB/LSDB, adjust metrics (10 tools) |
-| 42 | ContainerLab | [seanerama/clab-mcp-server](https://github.com/seanerama/clab-mcp-server) | stdio (Python) | Containerized network labs via ContainerLab API — deploy, inspect, exec, destroy labs (SR Linux, cEOS, IOS XR, NX-OS, FRR, cRPD) (6 tools) | `CLAB_API_SERVER_URL`, `CLAB_API_USERNAME`, `CLAB_API_PASSWORD` |
+| 42 | ContainerLab | [seanerama/clab-mcp-server](https://github.com/seanerama/clab-mcp-server) | stdio (Python) | Containerized network lab lifecycle — deploy, inspect, exec, destroy labs (SR Linux, cEOS, FRR, IOS-XR, NX-OS) via ContainerLab API (6 tools) |
+| 43 | Cisco SD-WAN | [siddhartha2303/cisco-sdwan-mcp](https://github.com/siddhartha2303/cisco-sdwan-mcp) | stdio (Python) | vManage read-only monitoring — fabric devices, WAN Edge inventory, templates, policies, alarms, BFD, OMP routes, control connections (12 tools) |
+| 44 | Grafana | [grafana/mcp-grafana](https://github.com/grafana/mcp-grafana) | uvx (Go) | Observability platform — dashboards, Prometheus PromQL, Loki LogQL, alerting, incidents, OnCall, annotations, panel rendering (75+ tools) |
+| 45 | Prometheus | [pab1it0/prometheus-mcp-server](https://github.com/pab1it0/prometheus-mcp-server) | stdio (Python) | Direct PromQL monitoring — instant/range queries, metric discovery with pagination, metric metadata, scrape target health, system health check (6 tools) |
+| 46 | Kubeshark | [kubeshark/kubeshark](https://github.com/kubeshark/kubeshark) | remote HTTP (Go) | Kubernetes L4/L7 traffic analysis — capture, pcap export, snapshots, KFL filtering, TCP/UDP flow stats, TLS decryption via eBPF (6 tools) |
 
-All MCP servers communicate via stdio (JSON-RPC 2.0) through `scripts/mcp-call.py`. GitHub MCP runs via Docker. CML MCP is pip-installed (`cml-mcp`). NSO MCP is pip-installed (`cisco-nso-mcp-server`). FMC MCP runs as an HTTP server on port 8000. Meraki Magic MCP runs via FastMCP stdio (~804 Dashboard API endpoints). ThousandEyes community MCP runs via stdio (9 read-only tools); ThousandEyes official MCP is a remote HTTP endpoint hosted by Cisco at `https://api.thousandeyes.com/mcp` (~20 tools via `npx mcp-remote`). RADKit MCP runs via FastMCP stdio with certificate-based cloud relay auth (5 tools for remote device access). Nautobot MCP runs via MCP SDK stdio (5 IPAM tools, alternative to NetBox). Infrahub MCP runs via stdio (10 tools for schema-driven SoT, GraphQL queries, and versioned branches). Itential MCP is pip-installed (`itential-mcp`) and runs via stdio (65+ tools for network automation orchestration). JunOS MCP runs via stdio (10 tools for PyEZ/NETCONF device automation). Arista CVP MCP runs via uv/stdio (4 tools for CloudVision Portal device inventory, events, connectivity monitoring, and tag management). UML MCP runs via stdio (2 tools for 27+ diagram types via Kroki multi-engine rendering). Protocol MCP runs via stdio (10 tools for live BGP/OSPF/GRE control-plane participation using scapy-based protocol speakers). ContainerLab MCP runs via stdio (6 tools for containerized lab lifecycle management via the ContainerLab API — requires clab-api-server running). AWS MCPs run via `uvx` (uv tool runner). GCP MCPs are remote HTTP endpoints hosted by Google (OAuth 2.0 auth). No persistent connections, no port management.
+All MCP servers communicate via stdio (JSON-RPC 2.0) through `scripts/mcp-call.py`. GitHub MCP runs via Docker. CML MCP is pip-installed (`cml-mcp`). NSO MCP is pip-installed (`cisco-nso-mcp-server`). FMC MCP runs as an HTTP server on port 8000. Meraki Magic MCP runs via FastMCP stdio (~804 Dashboard API endpoints). ThousandEyes community MCP runs via stdio (9 read-only tools); ThousandEyes official MCP is a remote HTTP endpoint hosted by Cisco at `https://api.thousandeyes.com/mcp` (~20 tools via `npx mcp-remote`). RADKit MCP runs via FastMCP stdio with certificate-based cloud relay auth (5 tools for remote device access). Nautobot MCP runs via MCP SDK stdio (5 IPAM tools, alternative to NetBox). Infrahub MCP runs via stdio (10 tools for schema-driven SoT, GraphQL queries, and versioned branches). Itential MCP is pip-installed (`itential-mcp`) and runs via stdio (65+ tools for network automation orchestration). JunOS MCP runs via stdio (10 tools for PyEZ/NETCONF device automation). Arista CVP MCP runs via uv/stdio (4 tools for CloudVision Portal device inventory, events, connectivity monitoring, and tag management). UML MCP runs via stdio (2 tools for 27+ diagram types via Kroki multi-engine rendering). Protocol MCP runs via stdio (10 tools for live BGP/OSPF/GRE control-plane participation using scapy-based protocol speakers). ContainerLab MCP runs via stdio (6 tools for containerized network lab lifecycle management via ContainerLab API). SD-WAN MCP runs via stdio (12 read-only tools for Cisco SD-WAN vManage fabric monitoring). Grafana MCP runs via `uvx mcp-grafana` (75+ tools for dashboards, Prometheus, Loki, alerting, incidents, OnCall). Prometheus MCP is pip-installed (`prometheus-mcp-server`) and runs via stdio (6 tools for direct PromQL queries, metric discovery, and scrape target health). Kubeshark MCP is a remote HTTP endpoint running inside a Kubernetes cluster (6 tools for L4/L7 traffic capture, pcap export, flow analysis, and TLS decryption via eBPF; access via `kubectl port-forward svc/kubeshark-hub 8898:8898`). AWS MCPs run via `uvx` (uv tool runner). GCP MCPs are remote HTTP endpoints hosted by Google (OAuth 2.0 auth). No persistent connections, no port management.
 
 ---
 
-## Skills (78)
+## Skills (82)
 
 ### pyATS Device Skills (9)
 
@@ -394,6 +410,36 @@ All MCP servers communicate via stdio (JSON-RPC 2.0) through `scripts/mcp-call.p
 | Skill | What It Does |
 |-------|-------------|
 | **protocol-participation** | Live BGP/OSPF/GRE control-plane participation (10 tools): BGP peer status, Loc-RIB query, route injection/withdrawal, LOCAL_PREF adjustment, OSPF neighbor listing, LSDB query, interface cost adjustment, GRE tunnel status, consolidated protocol summary. Peers with real routers over GRE tunnels using native BGP-4 (RFC 4271) and OSPFv3 (RFC 5340) speakers. Route mutations gated by ServiceNow CR (unless `NETCLAW_LAB_MODE=true`). Docker-based FRR lab testbed included for testing. GAIT audit trail. |
+
+### ContainerLab Skills (1)
+
+| Skill | What It Does |
+|-------|-------------|
+| **clab-lab-management** | ContainerLab network lab lifecycle management via ContainerLab API (6 tools): authenticate, list existing labs, deploy new topologies (SR Linux, cEOS, FRR, Cisco IOS-XR/XE/NX-OS/FTDv, Juniper cRPD, generic Linux), inspect running labs (node status, management IPs), execute commands on lab nodes, and gracefully destroy labs with cleanup. Auto-authentication on every tool call. Requires ContainerLab API server running with PAM-authenticated Linux user. GAIT audit trail. |
+
+### Cisco SD-WAN Skills (1)
+
+| Skill | What It Does |
+|-------|-------------|
+| **sdwan-ops** | Cisco SD-WAN vManage read-only operations (12 tools): fabric device inventory (vManage, vSmart, vBond, vEdge), WAN Edge details (serial, chassis ID), device and feature templates, centralized policy definitions, active alarms, audit events, interface statistics per device, BFD session status, OMP routes (received/advertised), DTLS/TLS control connections, running configuration retrieval. All operations are read-only — no configuration changes possible. Cross-reference with pyATS for CLI-level device verification. GAIT audit trail. |
+
+### Grafana Observability Skills (1)
+
+| Skill | What It Does |
+|-------|-------------|
+| **grafana-observability** | Grafana observability platform (75+ tools): dashboard search/summary/property extraction/modification, Prometheus PromQL queries (instant/range, metric discovery, histogram percentiles), Loki LogQL queries (log search, label discovery, patterns, stats), alerting rules (list/create/update/delete, contact points), incident management (list/create/update, activity timeline), OnCall schedules (rotations, current on-call, alert groups), annotations, panel image rendering, deep link generation, and Sift investigation (error patterns, slow requests). Runs via `uvx mcp-grafana` (Go). Supports both self-hosted Grafana and Grafana Cloud. Read-only mode available (`--disable-write`). Dashboard and alert modifications gated by ServiceNow CR. GAIT audit trail. |
+
+### Prometheus Monitoring Skills (1)
+
+| Skill | What It Does |
+|-------|-------------|
+| **prometheus-monitoring** | Direct Prometheus access (6 tools): execute instant PromQL queries (`execute_query`), execute range queries with time intervals (`execute_range_query`), browse available metrics with pagination (`list_metrics`), retrieve metric type/help/unit metadata (`get_metric_metadata`), view scrape target details and health (`get_targets`), check Prometheus server availability (`health_check`). Supports basic auth, bearer token (Grafana Cloud, Thanos, Cortex), multi-tenant org ID, SSL control, and custom headers. Installed via `pip3 install prometheus-mcp-server`. Complementary to grafana-observability for direct PromQL access without dashboard overhead. GAIT audit trail. |
+
+### Kubeshark Traffic Analysis Skills (1)
+
+| Skill | What It Does |
+|-------|-------------|
+| **kubeshark-traffic** | Kubeshark Kubernetes L4/L7 traffic analysis (6 tools): capture traffic across cluster pods (`capture_traffic`), export pcaps for Wireshark/tshark analysis (`export_pcap`), create point-in-time traffic snapshots (`create_snapshot`), apply Kubeshark Filter Language expressions (`apply_filter`), list TCP/UDP flows with RTT metrics and byte counts (`list_l4_flows`), get top-talker summaries with protocol distribution (`get_l4_flow_summary`). Automatic TLS/HTTPS decryption via eBPF. Dissects HTTP, gRPC, GraphQL, Redis, Kafka, DNS with full request/response payloads. Remote HTTP MCP server running inside K8s cluster (port 8898). Integrates with packet-analysis for deeper pcap inspection. GAIT audit trail. |
 
 ### Cisco Meraki Skills (5)
 
@@ -1060,6 +1106,81 @@ servicenow-change-workflow + protocol-participation
 --> GAIT audit trail
 ```
 
+### SD-WAN Fabric Health Check
+```
+sdwan-ops
+--> get_devices: verify all controllers and edges are reachable
+--> get_wan_edge_inventory: check serial numbers, versions, models
+--> get_alarms: identify active issues (CRITICAL, MAJOR, MINOR)
+--> get_control_connections per device: verify DTLS/TLS tunnels
+--> get_bfd_sessions per device: check tunnel health
+--> Report: fabric status summary with severity-sorted findings
+--> GAIT audit trail
+```
+
+### Grafana Infrastructure Monitoring
+```
+grafana-observability
+--> search_dashboards(title="Network"): find network-related dashboards
+--> get_dashboard_summary(uid): lightweight overview of panels
+--> query_prometheus(expr="rate(ifHCInOctets{device='core-rtr-01'}[5m])*8"): interface traffic
+--> query_prometheus(expr="device_cpu_utilization{device=~'.*'}"): CPU across fleet
+--> list_alert_rules(folder="Network"): check alerting thresholds
+--> query_loki_logs(query='{host="core-rtr-01"} |= "error"'): syslog errors
+--> Report: infrastructure metrics with alert status and log correlation
+--> GAIT audit trail
+```
+
+### Grafana Alert Investigation
+```
+grafana-observability
+--> list_alert_rules: find firing or pending alert rules
+--> get_alert_rule_by_uid: threshold, conditions, datasource details
+--> query_prometheus: check the metric that triggered the alert
+--> query_loki_logs: correlate with log events around alert time
+--> list_incidents: check if already tracked
+--> list_contact_points: verify notification routes
+--> Report: alert analysis with root cause and metric evidence
+--> GAIT audit trail
+```
+
+### Prometheus Metric Investigation
+```
+prometheus-monitoring
+--> health_check: verify Prometheus is reachable
+--> list_metrics(page=1, page_size=50): discover available metric names
+--> get_metric_metadata(metric="ifHCInOctets"): check type, help, unit
+--> execute_query(query="up{job='snmp'}"): check which targets are up
+--> execute_range_query(query="rate(ifHCInOctets{device='core-rtr-01'}[5m])*8", start, end, step="60s"): interface traffic trend
+--> get_targets: verify SNMP exporter scrape health
+--> Report: metric analysis with current values and trends
+--> GAIT audit trail
+```
+
+### Kubeshark Service Troubleshooting
+```
+kubeshark-traffic
+--> capture_traffic(filter="dst.pod.name == 'api-gateway'"): start targeted K8s capture
+--> list_l4_flows: TCP/UDP connections with RTT, byte counts, duration
+--> get_l4_flow_summary: top talkers, protocol distribution, traffic volume
+--> apply_filter(kfl_expression="response.status >= 500"): isolate HTTP 5xx errors
+--> export_pcap: export for Wireshark/tshark deep analysis
+--> packet-analysis: analyze exported pcap with Packet Buddy
+--> Report: service communication analysis with latency and error patterns
+--> GAIT audit trail
+```
+
+### SD-WAN Policy Audit
+```
+sdwan-ops
+--> get_device_templates: list all templates with device counts
+--> get_feature_templates: inspect VPN, interface, routing, security templates
+--> get_centralized_policies: review traffic engineering and security policies
+--> get_running_config per device: confirm template-applied config
+--> Report: template and policy audit with recommendations
+--> GAIT audit trail
+```
+
 ### JunOS OSPF/BGP Health Check
 ```
 pyats-junos-routing + pyats-junos-system
@@ -1247,7 +1368,7 @@ netclaw/
 ├── MISSION01.md                          # Completed — core pyATS + 11 skills
 ├── MISSION02.md                          # Completed — full platform, 78 skills, 32 MCP
 ├── workspace/
-│   └── skills/                           # 78 skill definitions (source of truth)
+│   └── skills/                           # 82 skill definitions (source of truth)
 │       ├── pyats-network/                # Core device automation (8 MCP tools)
 │       ├── pyats-health-check/           # Health + NetBox cross-ref + pCall
 │       ├── pyats-routing/                # OSPF, BGP, EIGRP, IS-IS analysis
@@ -1306,7 +1427,11 @@ netclaw/
 │       ├── junos-network/           # Juniper JunOS PyEZ/NETCONF automation
 │       ├── arista-cvp/              # Arista CloudVision Portal inventory, events, tags
 │       ├── protocol-participation/ # Live BGP/OSPF/GRE control-plane participation (10 tools)
-│       ├── clab-lab-management/  # ContainerLab deploy, inspect, exec, destroy labs (6 tools)
+│       ├── clab-lab-management/  # ContainerLab lab lifecycle via API (6 tools)
+│       ├── sdwan-ops/            # Cisco SD-WAN vManage read-only monitoring (12 tools)
+│       ├── grafana-observability/ # Grafana dashboards, Prometheus, Loki, alerting, incidents (75+ tools)
+│       ├── prometheus-monitoring/ # Direct Prometheus PromQL queries, metric discovery, target health (6 tools)
+│       ├── kubeshark-traffic/    # Kubeshark K8s L4/L7 traffic analysis, TLS decryption, pcap export (6 tools)
 │       ├── meraki-network-ops/       # Meraki org inventory, networks, devices, clients
 │       ├── meraki-wireless-ops/      # Meraki SSIDs, RF profiles, channel utilization
 │       ├── meraki-switch-ops/        # Meraki switch ports, VLANs, ACLs, QoS
@@ -1355,11 +1480,12 @@ netclaw/
 │   ├── mcp-cvp-fun/                # Arista CloudVision Portal (4 tools)
 │   ├── uml-mcp/                         # 27+ diagram types via Kroki (2 tools)
 │   ├── protocol-mcp/                   # BGP/OSPF/GRE protocol speakers (10 tools)
-│   └── clab-mcp-server/               # ContainerLab API client (6 tools)
+│   ├── clab-mcp-server/               # ContainerLab lab management (6 tools)
+│   └── cisco-sdwan-mcp/               # Cisco SD-WAN vManage monitoring (12 tools)
 ├── lab/
 │   └── frr-testbed/                     # Docker FRR 3-router lab for protocol testing
 ├── scripts/
-│   ├── install.sh                        # Full bootstrap installer (41 steps)
+│   ├── install.sh                        # Full bootstrap installer (45 steps)
 │   ├── setup.sh                          # Interactive setup wizard (API key, platforms, Slack)
 │   ├── mcp-call.py                       # MCP JSON-RPC protocol handler
 │   └── gait-stdio.py                     # GAIT server stdio wrapper
@@ -1431,12 +1557,16 @@ netclaw/
 33. **Configures GCP Cloud MCP Servers** — Checks for `gcloud` CLI and credentials; 4 remote HTTP servers hosted by Google (Compute Engine, Cloud Monitoring, Cloud Logging, Resource Manager)
 34. **Installs JunOS MCP** — `git clone` + `pip3 install -r requirements.txt` for Juniper JunOS device automation via PyEZ/NETCONF (10 tools: CLI execution, config management, Jinja2 templates, device facts, batch operations). Python 3.10+ required.
 35. **Installs UML MCP** — `git clone` + `pip3 install -e .` for 27+ diagram types via Kroki multi-engine rendering (2 tools: generate_uml, generate_diagram_url). Python 3.10+ required. nwdiag (network), rackdiag (rack), packetdiag (protocol headers), sequence, state, class, C4, Mermaid, D2, Graphviz, ERD, BPMN.
-36. **Installs ContainerLab MCP** — `git clone` + `pip3 install -r requirements.txt` for containerized network lab management (6 tools: authenticate, list, deploy, inspect, exec, destroy). Supports SR Linux, cEOS, IOS XR, NX-OS, FRR, cRPD node kinds. Requires ContainerLab API server running.
-37. **Installs Protocol MCP** — `pip3 install -r requirements.txt` (scapy, networkx, mcp, fastmcp) for live BGP/OSPF/GRE control-plane participation (10 tools: peer with routers, inject/withdraw routes, query RIB/LSDB, adjust metrics). Protocol speakers from WontYouBeMyNeighbour.
-38. **Protocol Peering Wizard** — Optional interactive configuration: router ID, local AS, BGP peer IP/AS, OSPF areas, GRE tunnels, lab mode. Writes protocol environment variables to `~/.openclaw/.env`. Optionally creates GRE tunnel (requires sudo).
-39. **Deploys skills + workspace files** — Copies 78 skills and 6 MD files to `~/.openclaw/workspace/`
-40. **Verifies installation** — Checks all MCP server scripts + core scripts exist
-41. **Prints summary** — Lists all 32 MCP servers by category and all 78 skills by domain
+36. **Installs ContainerLab MCP** — `git clone` + `pip3 install -r requirements.txt` for containerized network lab lifecycle management via ContainerLab API (6 tools: authenticate, list, deploy, inspect, exec, destroy). Supports SR Linux, cEOS, FRR, Cisco IOS-XR/XE/NX-OS, and more.
+37. **Installs SD-WAN MCP** — `git clone` + `pip3 install` deps (fastmcp, requests, python-dotenv) for Cisco SD-WAN vManage read-only monitoring (12 tools: fabric devices, WAN Edge inventory, templates, policies, alarms, BFD, OMP routes, control connections, running config).
+38. **Installs Grafana MCP** — Validates `uvx` availability for running `mcp-grafana` (Go binary, 75+ tools: dashboards, Prometheus PromQL, Loki LogQL, alerting, incidents, OnCall, annotations, panel rendering). Requires Grafana 9.0+ with service account token.
+39. **Installs Prometheus MCP** — `pip3 install prometheus-mcp-server` for direct Prometheus monitoring (6 tools: instant/range PromQL queries, metric discovery with pagination, metric metadata, scrape target health, system health check). Supports basic auth, bearer tokens, and multi-tenant org IDs.
+40. **Configures Kubeshark MCP** — Checks for `kubectl`; Kubeshark MCP is a remote HTTP endpoint running inside a Kubernetes cluster (6 tools: traffic capture, pcap export, snapshots, KFL filtering, L4 flow stats, TLS decryption). Requires Kubeshark deployed via Helm with `mcp.enabled=true`.
+41. **Installs Protocol MCP** — `pip3 install -r requirements.txt` (scapy, networkx, mcp, fastmcp) for live BGP/OSPF/GRE control-plane participation (10 tools: peer with routers, inject/withdraw routes, query RIB/LSDB, adjust metrics). Protocol speakers from WontYouBeMyNeighbour.
+42. **Protocol Peering Wizard** — Optional interactive configuration: router ID, local AS, BGP peer IP/AS, OSPF areas, GRE tunnels, lab mode. Writes protocol environment variables to `~/.openclaw/.env`. Optionally creates GRE tunnel (requires sudo).
+43. **Deploys skills + workspace files** — Copies 82 skills and 6 MD files to `~/.openclaw/workspace/`
+44. **Verifies installation** — Checks all MCP server scripts + core scripts exist
+45. **Prints summary** — Lists all 37 MCP servers by category and all 82 skills by domain
 
 ---
 
@@ -1499,6 +1629,11 @@ Optional (for full feature set):
 - Itential Automation Platform instance + credentials (optional — network orchestration, compliance, golden config)
 - Google Cloud project with service account or `gcloud` CLI (for GCP Compute, Monitoring, Logging skills)
 - Microsoft 365 tenant with Azure AD app registration (for Graph/Visio/Teams skills)
+- ContainerLab API server with PAM-authenticated Linux user (for containerized network lab management)
+- Cisco SD-WAN vManage instance with API access (for SD-WAN fabric monitoring — read-only)
+- Grafana 9.0+ with service account token (Editor role or granular RBAC) and `uvx` (for Grafana observability — dashboards, Prometheus, Loki, alerting, incidents, OnCall)
+- Prometheus server with HTTP API access (for direct PromQL monitoring — instant/range queries, metric discovery, scrape target health)
+- Kubernetes cluster with Kubeshark deployed via Helm and `kubectl` (for K8s L4/L7 traffic analysis — capture, pcap export, flow stats, TLS decryption)
 - Docker for FRR lab testbed (optional — 3-router FRR topology for testing BGP/OSPF protocol participation)
 - Root/sudo access for GRE tunnel creation (optional — required for BGP/OSPF peering over GRE tunnels)
 - Kroki local instance (optional — public kroki.io used by default; local instance recommended for sensitive topology data)
@@ -1731,6 +1866,57 @@ Ask NetClaw anything you'd ask a senior network engineer:
 "Withdraw the blackhole route for 10.99.0.0/16"
 --> servicenow-change-workflow (CR) + protocol-participation: bgp_get_rib(prefix) (verify exists), bgp_withdraw_route(network), bgp_get_rib(prefix) (verify removed), GAIT audit
 
+"Deploy a 2-node SR Linux lab in ContainerLab"
+--> clab-lab-management: listLabs (check conflicts), deployLab (topology JSON), inspectLab (verify, get management IPs), execCommand ("show version")
+
+"What ContainerLab labs are running?"
+--> clab-lab-management: listLabs, inspectLab per lab for node status and management IPs
+
+"Show me all SD-WAN fabric devices"
+--> sdwan-ops: get_devices — vManage, vSmart, vBond, vEdge status summary
+
+"Are there any SD-WAN alarms?"
+--> sdwan-ops: get_alarms — active alarms with severity, device, and description
+
+"Check BFD tunnel health on WAN edge 10.10.10.100"
+--> sdwan-ops: get_bfd_sessions(device_ip="10.10.10.100"), tunnel status and latency report
+
+"What OMP routes is the branch edge advertising?"
+--> sdwan-ops: get_omp_routes(device_ip="10.10.10.200"), received and advertised route summary
+
+"Show me the network dashboards in Grafana"
+--> grafana-observability: search_dashboards(title="network"), get_dashboard_summary per result, panel list with datasource info
+
+"What interface traffic is Prometheus seeing on core-rtr-01?"
+--> grafana-observability: query_prometheus(expr="rate(ifHCInOctets{device='core-rtr-01'}[5m]) * 8"), query_prometheus(expr="rate(ifHCOutOctets{device='core-rtr-01'}[5m]) * 8"), utilization summary in bps
+
+"Are any Grafana alerts firing right now?"
+--> grafana-observability: list_alert_rules — firing/pending rules with severity, affected metric, threshold, and contact point summary
+
+"Search Loki logs for BGP flaps on the spine switches"
+--> grafana-observability: query_loki_logs(query='{host=~"spine.*"} |~ "BGP|Established|Idle"', limit=100), pattern analysis and timeline
+
+"Who is on call for network incidents?"
+--> grafana-observability: get_current_oncall_users, list_oncall_schedules — current responders and rotation details
+
+"What metrics does Prometheus have for the core routers?"
+--> prometheus-monitoring: health_check, list_metrics(page=1), get_metric_metadata — available metrics with type and description
+
+"Show me the interface traffic trend on core-rtr-01 for the last hour"
+--> prometheus-monitoring: execute_range_query(query="rate(ifHCInOctets{device='core-rtr-01'}[5m])*8", start, end, step="60s") — bps trend with peak and average
+
+"Are all SNMP scrape targets up in Prometheus?"
+--> prometheus-monitoring: get_targets — scrape target status (up/down), last scrape time, labels, error messages
+
+"Capture traffic to the api-gateway pod and show me the top talkers"
+--> kubeshark-traffic: capture_traffic(filter="dst.pod.name == 'api-gateway'"), get_l4_flow_summary — top talkers, protocol breakdown, traffic volume
+
+"Export a pcap of all HTTP 500 errors in the production namespace"
+--> kubeshark-traffic: apply_filter(kfl_expression="dst.namespace == 'production' and response.status >= 500"), export_pcap — pcap for Wireshark analysis
+
+"Show me all TCP flows with high latency in the cluster"
+--> kubeshark-traffic: list_l4_flows, apply_filter(kfl_expression="response.latency > 500ms") — slow connections with RTT and byte stats
+
 "Check Docker container health across all Linux hosts"
 --> pyats-linux-system: pyats_list_devices (identify Linux hosts), pyats_run_linux_command("docker stats --no-stream") per host, analyze CPU/memory per container, GAIT audit
 
@@ -1750,4 +1936,4 @@ See `examples/` for detailed workflow walkthroughs.
 | Mission | Status | Summary |
 |---|---|---|
 | MISSION01 | Complete | Core pyATS agent, 7 skills, Markmap, Draw.io, RFC, NVD CVE, SOUL v1 |
-| MISSION02 | Complete | Full platform — 32 MCP servers, 78 skills (18 pyATS, 9 domain, 3 F5, 3 CatC, 3 M365, 1 GitHub, 1 packet analysis, 5 CML, 1 ContainerLab, 2 NSO, 1 Itential, 1 FMC, 1 RADKit, 5 Meraki, 2 ThousandEyes, 5 AWS, 3 GCP, 1 JunOS, 1 Arista CVP, 1 UML, 1 protocol participation, 6 utility, 4 Slack), 6 workspace files, SOUL v2 |
+| MISSION02 | Complete | Full platform — 37 MCP servers, 82 skills (18 pyATS, 9 domain, 3 F5, 3 CatC, 3 M365, 1 GitHub, 1 packet analysis, 5 CML, 1 ContainerLab, 2 NSO, 1 Itential, 1 FMC, 1 SD-WAN, 1 Grafana, 1 Prometheus, 1 Kubeshark, 1 RADKit, 5 Meraki, 2 ThousandEyes, 5 AWS, 3 GCP, 1 JunOS, 1 Arista CVP, 1 UML, 1 protocol participation, 6 utility, 4 Slack), 6 workspace files, SOUL v2 |
