@@ -52,6 +52,8 @@ class BGPSessionConfig:
     # Mesh peering (NetClaw-to-NetClaw via ngrok)
     accept_any_source: bool = False  # Accept connections from any IP (match by AS from OPEN)
     hostname: bool = False  # True if peer_ip is a hostname (e.g. ngrok endpoint)
+    mesh_endpoint: str = ""  # This node's reachable endpoint (e.g., "0.tcp.ngrok.io:14027")
+    peer_mesh_endpoint: str = ""  # Peer's reachable endpoint (learned from OPEN capability)
 
     # Route Reflection
     route_reflector_client: bool = False
@@ -171,6 +173,9 @@ class BGPSession:
 
         # Pre-read OPEN message for mesh peer identification (set by BGPAgent)
         self._pending_open: Optional[BGPOpen] = None
+
+        # Mesh directory callback (set by BGPAgent for mesh peer exchange)
+        self._on_mesh_directory_received: Optional[Callable] = None
 
         # Tasks
         self.message_reader_task: Optional[asyncio.Task] = None
@@ -580,6 +585,12 @@ class BGPSession:
 
         self.logger.info(f"Peer capabilities: {list(peer_caps.keys())}")
 
+        # Extract peer mesh endpoint if advertised
+        peer_mesh_endpoint = self.capabilities.get_peer_mesh_endpoint()
+        if peer_mesh_endpoint:
+            self.config.peer_mesh_endpoint = peer_mesh_endpoint
+            self.logger.info(f"Peer mesh endpoint: {peer_mesh_endpoint}")
+
         # Notify FSM (will trigger KEEPALIVE send via callback)
         # The FSM will automatically send KEEPALIVE and transition to OpenConfirm
         await self.fsm.process_event(BGPEvent.BGPOpen)
@@ -587,6 +598,18 @@ class BGPSession:
     async def _process_update(self, message: BGPUpdate) -> None:
         """Process UPDATE message"""
         self.stats['updates_received'] += 1
+
+        # Check for mesh directory marker prefix
+        if message.nlri and MESH_DIRECTORY_PREFIX in message.nlri:
+            mesh_attr = message.path_attributes.get(ATTR_NETCLAW_MESH_PEERS)
+            if mesh_attr and hasattr(mesh_attr, 'peers'):
+                self.logger.info(f"Received mesh directory: {len(mesh_attr.peers)} peers")
+                if self._on_mesh_directory_received:
+                    self._on_mesh_directory_received(mesh_attr.peers)
+            # Strip the marker from NLRI so it's not installed as a route
+            message.nlri = [n for n in message.nlri if n != MESH_DIRECTORY_PREFIX]
+            if not message.nlri and not message.withdrawn_routes:
+                return  # Nothing else to process
 
         # Check for End-of-RIB marker (RFC 4724)
         # IPv4: UPDATE with no withdrawn routes, no NLRI, and empty path attributes
@@ -796,6 +819,10 @@ class BGPSession:
 
         # Enable IPv6 unicast for dual-stack support
         self.capabilities.enable_multiprotocol(AFI_IPV6, SAFI_UNICAST)
+
+        # Enable mesh endpoint capability if configured
+        if self.config.mesh_endpoint:
+            self.capabilities.enable_mesh_endpoint(self.config.mesh_endpoint)
 
         # Enable graceful restart if configured
         if self.config.enable_graceful_restart:

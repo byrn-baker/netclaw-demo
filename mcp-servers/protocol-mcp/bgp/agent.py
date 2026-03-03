@@ -41,7 +41,8 @@ class BGPAgent:
     """
 
     def __init__(self, local_as: int, router_id: str, listen_ip: str = "0.0.0.0",
-                 listen_port: int = BGP_PORT, kernel_route_manager=None):
+                 listen_port: int = BGP_PORT, kernel_route_manager=None,
+                 mesh_open: bool = False, mesh_endpoint: str = ""):
         """
         Initialize BGP agent
 
@@ -51,18 +52,25 @@ class BGPAgent:
             listen_ip: IP address to listen on for passive connections
             listen_port: TCP port to listen on
             kernel_route_manager: Optional kernel route manager for installing routes
+            mesh_open: Auto-accept unknown mesh peers (default: False)
+            mesh_endpoint: This node's reachable endpoint for mesh discovery
         """
         self.local_as = local_as
         self.router_id = router_id
         self.listen_ip = listen_ip
         self.listen_port = listen_port
         self.kernel_route_manager = kernel_route_manager
+        self.mesh_open = mesh_open
+        self.mesh_endpoint = mesh_endpoint
 
         self.logger = logging.getLogger(f"BGPAgent[AS{local_as}]")
 
         # Sessions
         self.sessions: Dict[str, BGPSession] = {}  # Key: peer_ip (or synthetic "mesh-as{N}" for mesh peers)
         self.mesh_sessions: Dict[int, BGPSession] = {}  # Key: peer_as (for accept_any_source peers)
+
+        # Mesh directory: AS -> {"endpoint": "host:port", "source": "config|direct|exchange"}
+        self.mesh_directory: Dict[int, Dict[str, str]] = {}
 
         # Shared Loc-RIB (best routes)
         self.loc_rib = LocRIB()
@@ -227,11 +235,11 @@ class BGPAgent:
             session = self.sessions.get(peer_ip)
             mesh_identified = False
 
-            if not session and self.mesh_sessions:
+            if not session and (self.mesh_sessions or self.mesh_open):
                 # No IP match — try OPEN-based identification for mesh peers
                 # Read the BGP OPEN to extract AS number and router-ID
                 self.logger.info(f"No IP match for {peer_ip}, attempting mesh OPEN-based identification "
-                                f"({len(self.mesh_sessions)} mesh peer(s) configured)")
+                                f"({len(self.mesh_sessions)} mesh peer(s) configured, mesh_open={self.mesh_open})")
                 open_msg = await self._read_open_message(reader)
 
                 if not open_msg:
@@ -245,14 +253,20 @@ class BGPAgent:
                 session = self.mesh_sessions.get(peer_as)
 
                 if not session:
-                    self.logger.warning(f"No mesh peer configured for AS{peer_as} from {peer_ip}, rejecting")
-                    writer.close()
-                    await writer.wait_closed()
-                    return
+                    if self.mesh_open and peer_as != self.local_as:
+                        # Auto-create mesh session for unknown AS
+                        self.logger.info(f"MESH OPEN: Auto-accepting AS{peer_as} from {peer_ip}")
+                        session = self._auto_create_mesh_session(peer_as, peer_ip, open_msg)
+                    else:
+                        self.logger.warning(f"No mesh peer configured for AS{peer_as} from {peer_ip}, rejecting")
+                        writer.close()
+                        await writer.wait_closed()
+                        return
+                else:
+                    # Store the pre-read OPEN so the session can process it after accept
+                    session._pending_open = open_msg
 
                 self.logger.info(f"Mesh peer matched: AS{peer_as} router-id {open_msg.bgp_identifier} from {peer_ip}")
-                # Store the pre-read OPEN so the session can process it after accept
-                session._pending_open = open_msg
                 mesh_identified = True
 
             if not session:
@@ -375,6 +389,11 @@ class BGPAgent:
         # Register callback for when session becomes established
         session.on_established = lambda: asyncio.create_task(self._on_session_established(peer_ip))
 
+        # Register mesh directory callback
+        session._on_mesh_directory_received = lambda peers: asyncio.create_task(
+            self._process_mesh_directory(peer_ip, peers)
+        )
+
         # Configure route reflection if enabled
         if self.route_reflector and config.route_reflector_client:
             self.route_reflector.add_client(peer_ip)
@@ -418,6 +437,196 @@ class BGPAgent:
         del self.sessions[peer_ip]
 
         self.logger.info(f"Removed peer {peer_ip}")
+
+    def _auto_create_mesh_session(self, peer_as: int, peer_ip: str,
+                                   open_msg: 'BGPOpen') -> 'BGPSession':
+        """
+        Auto-create a mesh session for an unknown AS (open mesh mode).
+
+        Called when mesh_open is True and an inbound connection arrives
+        from an AS that has no pre-configured session.
+
+        Args:
+            peer_as: Peer AS number from OPEN
+            peer_ip: Peer's source IP (TCP connection)
+            open_msg: The OPEN message already read from the wire
+
+        Returns:
+            Newly created BGPSession
+        """
+        synthetic_key = f"mesh-as{peer_as}"
+
+        config = BGPSessionConfig(
+            local_as=self.local_as,
+            local_router_id=self.router_id,
+            local_ip=self.router_id,
+            peer_as=peer_as,
+            peer_ip=synthetic_key,
+            passive=True,
+            accept_any_source=True,
+            mesh_endpoint=self.mesh_endpoint,
+        )
+
+        session = self.add_peer(config)
+
+        # Configure capabilities and start in passive mode
+        session._configure_capabilities()
+        session.running = True
+
+        # Store the pre-read OPEN for replay after accept
+        session._pending_open = open_msg
+
+        self.logger.info(f"MESH OPEN: Auto-created session for AS{peer_as} ({synthetic_key})")
+        return session
+
+    async def _send_mesh_directory(self, peer_ip: str) -> None:
+        """
+        Send mesh directory to a specific peer via a special BGP UPDATE.
+
+        Uses the reserved prefix MESH_DIRECTORY_PREFIX with a custom
+        MeshPeersAttribute containing all known mesh peers.
+
+        Args:
+            peer_ip: Peer to send directory to
+        """
+        session = self.sessions.get(peer_ip)
+        if not session or not session.is_established():
+            return
+
+        # Build peer list (exclude the target peer's own AS)
+        peer_list = []
+        target_as = session.config.peer_as
+
+        # Include ourselves
+        if self.mesh_endpoint:
+            peer_list.append({
+                "as": self.local_as,
+                "endpoint": self.mesh_endpoint,
+            })
+
+        # Include all known mesh peers except the target
+        for as_num, info in self.mesh_directory.items():
+            if as_num != target_as and as_num != self.local_as:
+                peer_list.append({
+                    "as": as_num,
+                    "endpoint": info["endpoint"],
+                })
+
+        if not peer_list:
+            self.logger.debug(f"No mesh peers to share with {peer_ip}")
+            return
+
+        self.logger.info(f"Sending mesh directory ({len(peer_list)} peers) to {peer_ip}")
+
+        path_attrs = {
+            ATTR_ORIGIN: OriginAttribute(ORIGIN_IGP),
+            ATTR_AS_PATH: ASPathAttribute([(AS_SEQUENCE, [self.local_as])]),
+            ATTR_NEXT_HOP: NextHopAttribute(self.router_id),
+            ATTR_NETCLAW_MESH_PEERS: MeshPeersAttribute(peer_list),
+        }
+
+        update = BGPUpdate(
+            withdrawn_routes=[],
+            path_attributes=path_attrs,
+            nlri=[MESH_DIRECTORY_PREFIX],
+        )
+
+        try:
+            await session._send_message(update)
+        except Exception as e:
+            self.logger.error(f"Failed to send mesh directory to {peer_ip}: {e}")
+
+    async def _process_mesh_directory(self, source_peer_ip: str, peers: list) -> None:
+        """
+        Process a received mesh directory from a peer.
+
+        For each discovered peer that we don't already have a session with,
+        auto-create an outbound mesh session and connect.
+
+        Args:
+            source_peer_ip: The peer that sent this directory
+            peers: List of {"as": int, "endpoint": str} entries
+        """
+        if not self.mesh_open:
+            self.logger.debug("Mesh directory received but mesh_open is False, ignoring")
+            return
+
+        for peer_info in peers:
+            peer_as = peer_info.get("as")
+            endpoint = peer_info.get("endpoint", "")
+
+            if not peer_as or not endpoint:
+                continue
+
+            # Skip ourselves
+            if peer_as == self.local_as:
+                continue
+
+            # Skip if we already have a session for this AS
+            already_known = False
+            for existing_session in self.sessions.values():
+                if existing_session.config.peer_as == peer_as:
+                    already_known = True
+                    break
+
+            if already_known:
+                self.logger.debug(f"Mesh directory: AS{peer_as} already known, skipping")
+                self.mesh_directory[peer_as] = {
+                    "endpoint": endpoint,
+                    "source": "exchange",
+                }
+                continue
+
+            # Parse endpoint
+            if ':' not in endpoint:
+                self.logger.warning(f"Invalid mesh endpoint for AS{peer_as}: {endpoint}")
+                continue
+
+            host, port_str = endpoint.rsplit(':', 1)
+            try:
+                port = int(port_str)
+            except ValueError:
+                self.logger.warning(f"Invalid port in mesh endpoint for AS{peer_as}: {endpoint}")
+                continue
+
+            # Auto-add this peer
+            self.logger.info(f"MESH DISCOVERY: Auto-adding AS{peer_as} at {endpoint}")
+
+            # Update directory
+            self.mesh_directory[peer_as] = {
+                "endpoint": endpoint,
+                "source": "exchange",
+            }
+
+            # Create outbound session
+            config = BGPSessionConfig(
+                local_as=self.local_as,
+                local_router_id=self.router_id,
+                local_ip=self.router_id,
+                peer_as=peer_as,
+                peer_ip=host,
+                peer_port=port,
+                hostname=True,
+                mesh_endpoint=self.mesh_endpoint,
+            )
+
+            session = self.add_peer(config)
+            await session.start()
+
+            # Also create an inbound acceptor for this AS
+            inbound_key = f"mesh-as{peer_as}"
+            if inbound_key not in self.sessions:
+                inbound_config = BGPSessionConfig(
+                    local_as=self.local_as,
+                    local_router_id=self.router_id,
+                    local_ip=self.router_id,
+                    peer_as=peer_as,
+                    peer_ip=inbound_key,
+                    passive=True,
+                    accept_any_source=True,
+                    mesh_endpoint=self.mesh_endpoint,
+                )
+                self.add_peer(inbound_config)
 
     async def start_peer(self, peer_ip: str) -> bool:
         """
@@ -465,12 +674,24 @@ class BGPAgent:
         """
         Callback when a session becomes established
 
-        Advertises all existing Loc-RIB routes to the newly established peer
+        Advertises all existing Loc-RIB routes to the newly established peer,
+        updates the mesh directory, and exchanges mesh peer info.
 
         Args:
             peer_ip: Peer IP address
         """
         self.logger.info(f"Session with {peer_ip} established - advertising existing routes")
+
+        session = self.sessions.get(peer_ip)
+
+        # Update mesh directory with peer's endpoint (learned from OPEN capability)
+        if session and session.config.peer_mesh_endpoint:
+            peer_as = session.config.peer_as
+            self.mesh_directory[peer_as] = {
+                "endpoint": session.config.peer_mesh_endpoint,
+                "source": "direct",
+            }
+            self.logger.info(f"Mesh directory updated: AS{peer_as} -> {session.config.peer_mesh_endpoint}")
 
         # Get all prefixes from Loc-RIB
         all_routes = self.loc_rib.get_all_routes()
@@ -481,6 +702,16 @@ class BGPAgent:
             await self._advertise_routes(all_prefixes)
         else:
             self.logger.debug(f"No existing routes to advertise to {peer_ip}")
+
+        # Send mesh directory to newly established peer
+        if self.mesh_open and self.mesh_directory:
+            await self._send_mesh_directory(peer_ip)
+
+        # Notify all OTHER established peers about the new member
+        if self.mesh_open and session and session.config.peer_mesh_endpoint:
+            for other_ip, other_session in self.sessions.items():
+                if other_ip != peer_ip and other_session.is_established():
+                    await self._send_mesh_directory(other_ip)
 
     def enable_route_reflection(self, cluster_id: Optional[str] = None) -> None:
         """

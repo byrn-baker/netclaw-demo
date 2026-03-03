@@ -38,6 +38,8 @@ LOCAL_AS    = int(os.environ.get("NETCLAW_LOCAL_AS", "65001"))
 BGP_PEERS   = json.loads(os.environ.get("NETCLAW_BGP_PEERS", "[]"))
 API_PORT    = int(os.environ.get("BGP_API_PORT", "8179"))
 BGP_LISTEN_PORT = int(os.environ.get("BGP_LISTEN_PORT", "1179"))
+MESH_OPEN   = os.environ.get("NETCLAW_MESH_OPEN", "true").lower() in ("true", "1", "yes")
+MESH_ENDPOINT = os.environ.get("NETCLAW_MESH_ENDPOINT", "")
 
 # Global speaker reference for the API
 _speaker = None
@@ -275,6 +277,33 @@ async def handle_http(reader, writer):
                     resp_code = 500
                     resp_body = {"error": str(e)}
 
+        elif method == "GET" and path == "/mesh_directory":
+            if _speaker:
+                directory = {}
+                for as_num, info in _speaker.agent.mesh_directory.items():
+                    directory[str(as_num)] = info
+                resp_body = {
+                    "local_as": LOCAL_AS,
+                    "mesh_endpoint": _speaker.agent.mesh_endpoint,
+                    "mesh_open": MESH_OPEN,
+                    "directory": directory,
+                }
+            else:
+                resp_code = 503
+                resp_body = {"error": "speaker not ready"}
+
+        elif method == "POST" and path == "/set_mesh_endpoint":
+            endpoint = body.get("endpoint", "")
+            if endpoint and _speaker:
+                _speaker.agent.mesh_endpoint = endpoint
+                resp_body = {"success": True, "endpoint": endpoint}
+            elif not _speaker:
+                resp_code = 503
+                resp_body = {"error": "speaker not ready"}
+            else:
+                resp_code = 400
+                resp_body = {"error": "endpoint required"}
+
         else:
             resp_code = 404
             resp_body = {"error": "not found"}
@@ -298,13 +327,31 @@ async def handle_http(reader, writer):
 async def main():
     global _speaker
 
-    logger.info("Starting NetClaw BGP daemon v2 — AS%s router-id %s", LOCAL_AS, ROUTER_ID)
+    logger.info("Starting NetClaw BGP daemon v2 — AS%s router-id %s (mesh_open=%s)", LOCAL_AS, ROUTER_ID, MESH_OPEN)
+
+    # Auto-detect ngrok endpoint if not set
+    mesh_endpoint = MESH_ENDPOINT
+    if not mesh_endpoint:
+        try:
+            import urllib.request
+            resp = urllib.request.urlopen("http://127.0.0.1:4040/api/tunnels", timeout=3)
+            tunnels = json.loads(resp.read())
+            for t in tunnels.get("tunnels", []):
+                if t.get("proto") == "tcp":
+                    # Extract "host:port" from "tcp://host:port"
+                    mesh_endpoint = t["public_url"].replace("tcp://", "")
+                    logger.info("Auto-detected ngrok mesh endpoint: %s", mesh_endpoint)
+                    break
+        except Exception as e:
+            logger.debug("Could not auto-detect ngrok endpoint: %s", e)
 
     _speaker = BGPSpeaker(
         local_as=LOCAL_AS,
         router_id=ROUTER_ID,
         listen_ip="0.0.0.0",
         listen_port=BGP_LISTEN_PORT,
+        mesh_open=MESH_OPEN,
+        mesh_endpoint=mesh_endpoint,
     )
 
     for peer in BGP_PEERS:

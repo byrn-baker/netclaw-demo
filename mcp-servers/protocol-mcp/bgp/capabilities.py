@@ -115,6 +115,31 @@ class CapabilityManager:
         value = struct.pack('!HBB', afi, safi, flags)
         self.add_local_capability(CAP_ADD_PATH, value)
 
+    def enable_mesh_endpoint(self, endpoint: str) -> None:
+        """
+        Enable NetClaw mesh endpoint capability.
+
+        Advertises this node's reachable endpoint (hostname:port) to peers
+        via the BGP OPEN message.
+
+        Args:
+            endpoint: Reachable endpoint string (e.g., "0.tcp.ngrok.io:14027")
+        """
+        value = endpoint.encode('utf-8')
+        self.add_local_capability(CAP_NETCLAW_MESH_ENDPOINT, value)
+
+    def get_peer_mesh_endpoint(self) -> Optional[str]:
+        """
+        Get peer's mesh endpoint from received capabilities.
+
+        Returns:
+            Endpoint string or None if peer didn't advertise one
+        """
+        value = self.peer_capabilities.get(CAP_NETCLAW_MESH_ENDPOINT)
+        if value:
+            return value.decode('utf-8')
+        return None
+
     def get_local_capabilities(self) -> List[Tuple[int, bytes]]:
         """
         Get list of local capabilities

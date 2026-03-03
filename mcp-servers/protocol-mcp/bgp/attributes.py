@@ -833,6 +833,38 @@ class MPUnreachNLRIAttribute(PathAttribute):
         return f"MP_UNREACH_NLRI({afi_name}/{safi_name}, {len(self.withdrawn_routes)} withdrawn)"
 
 
+class MeshPeersAttribute(PathAttribute):
+    """
+    NETCLAW_MESH_PEERS Attribute (Type 253, NetClaw Private)
+
+    Optional transitive attribute for mesh peer exchange.
+    Contains JSON-encoded mesh directory: list of {as, endpoint} entries.
+
+    NetClaw-specific extension. Standard BGP implementations will silently
+    ignore this unknown optional transitive attribute per RFC 4271 Section 5.
+    """
+
+    def __init__(self, peers: list = None):
+        flags = ATTR_FLAG_OPTIONAL | ATTR_FLAG_TRANSITIVE
+        super().__init__(ATTR_NETCLAW_MESH_PEERS, flags)
+        self.peers = peers or []  # List of {"as": int, "endpoint": str}
+
+    def encode_value(self) -> bytes:
+        import json
+        return json.dumps(self.peers).encode('utf-8')
+
+    def decode_value(self, data: bytes) -> bool:
+        import json
+        try:
+            self.peers = json.loads(data.decode('utf-8'))
+            return True
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return False
+
+    def __repr__(self) -> str:
+        return f"NETCLAW_MESH_PEERS({len(self.peers)} peers)"
+
+
 class AttributeFactory:
     """Factory for creating path attribute instances"""
 
@@ -862,6 +894,7 @@ class AttributeFactory:
             ATTR_CLUSTER_LIST: ClusterListAttribute,
             ATTR_MP_REACH_NLRI: MPReachNLRIAttribute,
             ATTR_MP_UNREACH_NLRI: MPUnreachNLRIAttribute,
+            ATTR_NETCLAW_MESH_PEERS: MeshPeersAttribute,
         }
 
         attr_class = attr_classes.get(type_code)
@@ -894,6 +927,8 @@ class AttributeFactory:
             attr = MPReachNLRIAttribute()
         elif type_code == ATTR_MP_UNREACH_NLRI:
             attr = MPUnreachNLRIAttribute()
+        elif type_code == ATTR_NETCLAW_MESH_PEERS:
+            attr = MeshPeersAttribute()
         else:
             return None
 

@@ -42,7 +42,8 @@ class BGPSpeaker:
 
     def __init__(self, local_as: int, router_id: str,
                  listen_ip: str = "0.0.0.0", listen_port: int = BGP_PORT,
-                 log_level: str = "INFO", kernel_route_manager=None):
+                 log_level: str = "INFO", kernel_route_manager=None,
+                 mesh_open: bool = False, mesh_endpoint: str = ""):
         """
         Initialize BGP speaker
 
@@ -53,6 +54,8 @@ class BGPSpeaker:
             listen_port: Port to listen on (default: 179)
             log_level: Logging level (DEBUG, INFO, WARNING, ERROR)
             kernel_route_manager: Optional kernel route manager for installing routes
+            mesh_open: Auto-accept unknown mesh peers (default: False)
+            mesh_endpoint: This node's reachable endpoint for mesh discovery
         """
         self.local_as = local_as
         self.router_id = router_id
@@ -68,7 +71,8 @@ class BGPSpeaker:
         self.logger = logging.getLogger(f"BGPSpeaker[AS{local_as}]")
 
         # Create BGP agent
-        self.agent = BGPAgent(local_as, router_id, listen_ip, listen_port, kernel_route_manager)
+        self.agent = BGPAgent(local_as, router_id, listen_ip, listen_port, kernel_route_manager,
+                              mesh_open=mesh_open, mesh_endpoint=mesh_endpoint)
 
         # Peer configurations
         self.peer_configs: Dict[str, BGPSessionConfig] = {}
@@ -142,6 +146,7 @@ class BGPSpeaker:
             enable_flowspec=enable_flowspec,
             accept_any_source=accept_any_source,
             hostname=hostname,
+            mesh_endpoint=self.agent.mesh_endpoint,
         )
 
         # Add peer to agent
