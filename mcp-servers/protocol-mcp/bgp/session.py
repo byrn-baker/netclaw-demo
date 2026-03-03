@@ -40,6 +40,7 @@ class BGPSessionConfig:
 
     # Optional fields (with defaults)
     local_port: int = BGP_PORT
+    local_ipv6: Optional[str] = None  # Local IPv6 address for MP_REACH_NLRI next hop
     peer_port: int = BGP_PORT
     peer_router_id: Optional[str] = None  # Learned from OPEN
 
@@ -54,6 +55,10 @@ class BGPSessionConfig:
     hostname: bool = False  # True if peer_ip is a hostname (e.g. ngrok endpoint)
     mesh_endpoint: str = ""  # This node's reachable endpoint (e.g., "0.tcp.ngrok.io:14027")
     peer_mesh_endpoint: str = ""  # Peer's reachable endpoint (learned from OPEN capability)
+
+    # Data-plane tunnel (NetClaw IP-over-TCP)
+    tunnel_endpoint: str = ""          # This node's tunnel endpoint (same as mesh_endpoint)
+    peer_tunnel_endpoint: str = ""     # Peer's tunnel endpoint (learned from OPEN capability)
 
     # Route Reflection
     route_reflector_client: bool = False
@@ -177,6 +182,10 @@ class BGPSession:
         # Mesh directory callback (set by BGPAgent for mesh peer exchange)
         self._on_mesh_directory_received: Optional[Callable] = None
 
+        # Session lifecycle callbacks (set by BGPAgent)
+        self.on_established: Optional[Callable] = None
+        self.on_session_down: Optional[Callable] = None
+
         # Tasks
         self.message_reader_task: Optional[asyncio.Task] = None
         self.running = False
@@ -240,11 +249,20 @@ class BGPSession:
             True if connection successful
         """
         try:
-            self.logger.info(f"Connecting to {self.config.peer_ip}:{self.config.peer_port}")
+            # Resolve host and port — hostname peers encode port in peer_ip
+            if self.config.hostname and ':' in self.config.peer_ip:
+                host, _, port_str = self.config.peer_ip.rpartition(':')
+                connect_host = host
+                connect_port = int(port_str)
+            else:
+                connect_host = self.config.peer_ip
+                connect_port = self.config.peer_port
+
+            self.logger.info(f"Connecting to {connect_host}:{connect_port}")
 
             # Open TCP connection
             self.reader, self.writer = await asyncio.wait_for(
-                asyncio.open_connection(self.config.peer_ip, self.config.peer_port),
+                asyncio.open_connection(connect_host, connect_port),
                 timeout=30.0
             )
 
@@ -591,6 +609,12 @@ class BGPSession:
             self.config.peer_mesh_endpoint = peer_mesh_endpoint
             self.logger.info(f"Peer mesh endpoint: {peer_mesh_endpoint}")
 
+        # Extract peer tunnel endpoint if advertised
+        peer_tunnel_endpoint = self.capabilities.get_peer_tunnel_endpoint()
+        if peer_tunnel_endpoint:
+            self.config.peer_tunnel_endpoint = peer_tunnel_endpoint
+            self.logger.info(f"Peer tunnel endpoint: {peer_tunnel_endpoint}")
+
         # Notify FSM (will trigger KEEPALIVE send via callback)
         # The FSM will automatically send KEEPALIVE and transition to OpenConfirm
         await self.fsm.process_event(BGPEvent.BGPOpen)
@@ -824,6 +848,10 @@ class BGPSession:
         if self.config.mesh_endpoint:
             self.capabilities.enable_mesh_endpoint(self.config.mesh_endpoint)
 
+        # Enable tunnel endpoint capability if configured
+        if self.config.tunnel_endpoint:
+            self.capabilities.enable_tunnel_endpoint(self.config.tunnel_endpoint)
+
         # Enable graceful restart if configured
         if self.config.enable_graceful_restart:
             self.capabilities.enable_graceful_restart(
@@ -867,6 +895,10 @@ class BGPSession:
                 self.stats['uptime'] += uptime
                 self.stats['established_time'] = None
             self.logger.warning(f"BGP session DOWN with {self.config.peer_ip}")
+
+            # Call on_session_down callback if registered (e.g., tunnel teardown)
+            if self.on_session_down:
+                self.on_session_down()
 
             # Handle graceful restart - mark routes as stale
             if self.graceful_restart_manager and self.config.enable_graceful_restart:

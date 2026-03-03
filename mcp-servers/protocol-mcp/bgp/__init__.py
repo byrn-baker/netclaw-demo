@@ -34,6 +34,7 @@ from .speaker import BGPSpeaker, run_bgp_speaker
 from .agent import BGPAgent
 from .session import BGPSession, BGPSessionConfig
 from .rib import BGPRoute, AdjRIBIn, AdjRIBOut, LocRIB
+from .kernel import KernelRouteManager
 
 # Policy
 from .policy import (
@@ -69,6 +70,10 @@ from .path_selection import BestPathSelector
 
 # Capabilities
 from .capabilities import CapabilityManager, CapabilityInfo
+
+# Tunnel
+from .tun import TUNDevice
+from .tunnel import TunnelManager, compute_tunnel_addresses
 
 # Address Family
 from .address_family import (
@@ -128,6 +133,7 @@ __all__ = [
     # Other components
     'RouteReflector', 'BestPathSelector', 'CapabilityManager',
     'AddressFamily', 'MPReachNLRIAttribute', 'MPUnreachNLRIAttribute',
+    'TUNDevice', 'TunnelManager', 'compute_tunnel_addresses',
 
     # Utilities
     'parse_community', 'format_community',

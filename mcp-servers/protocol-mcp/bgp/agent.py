@@ -30,6 +30,7 @@ from .rpki import RPKIValidator
 from .flowspec import FlowspecManager
 from .messages import BGPUpdate, BGPNotification, BGPMessage, BGPOpen
 from .attributes import *
+from .tunnel import TunnelManager
 
 
 class BGPAgent:
@@ -42,7 +43,8 @@ class BGPAgent:
 
     def __init__(self, local_as: int, router_id: str, listen_ip: str = "0.0.0.0",
                  listen_port: int = BGP_PORT, kernel_route_manager=None,
-                 mesh_open: bool = False, mesh_endpoint: str = ""):
+                 mesh_open: bool = False, mesh_endpoint: str = "",
+                 local_ipv6: Optional[str] = None):
         """
         Initialize BGP agent
 
@@ -54,6 +56,7 @@ class BGPAgent:
             kernel_route_manager: Optional kernel route manager for installing routes
             mesh_open: Auto-accept unknown mesh peers (default: False)
             mesh_endpoint: This node's reachable endpoint for mesh discovery
+            local_ipv6: Local IPv6 address for MP_REACH_NLRI next hop
         """
         self.local_as = local_as
         self.router_id = router_id
@@ -62,6 +65,7 @@ class BGPAgent:
         self.kernel_route_manager = kernel_route_manager
         self.mesh_open = mesh_open
         self.mesh_endpoint = mesh_endpoint
+        self.local_ipv6 = local_ipv6
 
         self.logger = logging.getLogger(f"BGPAgent[AS{local_as}]")
 
@@ -93,6 +97,9 @@ class BGPAgent:
         # FlowSpec manager
         self.flowspec_manager = FlowspecManager()
 
+        # Data-plane tunnel manager
+        self.tunnel_manager = TunnelManager(local_as, kernel_route_manager)
+
         # TCP listener
         self.server: Optional[asyncio.Server] = None
 
@@ -121,6 +128,9 @@ class BGPAgent:
         self.logger.info("Stopping BGP agent")
         self.running = False
 
+        # Tear down all data-plane tunnels
+        await self.tunnel_manager.teardown_all()
+
         # Stop all sessions
         for session in self.sessions.values():
             await session.stop()
@@ -133,6 +143,10 @@ class BGPAgent:
         # Stop decision process
         if self.decision_process_task and not self.decision_process_task.done():
             self.decision_process_task.cancel()
+
+        # Flush BGP routes from kernel FIB
+        if self.kernel_route_manager:
+            self.kernel_route_manager.flush_bgp_routes()
 
         self.logger.info("BGP agent stopped")
 
@@ -152,6 +166,30 @@ class BGPAgent:
             self.logger.warning(f"Failed to start TCP listener on port {self.listen_port}: {e}")
             self.logger.warning("Continuing in active-only mode (will initiate connections to peers)")
             # Don't raise — allow the speaker to run in active-only mode
+
+    async def _splice_readers(self, source: asyncio.StreamReader,
+                              dest: asyncio.StreamReader) -> None:
+        """
+        Forward all data from source StreamReader into dest StreamReader.
+
+        Used to replay peeked bytes: we feed the first byte into dest,
+        then continuously read from source and feed into dest.
+
+        Args:
+            source: Original TCP stream reader
+            dest: Replay stream reader that already has the peeked byte
+        """
+        try:
+            while True:
+                chunk = await source.read(65536)
+                if not chunk:
+                    dest.feed_eof()
+                    break
+                dest.feed_data(chunk)
+        except (ConnectionError, asyncio.CancelledError):
+            dest.feed_eof()
+        except Exception:
+            dest.feed_eof()
 
     async def _read_open_message(self, reader: asyncio.StreamReader,
                                 timeout: float = 30.0) -> Optional[BGPOpen]:
@@ -229,6 +267,44 @@ class BGPAgent:
 
             peer_ip = peer_addr[0]
             self.logger.info(f"Incoming connection from {peer_ip}")
+
+            # --- Protocol discrimination ---
+            # Peek first byte: 0xFF = BGP marker, 'N' (0x4E) = NCTUN tunnel
+            first_byte = await asyncio.wait_for(reader.readexactly(1), timeout=30.0)
+
+            if first_byte == b'N':
+                # Tunnel handshake: read remaining 4 bytes of magic ("CTUN")
+                rest_magic = await asyncio.wait_for(reader.readexactly(4), timeout=10.0)
+                if first_byte + rest_magic != NCTUN_MAGIC:
+                    self.logger.warning(f"Invalid tunnel magic from {peer_ip}: {first_byte + rest_magic!r}")
+                    writer.close()
+                    await writer.wait_closed()
+                    return
+                # Read 4-byte AS number
+                as_bytes = await asyncio.wait_for(reader.readexactly(4), timeout=10.0)
+                tunnel_peer_as = struct.unpack("!I", as_bytes)[0]
+                self.logger.info(f"Tunnel handshake from AS{tunnel_peer_as} at {peer_ip}")
+                ok = await self.tunnel_manager.accept_tunnel(tunnel_peer_as, reader, writer)
+                if ok:
+                    self.logger.info(f"Tunnel from AS{tunnel_peer_as} accepted")
+                else:
+                    self.logger.warning(f"Tunnel from AS{tunnel_peer_as} failed")
+                    writer.close()
+                    await writer.wait_closed()
+                return  # Done — tunnel connections don't continue as BGP
+
+            # BGP connection: replay the peeked byte via a wrapper StreamReader
+            if first_byte == b'\xff':
+                replay_reader = asyncio.StreamReader()
+                replay_reader.feed_data(first_byte)
+                # Splice remaining data from original reader into replay_reader
+                asyncio.ensure_future(self._splice_readers(reader, replay_reader))
+                reader = replay_reader
+            else:
+                self.logger.warning(f"Unknown protocol byte from {peer_ip}: {first_byte!r}")
+                writer.close()
+                await writer.wait_closed()
+                return
 
             # Find session for this peer — first try exact IP match (local FRR peers)
             self.logger.debug(f"Looking for session for {peer_ip} in {list(self.sessions.keys())}")
@@ -389,6 +465,10 @@ class BGPAgent:
         # Register callback for when session becomes established
         session.on_established = lambda: asyncio.create_task(self._on_session_established(peer_ip))
 
+        # Register callback for when session goes down (tunnel teardown)
+        peer_as = config.peer_as
+        session.on_session_down = lambda: asyncio.create_task(self.tunnel_manager.teardown_tunnel(peer_as))
+
         # Register mesh directory callback
         session._on_mesh_directory_received = lambda peers: asyncio.create_task(
             self._process_mesh_directory(peer_ip, peers)
@@ -465,6 +545,7 @@ class BGPAgent:
             passive=True,
             accept_any_source=True,
             mesh_endpoint=self.mesh_endpoint,
+            tunnel_endpoint=self.mesh_endpoint,  # tunnel shares same endpoint
         )
 
         session = self.add_peer(config)
@@ -608,6 +689,7 @@ class BGPAgent:
                 peer_port=port,
                 hostname=True,
                 mesh_endpoint=self.mesh_endpoint,
+                tunnel_endpoint=self.mesh_endpoint,  # tunnel shares same endpoint
             )
 
             session = self.add_peer(config)
@@ -625,6 +707,7 @@ class BGPAgent:
                     passive=True,
                     accept_any_source=True,
                     mesh_endpoint=self.mesh_endpoint,
+                    tunnel_endpoint=self.mesh_endpoint,  # tunnel shares same endpoint
                 )
                 self.add_peer(inbound_config)
 
@@ -712,6 +795,21 @@ class BGPAgent:
             for other_ip, other_session in self.sessions.items():
                 if other_ip != peer_ip and other_session.is_established():
                     await self._send_mesh_directory(other_ip)
+
+        # --- Data-plane tunnel initiation ---
+        # If peer advertised tunnel capability and we're the lower-AS side, initiate
+        if session and session.config.peer_tunnel_endpoint:
+            peer_as = session.config.peer_as
+            tunnel_endpoint = session.config.peer_tunnel_endpoint
+            if self.local_as < peer_as:
+                self.logger.info(
+                    f"Lower AS — initiating tunnel to AS{peer_as} at {tunnel_endpoint}"
+                )
+                asyncio.create_task(self.tunnel_manager.initiate_tunnel(peer_as, tunnel_endpoint))
+            else:
+                self.logger.info(
+                    f"Higher AS — waiting for tunnel initiation from AS{peer_as}"
+                )
 
     def enable_route_reflection(self, cluster_id: Optional[str] = None) -> None:
         """
@@ -848,6 +946,9 @@ class BGPAgent:
                 if self.loc_rib.lookup(prefix):
                     self.loc_rib.remove_route(prefix)
                     changed_prefixes.append(prefix)
+                    # Remove from kernel FIB
+                    if self.kernel_route_manager:
+                        self.kernel_route_manager.remove_route(prefix)
                 continue
 
             # Select best path
@@ -890,7 +991,7 @@ class BGPAgent:
 
     async def _advertise_routes(self, changed_prefixes: List[str]) -> None:
         """
-        Advertise routes to peers
+        Advertise routes to peers (IPv4 via standard NLRI, IPv6 via MP_REACH_NLRI)
 
         Args:
             changed_prefixes: List of prefixes that changed
@@ -899,63 +1000,115 @@ class BGPAgent:
             if not session.is_established():
                 continue
 
-            # Build UPDATE messages for changed prefixes
-            nlri = []
-            withdrawn = []
+            # Split prefixes into IPv4 and IPv6 buckets
+            ipv4_nlri = []
+            ipv4_withdrawn = []
+            ipv6_nlri = []
+            ipv6_withdrawn = []
 
             for prefix in changed_prefixes:
                 best_route = self.loc_rib.lookup(prefix)
 
                 if best_route:
-                    # CRITICAL: Only advertise IPv4 routes in standard UPDATE messages
-                    # IPv6 routes require MP_BGP extensions which we don't fully support yet
-                    if ':' in prefix:
-                        self.logger.debug(f"Skipping IPv6 route {prefix} - MP_BGP not implemented")
-                        continue
-
-                    # Check if we should advertise this route to this peer
                     if self._should_advertise_to_peer(best_route, session):
-                        # Apply export policy
                         exported_route = self.policy_engine.apply_export_policy(
                             best_route, session.peer_id
                         )
-
                         if exported_route:
-                            nlri.append(prefix)
+                            if ':' in prefix:
+                                ipv6_nlri.append(prefix)
+                            else:
+                                ipv4_nlri.append(prefix)
                 else:
                     # Route withdrawn
-                    # Only withdraw IPv4 routes
-                    if ':' not in prefix:
-                        withdrawn.append(prefix)
+                    if ':' in prefix:
+                        ipv6_withdrawn.append(prefix)
+                    else:
+                        ipv4_withdrawn.append(prefix)
 
-            # Send UPDATE if there are changes
-            if nlri or withdrawn:
-                # Get path attributes from best route
+            # --- IPv4 UPDATE (standard NLRI field) ---
+            if ipv4_nlri or ipv4_withdrawn:
                 path_attrs_dict = {}
-                if nlri and changed_prefixes:
-                    best_route = self.loc_rib.lookup(nlri[0])
+                if ipv4_nlri:
+                    best_route = self.loc_rib.lookup(ipv4_nlri[0])
                     if best_route:
                         path_attrs_list = list(best_route.path_attributes.values())
-
-                        # Modify attributes for advertisement
                         path_attrs_list = self._prepare_attributes_for_advertisement(
                             path_attrs_list, session
                         )
+                        path_attrs_dict = {attr.type_code: attr for attr in path_attrs_list
+                                           if hasattr(attr, 'type_code')}
 
-                        # Convert list back to dict
-                        path_attrs_dict = {attr.type_code: attr for attr in path_attrs_list}
-
-                # Create and send UPDATE
                 update = BGPUpdate(
-                    withdrawn_routes=withdrawn,
+                    withdrawn_routes=ipv4_withdrawn,
                     path_attributes=path_attrs_dict,
-                    nlri=nlri
+                    nlri=ipv4_nlri
                 )
-
                 await session._send_message(update)
+                session.stats['routes_advertised'] += len(ipv4_nlri)
+                self.logger.info(f"IPv4: advertised {len(ipv4_nlri)} routes to {session.peer_id} (nlri={ipv4_nlri})")
 
-                session.stats['routes_advertised'] += len(nlri)
-                self.logger.debug(f"Advertised {len(nlri)} routes, withdrew {len(withdrawn)} to {session.peer_id}")
+            # --- IPv6 UPDATE (MP_REACH_NLRI in path attributes) ---
+            if ipv6_nlri:
+                best_route = self.loc_rib.lookup(ipv6_nlri[0])
+                if best_route:
+                    path_attrs_list = list(best_route.path_attributes.values())
+                    path_attrs_list = self._prepare_attributes_for_advertisement(
+                        path_attrs_list, session
+                    )
+
+                    # Build attribute dict, excluding IPv4-specific and stale MP attrs
+                    path_attrs_dict = {}
+                    for attr in path_attrs_list:
+                        if not hasattr(attr, 'type_code'):
+                            continue  # Skip pseudo-attributes like _ipv6_next_hop
+                        if attr.type_code == ATTR_NEXT_HOP:
+                            continue  # IPv6 next hop goes in MP_REACH_NLRI
+                        if attr.type_code in (ATTR_MP_REACH_NLRI, ATTR_MP_UNREACH_NLRI):
+                            continue  # Build fresh MP_REACH_NLRI below
+                        path_attrs_dict[attr.type_code] = attr
+
+                    # Determine local IPv6 next hop — prefer tunnel overlay address
+                    tunnel_addr = self.tunnel_manager.get_tunnel_address(session.config.peer_as)
+                    if tunnel_addr:
+                        local_ipv6 = tunnel_addr  # Route through TUN device
+                    else:
+                        local_ipv6 = (session.config.local_ipv6
+                                      or self.local_ipv6
+                                      or self.router_id)
+
+                    # Build MP_REACH_NLRI with local IPv6 as next hop
+                    mp_reach = MPReachNLRIAttribute(
+                        afi=AFI_IPV6,
+                        safi=SAFI_UNICAST,
+                        next_hop=local_ipv6,
+                        nlri=ipv6_nlri
+                    )
+                    path_attrs_dict[ATTR_MP_REACH_NLRI] = mp_reach
+
+                    update = BGPUpdate(
+                        withdrawn_routes=[],
+                        path_attributes=path_attrs_dict,
+                        nlri=[]  # IPv6 prefixes go in MP_REACH_NLRI, NOT here
+                    )
+                    await session._send_message(update)
+                    session.stats['routes_advertised'] += len(ipv6_nlri)
+                    self.logger.info(f"IPv6: advertised {len(ipv6_nlri)} routes to {session.peer_id} via MP_REACH_NLRI (NH={local_ipv6})")
+
+            # --- IPv6 Withdrawal (MP_UNREACH_NLRI) ---
+            if ipv6_withdrawn:
+                mp_unreach = MPUnreachNLRIAttribute(
+                    afi=AFI_IPV6,
+                    safi=SAFI_UNICAST,
+                    withdrawn_routes=ipv6_withdrawn
+                )
+                update = BGPUpdate(
+                    withdrawn_routes=[],
+                    path_attributes={ATTR_MP_UNREACH_NLRI: mp_unreach},
+                    nlri=[]
+                )
+                await session._send_message(update)
+                self.logger.info(f"IPv6: withdrew {len(ipv6_withdrawn)} routes from {session.peer_id}")
 
     def _should_advertise_to_peer(self, route: BGPRoute, session: BGPSession) -> bool:
         """
@@ -1051,7 +1204,10 @@ class BGPAgent:
         modified = []
 
         for attr in attributes:
-            # Create a copy
+            # Skip pseudo-attributes (e.g., _ipv6_next_hop stored as plain string)
+            if not isinstance(attr, PathAttribute):
+                continue
+
             if attr.type_code == ATTR_ORIGIN:
                 # Keep ORIGIN as-is
                 modified.append(attr)
