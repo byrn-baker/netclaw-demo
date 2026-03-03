@@ -1287,7 +1287,7 @@ if [[ "$ENABLE_PROTOCOL" =~ ^[Yy] ]]; then
         "PROTOCOL_MCP_SCRIPT=$PROTOCOL_MCP_DIR/server.py"; do
         key="${key_val%%=*}"
         if grep -q "^${key}=" "$OPENCLAW_ENV_PROTO" 2>/dev/null; then
-            sed -i "s|^${key}=.*|${key_val}|" "$OPENCLAW_ENV_PROTO"
+            sed -i.bak "s|^${key}=.*|${key_val}|" "$OPENCLAW_ENV_PROTO" && rm -f "$OPENCLAW_ENV_PROTO.bak"
         else
             echo "$key_val" >> "$OPENCLAW_ENV_PROTO"
         fi
@@ -1302,6 +1302,100 @@ if [[ "$ENABLE_PROTOCOL" =~ ^[Yy] ]]; then
     log_info "Tip: Start the FRR lab testbed for testing:"
     echo "      cd lab/frr-testbed && docker compose up -d"
     echo "      sudo bash scripts/setup-gre.sh"
+
+    # ─── NetClaw Mesh (BGP over ngrok) ───────────────────────────────
+    echo ""
+    echo "  ── NetClaw Mesh ──────────────────────────────────────────"
+    echo "  Peer your NetClaw with other NetClaw instances worldwide"
+    echo "  over BGP via ngrok TCP tunnels."
+    echo ""
+    read -rp "  Enable NetClaw Mesh peering (BGP over ngrok)? [y/N] " ENABLE_MESH
+    ENABLE_MESH="${ENABLE_MESH:-n}"
+
+    if [[ "$ENABLE_MESH" =~ ^[Yy] ]]; then
+        # BGP listen port (non-privileged)
+        read -rp "  BGP listen port (default 1179): " MESH_BGP_PORT
+        MESH_BGP_PORT="${MESH_BGP_PORT:-1179}"
+
+        # Build mesh peers JSON — start with local FRR peer from above
+        MESH_PEERS_JSON="[{\"ip\":\"$PROTO_PEER_IP\",\"as\":$PROTO_PEER_AS}"
+
+        # Ask for remote NetClaw peers
+        echo ""
+        echo "  Add remote NetClaw peers (other people's ngrok endpoints)."
+        echo "  You can also add peers later via: curl -X POST http://127.0.0.1:8179/add_peer"
+        echo ""
+        read -rp "  Add a remote NetClaw peer? [y/N] " ADD_REMOTE
+        ADD_REMOTE="${ADD_REMOTE:-n}"
+        MESH_REMOTE_COUNT=0
+        while [[ "$ADD_REMOTE" =~ ^[Yy] ]]; do
+            read -rp "    Remote ngrok hostname (e.g. 0.tcp.ngrok.io): " REMOTE_HOST
+            read -rp "    Remote ngrok port (e.g. 12345): " REMOTE_PORT
+            read -rp "    Remote AS number (e.g. 65002): " REMOTE_AS
+
+            # Add outbound mesh peer
+            MESH_PEERS_JSON="${MESH_PEERS_JSON},{\"ip\":\"${REMOTE_HOST}\",\"as\":${REMOTE_AS},\"port\":${REMOTE_PORT},\"hostname\":true}"
+            # Add matching inbound entry so they can connect back to us
+            MESH_PEERS_JSON="${MESH_PEERS_JSON},{\"as\":${REMOTE_AS},\"passive\":true,\"accept_any_source\":true}"
+            MESH_REMOTE_COUNT=$((MESH_REMOTE_COUNT + 1))
+
+            read -rp "    Add another remote peer? [y/N] " ADD_REMOTE
+            ADD_REMOTE="${ADD_REMOTE:-n}"
+        done
+
+        # Accept inbound connections from unknown peers?
+        echo ""
+        read -rp "  Accept inbound mesh connections from any AS? [Y/n] " ACCEPT_INBOUND
+        ACCEPT_INBOUND="${ACCEPT_INBOUND:-y}"
+        if [[ "$ACCEPT_INBOUND" =~ ^[Yy] ]]; then
+            # Add a general inbound acceptor — AS 0 means "match any unconfigured AS"
+            # For now, we rely on per-AS entries added above. This flag is for the env.
+            MESH_ACCEPT_ANY="true"
+        else
+            MESH_ACCEPT_ANY="false"
+        fi
+
+        # Close JSON array
+        MESH_PEERS_JSON="${MESH_PEERS_JSON}]"
+
+        # Write mesh env vars
+        for key_val in \
+            "BGP_LISTEN_PORT=$MESH_BGP_PORT" \
+            "NETCLAW_MESH_ENABLED=true" \
+            "NETCLAW_MESH_ACCEPT_INBOUND=$MESH_ACCEPT_ANY"; do
+            key="${key_val%%=*}"
+            if grep -q "^${key}=" "$OPENCLAW_ENV_PROTO" 2>/dev/null; then
+                sed -i.bak "s|^${key}=.*|${key_val}|" "$OPENCLAW_ENV_PROTO" && rm -f "$OPENCLAW_ENV_PROTO.bak"
+            else
+                echo "$key_val" >> "$OPENCLAW_ENV_PROTO"
+            fi
+        done
+
+        # Overwrite NETCLAW_BGP_PEERS with the combined local + mesh peers
+        if grep -q "^NETCLAW_BGP_PEERS=" "$OPENCLAW_ENV_PROTO" 2>/dev/null; then
+            sed -i.bak "s|^NETCLAW_BGP_PEERS=.*|NETCLAW_BGP_PEERS=$MESH_PEERS_JSON|" "$OPENCLAW_ENV_PROTO" && rm -f "$OPENCLAW_ENV_PROTO.bak"
+        else
+            echo "NETCLAW_BGP_PEERS=$MESH_PEERS_JSON" >> "$OPENCLAW_ENV_PROTO"
+        fi
+
+        echo ""
+        log_info "NetClaw Mesh configured:"
+        log_info "  BGP listen port: $MESH_BGP_PORT"
+        log_info "  Remote peers added: $MESH_REMOTE_COUNT"
+        log_info "  Accept inbound: $MESH_ACCEPT_ANY"
+        echo ""
+        log_info "To expose your BGP port via ngrok, run:"
+        echo "      ngrok tcp $MESH_BGP_PORT"
+        echo ""
+        log_info "Share your ngrok endpoint with other NetClaw operators."
+        log_info "They add it during their install, or at runtime:"
+        echo "      curl -X POST http://127.0.0.1:8179/add_peer \\"
+        echo "        -d '{\"ip\":\"YOUR.tcp.ngrok.io\",\"as\":$PROTO_LOCAL_AS,\"port\":NNNNN,\"hostname\":true}'"
+    else
+        log_info "NetClaw Mesh skipped (enable later by re-running install)"
+    fi
+    # ─── End NetClaw Mesh ────────────────────────────────────────────
+
 else
     log_info "Protocol participation skipped (enable later by re-running install)"
 fi
@@ -1361,34 +1455,34 @@ log_info "Symlinked testbed.yaml into workspace"
 OPENCLAW_ENV="$OPENCLAW_DIR/.env"
 [ -f "$OPENCLAW_ENV" ] || touch "$OPENCLAW_ENV"
 
-declare -A ENV_VARS=(
-    ["PYATS_TESTBED_PATH"]="$TESTBED_PATH"
-    ["PYATS_MCP_SCRIPT"]="$PYATS_SCRIPT"
-    ["MCP_CALL"]="$NETCLAW_DIR/scripts/mcp-call.py"
-    ["MARKMAP_MCP_SCRIPT"]="$MARKMAP_INNER/dist/index.js"
-    ["GAIT_MCP_SCRIPT"]="$NETCLAW_DIR/scripts/gait-stdio.py"
-    ["NETBOX_MCP_SCRIPT"]="$NETBOX_MCP_DIR/src/netbox_mcp_server/server.py"
-    ["SERVICENOW_MCP_SCRIPT"]="$SERVICENOW_MCP_DIR/src/servicenow_mcp/cli.py"
-    ["ACI_MCP_SCRIPT"]="$ACI_MCP_DIR/aci_mcp/main.py"
-    ["ISE_MCP_SCRIPT"]="$ISE_MCP_DIR/src/ise_mcp_server/server.py"
-    ["WIKIPEDIA_MCP_SCRIPT"]="$WIKIPEDIA_MCP_DIR/main.py"
-    ["NVD_MCP_SCRIPT"]="$NVD_MCP_DIR/mcp_nvd/main.py"
-    ["SUBNET_MCP_SCRIPT"]="$SUBNET_MCP_DIR/servers/subnetcalculator_mcp.py"
-    ["F5_MCP_SCRIPT"]="$F5_MCP_DIR/F5MCPserver.py"
-    ["CATC_MCP_SCRIPT"]="$CATC_MCP_DIR/catalyst-center-mcp.py"
-    ["PACKET_BUDDY_MCP_SCRIPT"]="$PACKET_BUDDY_MCP_DIR/server.py"
-    ["PROTOCOL_MCP_SCRIPT"]="$PROTOCOL_MCP_DIR/server.py"
-    ["CLAB_MCP_SCRIPT"]="$CLAB_MCP_DIR/clab_mcp_server.py"
-    ["SDWAN_MCP_SCRIPT"]="$SDWAN_MCP_DIR/sdwan_mcp_server.py"
-)
-
-for key in "${!ENV_VARS[@]}"; do
+# Write env vars to OpenClaw .env (portable — no associative arrays for macOS bash 3.2)
+_set_env_var() {
+    local key="$1" val="$2"
     if grep -q "^${key}=" "$OPENCLAW_ENV" 2>/dev/null; then
-        sed -i "s|^${key}=.*|${key}=${ENV_VARS[$key]}|" "$OPENCLAW_ENV"
+        sed -i.bak "s|^${key}=.*|${key}=${val}|" "$OPENCLAW_ENV" && rm -f "$OPENCLAW_ENV.bak"
     else
-        echo "${key}=${ENV_VARS[$key]}" >> "$OPENCLAW_ENV"
+        echo "${key}=${val}" >> "$OPENCLAW_ENV"
     fi
-done
+}
+
+_set_env_var "PYATS_TESTBED_PATH"       "$TESTBED_PATH"
+_set_env_var "PYATS_MCP_SCRIPT"         "$PYATS_SCRIPT"
+_set_env_var "MCP_CALL"                 "$NETCLAW_DIR/scripts/mcp-call.py"
+_set_env_var "MARKMAP_MCP_SCRIPT"       "$MARKMAP_INNER/dist/index.js"
+_set_env_var "GAIT_MCP_SCRIPT"          "$NETCLAW_DIR/scripts/gait-stdio.py"
+_set_env_var "NETBOX_MCP_SCRIPT"        "$NETBOX_MCP_DIR/src/netbox_mcp_server/server.py"
+_set_env_var "SERVICENOW_MCP_SCRIPT"    "$SERVICENOW_MCP_DIR/src/servicenow_mcp/cli.py"
+_set_env_var "ACI_MCP_SCRIPT"           "$ACI_MCP_DIR/aci_mcp/main.py"
+_set_env_var "ISE_MCP_SCRIPT"           "$ISE_MCP_DIR/src/ise_mcp_server/server.py"
+_set_env_var "WIKIPEDIA_MCP_SCRIPT"     "$WIKIPEDIA_MCP_DIR/main.py"
+_set_env_var "NVD_MCP_SCRIPT"           "$NVD_MCP_DIR/mcp_nvd/main.py"
+_set_env_var "SUBNET_MCP_SCRIPT"        "$SUBNET_MCP_DIR/servers/subnetcalculator_mcp.py"
+_set_env_var "F5_MCP_SCRIPT"            "$F5_MCP_DIR/F5MCPserver.py"
+_set_env_var "CATC_MCP_SCRIPT"          "$CATC_MCP_DIR/catalyst-center-mcp.py"
+_set_env_var "PACKET_BUDDY_MCP_SCRIPT"  "$PACKET_BUDDY_MCP_DIR/server.py"
+_set_env_var "PROTOCOL_MCP_SCRIPT"      "$PROTOCOL_MCP_DIR/server.py"
+_set_env_var "CLAB_MCP_SCRIPT"          "$CLAB_MCP_DIR/clab_mcp_server.py"
+_set_env_var "SDWAN_MCP_SCRIPT"         "$SDWAN_MCP_DIR/sdwan_mcp_server.py"
 
 # Remind user about API key if not set
 if ! grep -q "^ANTHROPIC_API_KEY=" "$OPENCLAW_ENV" 2>/dev/null && [ -z "${ANTHROPIC_API_KEY:-}" ]; then
@@ -1398,7 +1492,7 @@ if ! grep -q "^ANTHROPIC_API_KEY=" "$OPENCLAW_ENV" 2>/dev/null && [ -z "${ANTHRO
     log_warn "ANTHROPIC_API_KEY not set. Add it to $OPENCLAW_ENV or export it in your shell."
 fi
 
-log_info "Set ${#ENV_VARS[@]} environment variables in $OPENCLAW_ENV"
+log_info "Environment variables written to $OPENCLAW_ENV"
 
 # Verify the config is correct
 if [ -f "$OPENCLAW_DIR/openclaw.json" ]; then

@@ -1,18 +1,22 @@
-# NetClaw FRR Lab Testbed
-# 3-router topology for testing protocol participation
+# NetClaw FRR Lab Testbed — IPv6-only (OSPFv3 + MP-BGP IPv6 unicast)
 #
 # Topology:
-#   NetClaw (AS 65001)  ──GRE──  Edge1 (AS 65000)  ──OSPF──  Core (RR)  ──OSPF──  Edge2
-#   host/WSL                     10.0.12.1                    10.0.12.2            10.0.23.3
-#   172.16.0.2                   172.16.0.1                   2.2.2.2              3.3.3.3
-#   4.4.4.4                      1.1.1.1                      iBGP RR              iBGP client
-#                                eBGP to NetClaw              iBGP hub
+#   WSL NetClaw (AS 65001)  ──GRE──  Edge1 (AS 65000)  ──OSPFv3──  Core (RR)  ──OSPFv3──  Edge2
+#   fd00::4/128                       fd00::1/128          fd00::2/128              fd00::3/128
+#   fd00:ee::1/127                    fd00:ee::0/127
+#   eBGP over GRE inner               iBGP hub             iBGP RR                  iBGP client
 #
-# Networks:
-#   edge1-core:  10.0.12.0/24    (Edge1 <-> Core)       gateway .254
-#   core-edge2:  10.0.23.0/24    (Core <-> Edge2)        gateway .254
-#   peering:     10.0.100.0/24   (Edge1 exposed to host for GRE) gateway .254
-#   GRE tunnel:  172.16.0.0/30   (Edge1 <-> NetClaw host)
+# Address plan (ULA fd00::/48, RFC 4193):
+#   Loopbacks:       fd00::1–3/128
+#   edge1–core P2P:  fd00:12::/127    (edge1: ::0, core: ::1,  RFC 6164 /127)
+#   core–edge2 P2P:  fd00:23::/127    (core:  ::0, edge2: ::1, RFC 6164 /127)
+#   GRE inner:       fd00:ee::/127    (edge1: ::0, WSL: ::1,   RFC 6164 /127)
+#   Lab network:     fd00:dead:beef::/48  (Edge2 stub, replaces 192.168.99.0/24)
+#
+# Underlay transport (Docker bridges — IPv4-only, not in routing domain):
+#   edge1-core:  10.0.12.0/24
+#   core-edge2:  10.0.23.0/24
+#   peering:     10.0.100.0/24  (GRE outer endpoint for WSL host)
 
 services:
   edge1:
@@ -27,6 +31,9 @@ services:
       - net.ipv4.ip_forward=1
       - net.ipv4.conf.all.rp_filter=0
       - net.ipv4.conf.default.rp_filter=0
+      - net.ipv6.conf.all.forwarding=1
+      - net.ipv6.conf.all.disable_ipv6=0
+      - net.ipv6.conf.default.disable_ipv6=0
     volumes:
       - ./configs/edge1/frr.conf:/etc/frr/frr.conf
       - ./configs/edge1/daemons:/etc/frr/daemons
@@ -47,6 +54,9 @@ services:
       - NET_RAW
     sysctls:
       - net.ipv4.ip_forward=1
+      - net.ipv6.conf.all.forwarding=1
+      - net.ipv6.conf.all.disable_ipv6=0
+      - net.ipv6.conf.default.disable_ipv6=0
     volumes:
       - ./configs/core/frr.conf:/etc/frr/frr.conf
       - ./configs/core/daemons:/etc/frr/daemons
@@ -67,6 +77,9 @@ services:
       - NET_RAW
     sysctls:
       - net.ipv4.ip_forward=1
+      - net.ipv6.conf.all.forwarding=1
+      - net.ipv6.conf.all.disable_ipv6=0
+      - net.ipv6.conf.default.disable_ipv6=0
     volumes:
       - ./configs/edge2/frr.conf:/etc/frr/frr.conf
       - ./configs/edge2/daemons:/etc/frr/daemons
