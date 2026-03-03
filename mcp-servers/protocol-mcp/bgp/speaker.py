@@ -43,7 +43,8 @@ class BGPSpeaker:
     def __init__(self, local_as: int, router_id: str,
                  listen_ip: str = "0.0.0.0", listen_port: int = BGP_PORT,
                  log_level: str = "INFO", kernel_route_manager=None,
-                 mesh_open: bool = False, mesh_endpoint: str = ""):
+                 mesh_open: bool = False, mesh_endpoint: str = "",
+                 local_ipv6: Optional[str] = None):
         """
         Initialize BGP speaker
 
@@ -56,11 +57,13 @@ class BGPSpeaker:
             kernel_route_manager: Optional kernel route manager for installing routes
             mesh_open: Auto-accept unknown mesh peers (default: False)
             mesh_endpoint: This node's reachable endpoint for mesh discovery
+            local_ipv6: Local IPv6 address for MP_REACH_NLRI next hop
         """
         self.local_as = local_as
         self.router_id = router_id
         self.listen_ip = listen_ip
         self.listen_port = listen_port
+        self.local_ipv6 = local_ipv6
 
         # Configure logging
         logging.basicConfig(
@@ -72,7 +75,8 @@ class BGPSpeaker:
 
         # Create BGP agent
         self.agent = BGPAgent(local_as, router_id, listen_ip, listen_port, kernel_route_manager,
-                              mesh_open=mesh_open, mesh_endpoint=mesh_endpoint)
+                              mesh_open=mesh_open, mesh_endpoint=mesh_endpoint,
+                              local_ipv6=local_ipv6)
 
         # Peer configurations
         self.peer_configs: Dict[str, BGPSessionConfig] = {}
@@ -147,6 +151,7 @@ class BGPSpeaker:
             accept_any_source=accept_any_source,
             hostname=hostname,
             mesh_endpoint=self.agent.mesh_endpoint,
+            local_ipv6=self.local_ipv6,
         )
 
         # Add peer to agent

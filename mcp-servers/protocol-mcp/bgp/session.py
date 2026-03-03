@@ -40,6 +40,7 @@ class BGPSessionConfig:
 
     # Optional fields (with defaults)
     local_port: int = BGP_PORT
+    local_ipv6: Optional[str] = None  # Local IPv6 address for MP_REACH_NLRI next hop
     peer_port: int = BGP_PORT
     peer_router_id: Optional[str] = None  # Learned from OPEN
 
@@ -240,11 +241,20 @@ class BGPSession:
             True if connection successful
         """
         try:
-            self.logger.info(f"Connecting to {self.config.peer_ip}:{self.config.peer_port}")
+            # Resolve host and port — hostname peers encode port in peer_ip
+            if self.config.hostname and ':' in self.config.peer_ip:
+                host, _, port_str = self.config.peer_ip.rpartition(':')
+                connect_host = host
+                connect_port = int(port_str)
+            else:
+                connect_host = self.config.peer_ip
+                connect_port = self.config.peer_port
+
+            self.logger.info(f"Connecting to {connect_host}:{connect_port}")
 
             # Open TCP connection
             self.reader, self.writer = await asyncio.wait_for(
-                asyncio.open_connection(self.config.peer_ip, self.config.peer_port),
+                asyncio.open_connection(connect_host, connect_port),
                 timeout=30.0
             )
 

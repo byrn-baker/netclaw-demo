@@ -42,7 +42,8 @@ class BGPAgent:
 
     def __init__(self, local_as: int, router_id: str, listen_ip: str = "0.0.0.0",
                  listen_port: int = BGP_PORT, kernel_route_manager=None,
-                 mesh_open: bool = False, mesh_endpoint: str = ""):
+                 mesh_open: bool = False, mesh_endpoint: str = "",
+                 local_ipv6: Optional[str] = None):
         """
         Initialize BGP agent
 
@@ -54,6 +55,7 @@ class BGPAgent:
             kernel_route_manager: Optional kernel route manager for installing routes
             mesh_open: Auto-accept unknown mesh peers (default: False)
             mesh_endpoint: This node's reachable endpoint for mesh discovery
+            local_ipv6: Local IPv6 address for MP_REACH_NLRI next hop
         """
         self.local_as = local_as
         self.router_id = router_id
@@ -62,6 +64,7 @@ class BGPAgent:
         self.kernel_route_manager = kernel_route_manager
         self.mesh_open = mesh_open
         self.mesh_endpoint = mesh_endpoint
+        self.local_ipv6 = local_ipv6
 
         self.logger = logging.getLogger(f"BGPAgent[AS{local_as}]")
 
@@ -133,6 +136,10 @@ class BGPAgent:
         # Stop decision process
         if self.decision_process_task and not self.decision_process_task.done():
             self.decision_process_task.cancel()
+
+        # Flush BGP routes from kernel FIB
+        if self.kernel_route_manager:
+            self.kernel_route_manager.flush_bgp_routes()
 
         self.logger.info("BGP agent stopped")
 
@@ -848,6 +855,9 @@ class BGPAgent:
                 if self.loc_rib.lookup(prefix):
                     self.loc_rib.remove_route(prefix)
                     changed_prefixes.append(prefix)
+                    # Remove from kernel FIB
+                    if self.kernel_route_manager:
+                        self.kernel_route_manager.remove_route(prefix)
                 continue
 
             # Select best path
@@ -890,7 +900,7 @@ class BGPAgent:
 
     async def _advertise_routes(self, changed_prefixes: List[str]) -> None:
         """
-        Advertise routes to peers
+        Advertise routes to peers (IPv4 via standard NLRI, IPv6 via MP_REACH_NLRI)
 
         Args:
             changed_prefixes: List of prefixes that changed
@@ -899,63 +909,111 @@ class BGPAgent:
             if not session.is_established():
                 continue
 
-            # Build UPDATE messages for changed prefixes
-            nlri = []
-            withdrawn = []
+            # Split prefixes into IPv4 and IPv6 buckets
+            ipv4_nlri = []
+            ipv4_withdrawn = []
+            ipv6_nlri = []
+            ipv6_withdrawn = []
 
             for prefix in changed_prefixes:
                 best_route = self.loc_rib.lookup(prefix)
 
                 if best_route:
-                    # CRITICAL: Only advertise IPv4 routes in standard UPDATE messages
-                    # IPv6 routes require MP_BGP extensions which we don't fully support yet
-                    if ':' in prefix:
-                        self.logger.debug(f"Skipping IPv6 route {prefix} - MP_BGP not implemented")
-                        continue
-
-                    # Check if we should advertise this route to this peer
                     if self._should_advertise_to_peer(best_route, session):
-                        # Apply export policy
                         exported_route = self.policy_engine.apply_export_policy(
                             best_route, session.peer_id
                         )
-
                         if exported_route:
-                            nlri.append(prefix)
+                            if ':' in prefix:
+                                ipv6_nlri.append(prefix)
+                            else:
+                                ipv4_nlri.append(prefix)
                 else:
                     # Route withdrawn
-                    # Only withdraw IPv4 routes
-                    if ':' not in prefix:
-                        withdrawn.append(prefix)
+                    if ':' in prefix:
+                        ipv6_withdrawn.append(prefix)
+                    else:
+                        ipv4_withdrawn.append(prefix)
 
-            # Send UPDATE if there are changes
-            if nlri or withdrawn:
-                # Get path attributes from best route
+            # --- IPv4 UPDATE (standard NLRI field) ---
+            if ipv4_nlri or ipv4_withdrawn:
                 path_attrs_dict = {}
-                if nlri and changed_prefixes:
-                    best_route = self.loc_rib.lookup(nlri[0])
+                if ipv4_nlri:
+                    best_route = self.loc_rib.lookup(ipv4_nlri[0])
                     if best_route:
                         path_attrs_list = list(best_route.path_attributes.values())
-
-                        # Modify attributes for advertisement
                         path_attrs_list = self._prepare_attributes_for_advertisement(
                             path_attrs_list, session
                         )
+                        path_attrs_dict = {attr.type_code: attr for attr in path_attrs_list
+                                           if hasattr(attr, 'type_code')}
 
-                        # Convert list back to dict
-                        path_attrs_dict = {attr.type_code: attr for attr in path_attrs_list}
-
-                # Create and send UPDATE
                 update = BGPUpdate(
-                    withdrawn_routes=withdrawn,
+                    withdrawn_routes=ipv4_withdrawn,
                     path_attributes=path_attrs_dict,
-                    nlri=nlri
+                    nlri=ipv4_nlri
                 )
-
                 await session._send_message(update)
+                session.stats['routes_advertised'] += len(ipv4_nlri)
+                self.logger.debug(f"IPv4: advertised {len(ipv4_nlri)}, withdrew {len(ipv4_withdrawn)} to {session.peer_id}")
 
-                session.stats['routes_advertised'] += len(nlri)
-                self.logger.debug(f"Advertised {len(nlri)} routes, withdrew {len(withdrawn)} to {session.peer_id}")
+            # --- IPv6 UPDATE (MP_REACH_NLRI in path attributes) ---
+            if ipv6_nlri:
+                best_route = self.loc_rib.lookup(ipv6_nlri[0])
+                if best_route:
+                    path_attrs_list = list(best_route.path_attributes.values())
+                    path_attrs_list = self._prepare_attributes_for_advertisement(
+                        path_attrs_list, session
+                    )
+
+                    # Build attribute dict, excluding IPv4-specific and stale MP attrs
+                    path_attrs_dict = {}
+                    for attr in path_attrs_list:
+                        if not hasattr(attr, 'type_code'):
+                            continue  # Skip pseudo-attributes like _ipv6_next_hop
+                        if attr.type_code == ATTR_NEXT_HOP:
+                            continue  # IPv6 next hop goes in MP_REACH_NLRI
+                        if attr.type_code in (ATTR_MP_REACH_NLRI, ATTR_MP_UNREACH_NLRI):
+                            continue  # Build fresh MP_REACH_NLRI below
+                        path_attrs_dict[attr.type_code] = attr
+
+                    # Determine local IPv6 next hop
+                    local_ipv6 = (session.config.local_ipv6
+                                  or self.local_ipv6
+                                  or self.router_id)
+
+                    # Build MP_REACH_NLRI with local IPv6 as next hop
+                    mp_reach = MPReachNLRIAttribute(
+                        afi=AFI_IPV6,
+                        safi=SAFI_UNICAST,
+                        next_hop=local_ipv6,
+                        nlri=ipv6_nlri
+                    )
+                    path_attrs_dict[ATTR_MP_REACH_NLRI] = mp_reach
+
+                    update = BGPUpdate(
+                        withdrawn_routes=[],
+                        path_attributes=path_attrs_dict,
+                        nlri=[]  # IPv6 prefixes go in MP_REACH_NLRI, NOT here
+                    )
+                    await session._send_message(update)
+                    session.stats['routes_advertised'] += len(ipv6_nlri)
+                    self.logger.info(f"IPv6: advertised {len(ipv6_nlri)} routes to {session.peer_id} via MP_REACH_NLRI (NH={local_ipv6})")
+
+            # --- IPv6 Withdrawal (MP_UNREACH_NLRI) ---
+            if ipv6_withdrawn:
+                mp_unreach = MPUnreachNLRIAttribute(
+                    afi=AFI_IPV6,
+                    safi=SAFI_UNICAST,
+                    withdrawn_routes=ipv6_withdrawn
+                )
+                update = BGPUpdate(
+                    withdrawn_routes=[],
+                    path_attributes={ATTR_MP_UNREACH_NLRI: mp_unreach},
+                    nlri=[]
+                )
+                await session._send_message(update)
+                self.logger.info(f"IPv6: withdrew {len(ipv6_withdrawn)} routes from {session.peer_id}")
 
     def _should_advertise_to_peer(self, route: BGPRoute, session: BGPSession) -> bool:
         """
@@ -1051,7 +1109,10 @@ class BGPAgent:
         modified = []
 
         for attr in attributes:
-            # Create a copy
+            # Skip pseudo-attributes (e.g., _ipv6_next_hop stored as plain string)
+            if not isinstance(attr, PathAttribute):
+                continue
+
             if attr.type_code == ATTR_ORIGIN:
                 # Keep ORIGIN as-is
                 modified.append(attr)

@@ -22,6 +22,7 @@ import struct
 sys.path.insert(0, os.path.dirname(__file__))
 
 from bgp.speaker import BGPSpeaker
+from bgp.kernel import KernelRouteManager
 
 logging.basicConfig(
     level=logging.INFO,
@@ -40,11 +41,34 @@ API_PORT    = int(os.environ.get("BGP_API_PORT", "8179"))
 BGP_LISTEN_PORT = int(os.environ.get("BGP_LISTEN_PORT", "1179"))
 MESH_OPEN   = os.environ.get("NETCLAW_MESH_OPEN", "true").lower() in ("true", "1", "yes")
 MESH_ENDPOINT = os.environ.get("NETCLAW_MESH_ENDPOINT", "")
+LOCAL_IPV6  = os.environ.get("NETCLAW_LOCAL_IPV6", "")
+DRY_RUN     = os.environ.get("NETCLAW_DRY_RUN", "").lower() in ("true", "1", "yes")
 
 # Global speaker reference for the API
 _speaker = None
 # In-memory table of injected routes: prefix -> route_dict
 _injected = {}
+
+
+def _format_as_path(route):
+    """Extract AS path as a list of integers from a BGPRoute."""
+    from bgp.constants import ATTR_AS_PATH
+    attr = route.path_attributes.get(ATTR_AS_PATH)
+    if attr and hasattr(attr, 'segments'):
+        result = []
+        for seg_type, as_list in attr.segments:
+            result.extend(as_list)
+        return result
+    return []
+
+
+def _format_origin(route):
+    """Extract origin as a string from a BGPRoute."""
+    from bgp.constants import ATTR_ORIGIN
+    attr = route.path_attributes.get(ATTR_ORIGIN)
+    if attr and hasattr(attr, 'origin'):
+        return {0: "IGP", 1: "EGP", 2: "INCOMPLETE"}.get(attr.origin, "UNKNOWN")
+    return "UNKNOWN"
 
 
 async def send_bgp_update(session, nlri_list, withdrawn=False):
@@ -188,7 +212,42 @@ async def handle_http(reader, writer):
             resp_body = {"status": "running", "peers": peers, "injected_routes": list(_injected.keys())}
 
         elif method == "GET" and path == "/rib":
-            resp_body = {"injected": _injected}
+            loc_rib_data = {}
+            adj_rib_in_data = {}
+            kernel_routes = []
+            if _speaker:
+                for route in _speaker.agent.loc_rib.get_all_routes():
+                    loc_rib_data[route.prefix] = {
+                        "prefix": route.prefix,
+                        "next_hop": route.next_hop,
+                        "peer_id": route.peer_id,
+                        "peer_ip": route.peer_ip,
+                        "source": route.source,
+                        "afi": "IPv6" if route.afi == 2 else "IPv4",
+                        "best": route.best,
+                        "as_path": _format_as_path(route),
+                        "origin": _format_origin(route),
+                    }
+                for peer_ip, sess in _speaker.agent.sessions.items():
+                    if sess.is_established():
+                        peer_routes = []
+                        for pfx in sess.adj_rib_in.get_prefixes():
+                            for r in sess.adj_rib_in.get_routes(pfx):
+                                peer_routes.append({
+                                    "prefix": r.prefix,
+                                    "next_hop": r.next_hop,
+                                    "as_path": _format_as_path(r),
+                                })
+                        adj_rib_in_data[peer_ip] = peer_routes
+                if _speaker.agent.kernel_route_manager:
+                    kernel_routes = sorted(_speaker.agent.kernel_route_manager.get_installed_routes())
+            resp_body = {
+                "injected": _injected,
+                "loc_rib": loc_rib_data,
+                "loc_rib_count": len(loc_rib_data),
+                "adj_rib_in": adj_rib_in_data,
+                "kernel_routes": kernel_routes,
+            }
 
         elif method == "GET" and path == "/peers":
             peers = []
@@ -345,13 +404,18 @@ async def main():
         except Exception as e:
             logger.debug("Could not auto-detect ngrok endpoint: %s", e)
 
+    # Create kernel route manager for FIB installation
+    krm = KernelRouteManager(dry_run=DRY_RUN)
+
     _speaker = BGPSpeaker(
         local_as=LOCAL_AS,
         router_id=ROUTER_ID,
         listen_ip="0.0.0.0",
         listen_port=BGP_LISTEN_PORT,
+        kernel_route_manager=krm,
         mesh_open=MESH_OPEN,
         mesh_endpoint=mesh_endpoint,
+        local_ipv6=LOCAL_IPV6 or None,
     )
 
     for peer in BGP_PEERS:

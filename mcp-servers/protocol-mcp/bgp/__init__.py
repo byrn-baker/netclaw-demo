@@ -34,6 +34,7 @@ from .speaker import BGPSpeaker, run_bgp_speaker
 from .agent import BGPAgent
 from .session import BGPSession, BGPSessionConfig
 from .rib import BGPRoute, AdjRIBIn, AdjRIBOut, LocRIB
+from .kernel import KernelRouteManager
 
 # Policy
 from .policy import (
