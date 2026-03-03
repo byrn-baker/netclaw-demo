@@ -545,6 +545,7 @@ class BGPAgent:
             passive=True,
             accept_any_source=True,
             mesh_endpoint=self.mesh_endpoint,
+            tunnel_endpoint=self.mesh_endpoint,  # tunnel shares same endpoint
         )
 
         session = self.add_peer(config)
@@ -688,6 +689,7 @@ class BGPAgent:
                 peer_port=port,
                 hostname=True,
                 mesh_endpoint=self.mesh_endpoint,
+                tunnel_endpoint=self.mesh_endpoint,  # tunnel shares same endpoint
             )
 
             session = self.add_peer(config)
@@ -705,6 +707,7 @@ class BGPAgent:
                     passive=True,
                     accept_any_source=True,
                     mesh_endpoint=self.mesh_endpoint,
+                    tunnel_endpoint=self.mesh_endpoint,  # tunnel shares same endpoint
                 )
                 self.add_peer(inbound_config)
 
