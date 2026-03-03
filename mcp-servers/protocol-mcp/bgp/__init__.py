@@ -71,6 +71,10 @@ from .path_selection import BestPathSelector
 # Capabilities
 from .capabilities import CapabilityManager, CapabilityInfo
 
+# Tunnel
+from .tun import TUNDevice
+from .tunnel import TunnelManager, compute_tunnel_addresses
+
 # Address Family
 from .address_family import (
     AddressFamily, MPReachNLRIAttribute, MPUnreachNLRIAttribute
@@ -129,6 +133,7 @@ __all__ = [
     # Other components
     'RouteReflector', 'BestPathSelector', 'CapabilityManager',
     'AddressFamily', 'MPReachNLRIAttribute', 'MPUnreachNLRIAttribute',
+    'TUNDevice', 'TunnelManager', 'compute_tunnel_addresses',
 
     # Utilities
     'parse_community', 'format_community',

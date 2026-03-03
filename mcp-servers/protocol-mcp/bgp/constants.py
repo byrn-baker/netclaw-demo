@@ -181,6 +181,13 @@ CAP_MULTISESSION_BGP = 68  # RFC 6381
 CAP_ADD_PATH = 69  # RFC 7911
 CAP_ENHANCED_ROUTE_REFRESH = 70  # RFC 7313
 CAP_NETCLAW_MESH_ENDPOINT = 200  # NetClaw mesh discovery (experimental range)
+CAP_NETCLAW_TUNNEL = 201         # NetClaw data-plane tunnel (experimental range)
+
+# NetClaw Tunnel Constants
+NCTUN_MAGIC = b'NCTUN'            # 5-byte magic for protocol discrimination on port 1179
+NCTUN_OVERLAY_PREFIX = "fd00:cc::"  # /48 overlay prefix for tunnel point-to-point links
+NCTUN_FRAME_HEADER_SIZE = 2       # 2-byte big-endian length prefix per IP packet
+NCTUN_MAX_PACKET_SIZE = 1400      # Maximum IP packet size in tunnel frame
 
 CAPABILITY_NAMES = {
     CAP_MULTIPROTOCOL: "Multiprotocol",
@@ -194,7 +201,8 @@ CAPABILITY_NAMES = {
     CAP_MULTISESSION_BGP: "Multisession BGP",
     CAP_ADD_PATH: "ADD-PATH",
     CAP_ENHANCED_ROUTE_REFRESH: "Enhanced Route Refresh",
-    CAP_NETCLAW_MESH_ENDPOINT: "NetClaw Mesh Endpoint"
+    CAP_NETCLAW_MESH_ENDPOINT: "NetClaw Mesh Endpoint",
+    CAP_NETCLAW_TUNNEL: "NetClaw Tunnel",
 }
 
 # NOTIFICATION Error Codes (RFC 4271 Section 6)

@@ -363,6 +363,16 @@ async def handle_http(reader, writer):
                 resp_code = 400
                 resp_body = {"error": "endpoint required"}
 
+        elif method == "GET" and path == "/tunnels":
+            if _speaker:
+                resp_body = {
+                    "local_as": LOCAL_AS,
+                    "tunnels": _speaker.agent.tunnel_manager.get_tunnel_stats(),
+                }
+            else:
+                resp_code = 503
+                resp_body = {"error": "speaker not ready"}
+
         else:
             resp_code = 404
             resp_body = {"error": "not found"}

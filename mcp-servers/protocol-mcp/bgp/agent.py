@@ -30,6 +30,7 @@ from .rpki import RPKIValidator
 from .flowspec import FlowspecManager
 from .messages import BGPUpdate, BGPNotification, BGPMessage, BGPOpen
 from .attributes import *
+from .tunnel import TunnelManager
 
 
 class BGPAgent:
@@ -96,6 +97,9 @@ class BGPAgent:
         # FlowSpec manager
         self.flowspec_manager = FlowspecManager()
 
+        # Data-plane tunnel manager
+        self.tunnel_manager = TunnelManager(local_as, kernel_route_manager)
+
         # TCP listener
         self.server: Optional[asyncio.Server] = None
 
@@ -123,6 +127,9 @@ class BGPAgent:
         """Stop BGP agent"""
         self.logger.info("Stopping BGP agent")
         self.running = False
+
+        # Tear down all data-plane tunnels
+        await self.tunnel_manager.teardown_all()
 
         # Stop all sessions
         for session in self.sessions.values():
@@ -159,6 +166,30 @@ class BGPAgent:
             self.logger.warning(f"Failed to start TCP listener on port {self.listen_port}: {e}")
             self.logger.warning("Continuing in active-only mode (will initiate connections to peers)")
             # Don't raise — allow the speaker to run in active-only mode
+
+    async def _splice_readers(self, source: asyncio.StreamReader,
+                              dest: asyncio.StreamReader) -> None:
+        """
+        Forward all data from source StreamReader into dest StreamReader.
+
+        Used to replay peeked bytes: we feed the first byte into dest,
+        then continuously read from source and feed into dest.
+
+        Args:
+            source: Original TCP stream reader
+            dest: Replay stream reader that already has the peeked byte
+        """
+        try:
+            while True:
+                chunk = await source.read(65536)
+                if not chunk:
+                    dest.feed_eof()
+                    break
+                dest.feed_data(chunk)
+        except (ConnectionError, asyncio.CancelledError):
+            dest.feed_eof()
+        except Exception:
+            dest.feed_eof()
 
     async def _read_open_message(self, reader: asyncio.StreamReader,
                                 timeout: float = 30.0) -> Optional[BGPOpen]:
@@ -236,6 +267,44 @@ class BGPAgent:
 
             peer_ip = peer_addr[0]
             self.logger.info(f"Incoming connection from {peer_ip}")
+
+            # --- Protocol discrimination ---
+            # Peek first byte: 0xFF = BGP marker, 'N' (0x4E) = NCTUN tunnel
+            first_byte = await asyncio.wait_for(reader.readexactly(1), timeout=30.0)
+
+            if first_byte == b'N':
+                # Tunnel handshake: read remaining 4 bytes of magic ("CTUN")
+                rest_magic = await asyncio.wait_for(reader.readexactly(4), timeout=10.0)
+                if first_byte + rest_magic != NCTUN_MAGIC:
+                    self.logger.warning(f"Invalid tunnel magic from {peer_ip}: {first_byte + rest_magic!r}")
+                    writer.close()
+                    await writer.wait_closed()
+                    return
+                # Read 4-byte AS number
+                as_bytes = await asyncio.wait_for(reader.readexactly(4), timeout=10.0)
+                tunnel_peer_as = struct.unpack("!I", as_bytes)[0]
+                self.logger.info(f"Tunnel handshake from AS{tunnel_peer_as} at {peer_ip}")
+                ok = await self.tunnel_manager.accept_tunnel(tunnel_peer_as, reader, writer)
+                if ok:
+                    self.logger.info(f"Tunnel from AS{tunnel_peer_as} accepted")
+                else:
+                    self.logger.warning(f"Tunnel from AS{tunnel_peer_as} failed")
+                    writer.close()
+                    await writer.wait_closed()
+                return  # Done — tunnel connections don't continue as BGP
+
+            # BGP connection: replay the peeked byte via a wrapper StreamReader
+            if first_byte == b'\xff':
+                replay_reader = asyncio.StreamReader()
+                replay_reader.feed_data(first_byte)
+                # Splice remaining data from original reader into replay_reader
+                asyncio.ensure_future(self._splice_readers(reader, replay_reader))
+                reader = replay_reader
+            else:
+                self.logger.warning(f"Unknown protocol byte from {peer_ip}: {first_byte!r}")
+                writer.close()
+                await writer.wait_closed()
+                return
 
             # Find session for this peer — first try exact IP match (local FRR peers)
             self.logger.debug(f"Looking for session for {peer_ip} in {list(self.sessions.keys())}")
@@ -395,6 +464,10 @@ class BGPAgent:
 
         # Register callback for when session becomes established
         session.on_established = lambda: asyncio.create_task(self._on_session_established(peer_ip))
+
+        # Register callback for when session goes down (tunnel teardown)
+        peer_as = config.peer_as
+        session.on_session_down = lambda: asyncio.create_task(self.tunnel_manager.teardown_tunnel(peer_as))
 
         # Register mesh directory callback
         session._on_mesh_directory_received = lambda peers: asyncio.create_task(
@@ -720,6 +793,21 @@ class BGPAgent:
                 if other_ip != peer_ip and other_session.is_established():
                     await self._send_mesh_directory(other_ip)
 
+        # --- Data-plane tunnel initiation ---
+        # If peer advertised tunnel capability and we're the lower-AS side, initiate
+        if session and session.config.peer_tunnel_endpoint:
+            peer_as = session.config.peer_as
+            tunnel_endpoint = session.config.peer_tunnel_endpoint
+            if self.local_as < peer_as:
+                self.logger.info(
+                    f"Lower AS — initiating tunnel to AS{peer_as} at {tunnel_endpoint}"
+                )
+                asyncio.create_task(self.tunnel_manager.initiate_tunnel(peer_as, tunnel_endpoint))
+            else:
+                self.logger.info(
+                    f"Higher AS — waiting for tunnel initiation from AS{peer_as}"
+                )
+
     def enable_route_reflection(self, cluster_id: Optional[str] = None) -> None:
         """
         Enable route reflection
@@ -955,7 +1043,7 @@ class BGPAgent:
                 )
                 await session._send_message(update)
                 session.stats['routes_advertised'] += len(ipv4_nlri)
-                self.logger.debug(f"IPv4: advertised {len(ipv4_nlri)}, withdrew {len(ipv4_withdrawn)} to {session.peer_id}")
+                self.logger.info(f"IPv4: advertised {len(ipv4_nlri)} routes to {session.peer_id} (nlri={ipv4_nlri})")
 
             # --- IPv6 UPDATE (MP_REACH_NLRI in path attributes) ---
             if ipv6_nlri:
@@ -977,10 +1065,14 @@ class BGPAgent:
                             continue  # Build fresh MP_REACH_NLRI below
                         path_attrs_dict[attr.type_code] = attr
 
-                    # Determine local IPv6 next hop
-                    local_ipv6 = (session.config.local_ipv6
-                                  or self.local_ipv6
-                                  or self.router_id)
+                    # Determine local IPv6 next hop — prefer tunnel overlay address
+                    tunnel_addr = self.tunnel_manager.get_tunnel_address(session.config.peer_as)
+                    if tunnel_addr:
+                        local_ipv6 = tunnel_addr  # Route through TUN device
+                    else:
+                        local_ipv6 = (session.config.local_ipv6
+                                      or self.local_ipv6
+                                      or self.router_id)
 
                     # Build MP_REACH_NLRI with local IPv6 as next hop
                     mp_reach = MPReachNLRIAttribute(

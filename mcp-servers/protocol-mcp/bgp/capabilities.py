@@ -140,6 +140,33 @@ class CapabilityManager:
             return value.decode('utf-8')
         return None
 
+    def enable_tunnel_endpoint(self, endpoint: str) -> None:
+        """
+        Enable NetClaw tunnel endpoint capability.
+
+        Advertises this node's data-plane tunnel endpoint to peers.
+        Uses the same endpoint as mesh (same port, protocol discrimination).
+
+        Args:
+            endpoint: Reachable endpoint string (e.g., "0.tcp.ngrok.io:14027")
+        """
+        from .constants import CAP_NETCLAW_TUNNEL
+        value = endpoint.encode('utf-8')
+        self.add_local_capability(CAP_NETCLAW_TUNNEL, value)
+
+    def get_peer_tunnel_endpoint(self) -> Optional[str]:
+        """
+        Get peer's tunnel endpoint from received capabilities.
+
+        Returns:
+            Endpoint string or None if peer didn't advertise tunnel capability
+        """
+        from .constants import CAP_NETCLAW_TUNNEL
+        value = self.peer_capabilities.get(CAP_NETCLAW_TUNNEL)
+        if value:
+            return value.decode('utf-8')
+        return None
+
     def get_local_capabilities(self) -> List[Tuple[int, bytes]]:
         """
         Get list of local capabilities

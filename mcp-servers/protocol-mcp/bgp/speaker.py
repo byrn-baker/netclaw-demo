@@ -151,6 +151,7 @@ class BGPSpeaker:
             accept_any_source=accept_any_source,
             hostname=hostname,
             mesh_endpoint=self.agent.mesh_endpoint,
+            tunnel_endpoint=self.agent.mesh_endpoint,  # tunnel shares same endpoint (protocol discrimination)
             local_ipv6=self.local_ipv6,
         )
 
