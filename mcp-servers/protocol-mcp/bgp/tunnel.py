@@ -255,6 +255,10 @@ class TunnelManager:
             "Tunnel AS%d ready: %s <-> %s on %s",
             peer_as, local_addr, remote_addr, actual_name
         )
+
+        # Store endpoint for reconnection
+        tunnel._endpoint = endpoint if hasattr(tunnel, '_endpoint') else None
+
         return tunnel
 
     async def _forward_tun_to_tcp(self, tunnel: PeerTunnel) -> None:
