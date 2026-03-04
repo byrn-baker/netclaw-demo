@@ -68,9 +68,16 @@ class TUNDevice:
         return self.name
 
     def _open_darwin(self) -> str:
-        # Parse unit number from requested name (e.g., "nclaw0" -> unit 0)
-        match = re.search(r'(\d+)$', self.requested_name)
-        unit = int(match.group(1)) if match else 0
+        import ctypes
+        import ctypes.util
+
+        # Snapshot existing utun interfaces before creation
+        existing_utuns = set()
+        try:
+            result = subprocess.run(["ifconfig", "-l"], capture_output=True, text=True, timeout=3)
+            existing_utuns = {i for i in result.stdout.strip().split() if i.startswith("utun")}
+        except Exception:
+            pass
 
         self._sock = socket.socket(PF_SYSTEM, socket.SOCK_DGRAM, SYSPROTO_CONTROL)
 
@@ -79,12 +86,37 @@ class TUNDevice:
         ctl_info = fcntl.ioctl(self._sock.fileno(), CTLIOCGINFO, ctl_info)
         ctl_id = struct.unpack("I", ctl_info[:4])[0]
 
-        # Connect with unit number (unit+1 because 0 means auto-assign)
-        sc_addr = struct.pack("=BBHIi", 32, AF_SYS_CONTROL, 0, ctl_id, unit + 1)
-        self._sock.connect(sc_addr)
+        # Build sockaddr_ctl struct and connect via ctypes (Python socket.connect
+        # doesn't accept raw bytes for PF_SYSTEM on macOS)
+        # struct sockaddr_ctl { u_char sc_len; u_char sc_family; u_int16_t ss_sysaddr;
+        #                       u_int32_t sc_id; u_int32_t sc_unit; u_int32_t[5] sc_reserved; }
+        # sc_unit=0 means auto-assign
+        sc_addr = struct.pack("=BBHIi5I", 32, AF_SYS_CONTROL, 0, ctl_id, 0,
+                              0, 0, 0, 0, 0)
+
+        libc = ctypes.CDLL(ctypes.util.find_library("c"), use_errno=True)
+        ret = libc.connect(self._sock.fileno(), sc_addr, len(sc_addr))
+        if ret != 0:
+            errno_val = ctypes.get_errno()
+            raise OSError(errno_val, f"connect() failed for utun: {os.strerror(errno_val)}")
 
         self.fd = self._sock.fileno()
-        self.name = f"utun{unit}"
+
+        # Determine actual utun interface name by comparing before/after
+        self.name = "utun?"
+        try:
+            result = subprocess.run(["ifconfig", "-l"], capture_output=True, text=True, timeout=3)
+            current_utuns = {i for i in result.stdout.strip().split() if i.startswith("utun")}
+            new_utuns = current_utuns - existing_utuns
+            if new_utuns:
+                self.name = sorted(new_utuns, key=lambda x: int(x[4:]))[-1]
+            else:
+                # Fallback: use the highest-numbered utun
+                if current_utuns:
+                    self.name = sorted(current_utuns, key=lambda x: int(x[4:]))[-1]
+        except Exception:
+            pass
+
         logger.info("Opened macOS TUN: %s (fd=%d)", self.name, self.fd)
         return self.name
 
