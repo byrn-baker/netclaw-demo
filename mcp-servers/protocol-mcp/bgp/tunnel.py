@@ -107,13 +107,16 @@ class TunnelManager:
         self._forwarding_enabled = True
         self.logger.info("IP forwarding enabled (v4+v6)")
 
-    async def initiate_tunnel(self, peer_as: int, endpoint: str) -> bool:
+    async def initiate_tunnel(self, peer_as: int, endpoint: str,
+                              retries: int = 3, retry_delay: float = 10.0) -> bool:
         """
         Initiate outbound tunnel connection (called by lower-AS side).
 
         Args:
             peer_as: Peer AS number
             endpoint: Peer's tunnel endpoint "host:port"
+            retries: Number of retry attempts
+            retry_delay: Seconds between retries
 
         Returns:
             True if tunnel established successfully
@@ -126,26 +129,49 @@ class TunnelManager:
         host, _, port_str = endpoint.rpartition(":")
         port = int(port_str)
 
-        self.logger.info("Initiating tunnel to AS%d at %s:%d", peer_as, host, port)
-
-        try:
-            reader, writer = await asyncio.wait_for(
-                asyncio.open_connection(host, port),
-                timeout=30.0,
-            )
-            # Send magic + our AS number for identification
-            writer.write(NCTUN_MAGIC + struct.pack("!I", self.local_as))
-            await writer.drain()
-
-            tunnel = await self._setup_tunnel(peer_as, reader, writer)
-            if tunnel:
-                self.logger.info("Tunnel to AS%d established (initiator)", peer_as)
+        for attempt in range(1, retries + 1):
+            if peer_as in self.tunnels and self.tunnels[peer_as].running:
                 return True
-            return False
 
-        except Exception as e:
-            self.logger.error("Failed to initiate tunnel to AS%d: %s", peer_as, e)
-            return False
+            self.logger.info("Initiating tunnel to AS%d at %s:%d (attempt %d/%d)",
+                             peer_as, host, port, attempt, retries)
+
+            try:
+                reader, writer = await asyncio.wait_for(
+                    asyncio.open_connection(host, port),
+                    timeout=30.0,
+                )
+                # Send magic + our AS number for identification
+                writer.write(NCTUN_MAGIC + struct.pack("!I", self.local_as))
+                await writer.drain()
+
+                # Brief pause to let remote side process handshake
+                await asyncio.sleep(0.5)
+
+                # Check if connection is still alive
+                if writer.is_closing():
+                    self.logger.warning("Tunnel TCP closed by remote during handshake (attempt %d)", attempt)
+                    if attempt < retries:
+                        await asyncio.sleep(retry_delay)
+                    continue
+
+                tunnel = await self._setup_tunnel(peer_as, reader, writer)
+                if tunnel:
+                    self.logger.info("Tunnel to AS%d established (initiator)", peer_as)
+                    return True
+
+                self.logger.warning("Tunnel setup failed for AS%d (attempt %d)", peer_as, attempt)
+
+            except Exception as e:
+                self.logger.error("Failed to initiate tunnel to AS%d (attempt %d): %s",
+                                  peer_as, attempt, e)
+
+            if attempt < retries:
+                self.logger.info("Retrying tunnel to AS%d in %.0fs...", peer_as, retry_delay)
+                await asyncio.sleep(retry_delay)
+
+        self.logger.error("All %d tunnel attempts to AS%d failed", retries, peer_as)
+        return False
 
     async def accept_tunnel(self, peer_as: int,
                             reader: asyncio.StreamReader,

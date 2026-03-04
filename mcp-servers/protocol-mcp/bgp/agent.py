@@ -433,13 +433,32 @@ class BGPAgent:
                     # This handles the case where both sides are trying to connect
                     self.logger.info(f"Accepting incoming connection from {peer_ip} (collision resolution)")
             elif mesh_identified:
-                # Mesh peer: check if already established
+                # Mesh peer: check if already established with a live connection
                 if session.fsm.state == STATE_ESTABLISHED:
-                    self.logger.warning(f"Mesh session AS{session.config.peer_as} already established, rejecting")
-                    session._pending_open = None
-                    writer.close()
-                    await writer.wait_closed()
-                    return
+                    # Check if old connection is actually alive
+                    old_writer = getattr(session, 'writer', None)
+                    old_alive = old_writer and not old_writer.is_closing() if old_writer else False
+                    if old_alive:
+                        self.logger.warning(f"Mesh session AS{session.config.peer_as} already established with live connection, rejecting")
+                        session._pending_open = None
+                        writer.close()
+                        await writer.wait_closed()
+                        return
+                    else:
+                        self.logger.info(f"Mesh session AS{session.config.peer_as} stale (connection dead), replacing")
+                        # Tear down old tunnel and remove stale session
+                        await self.tunnel_manager.teardown_tunnel(session.config.peer_as)
+                        session_key = None
+                        for k, v in self.sessions.items():
+                            if v is session:
+                                session_key = k
+                                break
+                        if session_key:
+                            del self.sessions[session_key]
+                        # Re-create session
+                        session = self._auto_create_mesh_session(
+                            open_msg.my_as, peer_ip, open_msg
+                        )
 
             # Accept connection - pass is_collision=True if we're not in passive mode
             # and this is not a mesh-identified connection

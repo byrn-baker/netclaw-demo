@@ -373,6 +373,26 @@ async def handle_http(reader, writer):
                 resp_code = 503
                 resp_body = {"error": "speaker not ready"}
 
+        elif method == "POST" and path == "/tunnel/retry":
+            if _speaker:
+                agent = _speaker.agent
+                retried = []
+                for peer_ip, session in agent.sessions.items():
+                    if session.is_established() and session.config.peer_tunnel_endpoint:
+                        peer_as = session.config.peer_as
+                        endpoint = session.config.peer_tunnel_endpoint
+                        if agent.local_as < peer_as:
+                            # Tear down existing broken tunnel first
+                            await agent.tunnel_manager.teardown_tunnel(peer_as)
+                            asyncio.create_task(
+                                agent.tunnel_manager.initiate_tunnel(peer_as, endpoint)
+                            )
+                            retried.append(f"AS{peer_as} at {endpoint}")
+                resp_body = {"retried": retried}
+            else:
+                resp_code = 503
+                resp_body = {"error": "speaker not ready"}
+
         else:
             resp_code = 404
             resp_body = {"error": "not found"}
