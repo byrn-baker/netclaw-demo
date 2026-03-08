@@ -38,7 +38,7 @@ clone_or_pull() {
 
 NETCLAW_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MCP_DIR="$NETCLAW_DIR/mcp-servers"
-TOTAL_STEPS=45
+TOTAL_STEPS=46
 
 echo "========================================="
 echo "  NetClaw - CCIE Network Agent"
@@ -1210,10 +1210,59 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 41: Protocol MCP Server (BGP + OSPF + GRE)
+# Step 41: nmap MCP Server (Network Scanning)
 # ═══════════════════════════════════════════
 
-log_step "41/$TOTAL_STEPS Installing Protocol MCP Server..."
+log_step "41/$TOTAL_STEPS Installing nmap MCP Server..."
+echo "  Source: https://github.com/sbmilburn/nmap-mcp"
+echo "  Network scanning — host discovery, port scanning, service/OS detection, vuln scanning (14 tools)"
+
+NMAP_MCP_DIR="$MCP_DIR/nmap-mcp"
+clone_or_pull "$NMAP_MCP_DIR" "https://github.com/sbmilburn/nmap-mcp.git"
+
+# Install Python dependencies
+pip3 install python-nmap pyyaml 2>/dev/null || pip install python-nmap pyyaml 2>/dev/null || true
+# fastmcp already installed by earlier steps
+
+# Install nmap binary if not present
+if command -v nmap &> /dev/null; then
+    log_info "nmap already installed: $(nmap --version 2>&1 | head -1)"
+else
+    log_info "Installing nmap..."
+    if command -v apt-get &> /dev/null; then
+        sudo apt-get install -y nmap 2>/dev/null || log_warn "Could not install nmap via apt-get"
+    elif command -v brew &> /dev/null; then
+        brew install nmap 2>/dev/null || log_warn "Could not install nmap via brew"
+    else
+        log_warn "nmap not found — install manually: https://nmap.org/download"
+    fi
+fi
+
+# Grant raw socket capability (Linux only — needed for SYN/OS/ARP scans)
+if [ "$(uname)" = "Linux" ] && command -v nmap &> /dev/null; then
+    if command -v setcap &> /dev/null; then
+        sudo setcap cap_net_raw+ep "$(which nmap)" 2>/dev/null && \
+            log_info "cap_net_raw set on nmap (SYN/OS/ARP scans enabled)" || \
+            log_warn "Could not set cap_net_raw on nmap — SYN/OS scans may require sudo"
+    fi
+fi
+
+# Add fd00::/8 (IPv6 ULA) to config if not already present
+if [ -f "$NMAP_MCP_DIR/config.yaml" ]; then
+    if ! grep -q "fd00::/8" "$NMAP_MCP_DIR/config.yaml" 2>/dev/null; then
+        sed -i '/172\.16\.0\.0\/12/a\  - "fd00::/8"           # IPv6 ULA — NetClaw overlay + lab networks' "$NMAP_MCP_DIR/config.yaml" 2>/dev/null || true
+    fi
+fi
+
+log_info "nmap MCP ready: $NMAP_MCP_DIR/server.py (14 tools, CIDR scope enforcement, audit logging)"
+
+echo ""
+
+# ═══════════════════════════════════════════
+# Step 42: Protocol MCP Server (BGP + OSPF + GRE)
+# ═══════════════════════════════════════════
+
+log_step "42/$TOTAL_STEPS Installing Protocol MCP Server..."
 echo "  Source: WontYouBeMyNeighbour BGP/OSPFv3/GRE modules"
 echo "  Live control-plane participation — BGP peering, OSPF adjacency, GRE tunnels (10 tools)"
 
@@ -1241,10 +1290,10 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 42: Protocol Peering Wizard (optional)
+# Step 43: Protocol Peering Wizard (optional)
 # ═══════════════════════════════════════════
 
-log_step "42/$TOTAL_STEPS Protocol Peering Configuration (optional)..."
+log_step "43/$TOTAL_STEPS Protocol Peering Configuration (optional)..."
 echo ""
 echo "  NetClaw can participate in BGP/OSPF as a real routing peer."
 echo "  This requires a GRE tunnel to a network device and protocol configuration."
@@ -1403,10 +1452,10 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 43: Deploy skills and set environment
+# Step 44: Deploy skills and set environment
 # ═══════════════════════════════════════════
 
-log_step "43/$TOTAL_STEPS Deploying skills and configuration..."
+log_step "44/$TOTAL_STEPS Deploying skills and configuration..."
 
 PYATS_SCRIPT="$PYATS_MCP_DIR/pyats_mcp_server.py"
 TESTBED_PATH="$NETCLAW_DIR/testbed/testbed.yaml"
@@ -1514,10 +1563,10 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 44: Verify installation
+# Step 45: Verify installation
 # ═══════════════════════════════════════════
 
-log_step "44/$TOTAL_STEPS Verifying installation..."
+log_step "45/$TOTAL_STEPS Verifying installation..."
 
 SERVERS_OK=0
 SERVERS_FAIL=0
@@ -1800,10 +1849,10 @@ log_info "Verification: $SERVERS_OK OK, $SERVERS_FAIL FAILED"
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 45: Summary
+# Step 46: Summary
 # ═══════════════════════════════════════════
 
-log_step "45/$TOTAL_STEPS Installation Summary"
+log_step "46/$TOTAL_STEPS Installation Summary"
 echo ""
 echo "========================================="
 echo "  NetClaw Installation Complete"
@@ -1812,7 +1861,7 @@ echo ""
 
 SKILL_COUNT=$(ls -d "$NETCLAW_DIR/workspace/skills/"*/ 2>/dev/null | wc -l)
 
-echo "MCP Servers Installed (37):"
+echo "MCP Servers Installed (38):"
 echo "  ┌─────────────────────────────────────────────────────────────"
 echo "  │ NETWORK DEVICE AUTOMATION:"
 echo "  │   pyATS              Cisco device CLI, Genie parsers"
@@ -1864,6 +1913,7 @@ echo "  │   Microsoft Graph     OneDrive, SharePoint, Visio, Teams, Exchange"
 echo "  │"
 echo "  │ SECURITY & COMPLIANCE:"
 echo "  │   NVD CVE             NIST vulnerability database (Python)"
+echo "  │   nmap                Host discovery, port/service/OS scanning, vuln assessment (14 tools)"
 echo "  │"
 echo "  │ VERSION CONTROL:"
 echo "  │   GitHub              Issues, PRs, code search, Actions (Docker)"
@@ -1967,6 +2017,11 @@ echo "  │   github-ops              Issues, PRs, config-as-code workflows"
 echo "  │"
 echo "  │ Packet Analysis Skills:"
 echo "  │   packet-analysis         pcap analysis + Slack upload support"
+echo "  │"
+echo "  │ nmap Network Scanning Skills:"
+echo "  │   nmap-network-scan       Host discovery, SYN/TCP/UDP port scanning (6 tools)"
+echo "  │   nmap-service-detection  Service/OS fingerprinting, vuln scanning (5 tools)"
+echo "  │   nmap-scan-management   Custom scans, scan history, result retrieval (3 tools)"
 echo "  │"
 echo "  │ AWS Cloud Skills:"
 echo "  │   aws-network-ops        VPC, TGW, Cloud WAN, VPN, Firewall, flow logs"
