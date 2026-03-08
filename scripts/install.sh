@@ -38,7 +38,7 @@ clone_or_pull() {
 
 NETCLAW_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MCP_DIR="$NETCLAW_DIR/mcp-servers"
-TOTAL_STEPS=46
+TOTAL_STEPS=47
 
 echo "========================================="
 echo "  NetClaw - CCIE Network Agent"
@@ -1259,10 +1259,91 @@ log_info "nmap MCP ready: $NMAP_MCP_DIR/server.py (14 tools, CIDR scope enforcem
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 42: Protocol MCP Server (BGP + OSPF + GRE)
+# Step 42: gtrace MCP Server (Path Analysis + IP Enrichment)
 # ═══════════════════════════════════════════
 
-log_step "42/$TOTAL_STEPS Installing Protocol MCP Server..."
+log_step "42/$TOTAL_STEPS Installing gtrace MCP Server..."
+echo "  Source: https://github.com/hervehildenbrand/gtrace"
+echo "  Advanced traceroute (MPLS/ECMP/NAT), MTR, GlobalPing, ASN lookup, geolocation, rDNS (6 tools)"
+
+GTRACE_BIN=""
+
+# Option A: Try go install if Go 1.24+ is available
+if command -v go &> /dev/null; then
+    GO_VER=$(go version 2>/dev/null | grep -oP '\d+\.\d+' | head -1)
+    GO_MAJOR=$(echo "$GO_VER" | cut -d. -f1)
+    GO_MINOR=$(echo "$GO_VER" | cut -d. -f2)
+    if [ "$GO_MAJOR" -ge 1 ] && [ "$GO_MINOR" -ge 24 ] 2>/dev/null; then
+        log_info "Go $GO_VER found — attempting go install..."
+        if go install github.com/hervehildenbrand/gtrace/cmd/gtrace@latest 2>/dev/null; then
+            GOPATH_BIN="${GOPATH:-$HOME/go}/bin/gtrace"
+            if [ -f "$GOPATH_BIN" ]; then
+                sudo cp "$GOPATH_BIN" /usr/local/bin/gtrace 2>/dev/null || true
+                GTRACE_BIN="/usr/local/bin/gtrace"
+                log_info "gtrace installed via go install"
+            fi
+        fi
+    fi
+fi
+
+# Option B: Download prebuilt binary from GitHub releases
+if [ -z "$GTRACE_BIN" ] || ! command -v gtrace &> /dev/null; then
+    log_info "Downloading gtrace prebuilt binary..."
+    GTRACE_ARCH="amd64"
+    GTRACE_OS="linux"
+    if [ "$(uname)" = "Darwin" ]; then
+        GTRACE_OS="darwin"
+        if [ "$(uname -m)" = "arm64" ]; then
+            GTRACE_ARCH="arm64"
+        fi
+    elif [ "$(uname -m)" = "aarch64" ]; then
+        GTRACE_ARCH="arm64"
+    fi
+
+    # Get latest release tag
+    GTRACE_LATEST=$(curl -sL "https://api.github.com/repos/hervehildenbrand/gtrace/releases/latest" 2>/dev/null | grep -oP '"tag_name":\s*"\K[^"]+' || echo "v0.9.7")
+    GTRACE_VER="${GTRACE_LATEST#v}"
+    GTRACE_URL="https://github.com/hervehildenbrand/gtrace/releases/download/${GTRACE_LATEST}/gtrace_${GTRACE_VER}_${GTRACE_OS}_${GTRACE_ARCH}.tar.gz"
+
+    GTRACE_TMP=$(mktemp -d)
+    if curl -sL "$GTRACE_URL" -o "$GTRACE_TMP/gtrace.tar.gz" 2>/dev/null; then
+        tar xzf "$GTRACE_TMP/gtrace.tar.gz" -C "$GTRACE_TMP" 2>/dev/null
+        if [ -f "$GTRACE_TMP/gtrace" ]; then
+            sudo mv "$GTRACE_TMP/gtrace" /usr/local/bin/gtrace
+            sudo chmod +x /usr/local/bin/gtrace
+            GTRACE_BIN="/usr/local/bin/gtrace"
+            log_info "gtrace $GTRACE_VER installed from GitHub release ($GTRACE_OS/$GTRACE_ARCH)"
+        else
+            log_warn "Could not extract gtrace binary — install manually: https://github.com/hervehildenbrand/gtrace/releases"
+        fi
+    else
+        log_warn "Could not download gtrace — install manually: https://github.com/hervehildenbrand/gtrace/releases"
+    fi
+    rm -rf "$GTRACE_TMP"
+fi
+
+# Grant raw socket capability (Linux only — needed for traceroute/mtr)
+if [ "$(uname)" = "Linux" ] && command -v gtrace &> /dev/null; then
+    if command -v setcap &> /dev/null; then
+        sudo setcap cap_net_raw+ep "$(which gtrace)" 2>/dev/null && \
+            log_info "cap_net_raw set on gtrace (traceroute/mtr enabled)" || \
+            log_warn "Could not set cap_net_raw on gtrace — traceroute/mtr may require sudo"
+    fi
+fi
+
+if command -v gtrace &> /dev/null; then
+    log_info "gtrace MCP ready: $(gtrace --version 2>&1 | head -1) (6 tools: traceroute, mtr, globalping, asn_lookup, geo_lookup, reverse_dns)"
+else
+    log_warn "gtrace not installed — path analysis and IP enrichment skills will not work"
+fi
+
+echo ""
+
+# ═══════════════════════════════════════════
+# Step 43: Protocol MCP Server (BGP + OSPF + GRE)
+# ═══════════════════════════════════════════
+
+log_step "43/$TOTAL_STEPS Installing Protocol MCP Server..."
 echo "  Source: WontYouBeMyNeighbour BGP/OSPFv3/GRE modules"
 echo "  Live control-plane participation — BGP peering, OSPF adjacency, GRE tunnels (10 tools)"
 
@@ -1290,10 +1371,10 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 43: Protocol Peering Wizard (optional)
+# Step 44: Protocol Peering Wizard (optional)
 # ═══════════════════════════════════════════
 
-log_step "43/$TOTAL_STEPS Protocol Peering Configuration (optional)..."
+log_step "44/$TOTAL_STEPS Protocol Peering Configuration (optional)..."
 echo ""
 echo "  NetClaw can participate in BGP/OSPF as a real routing peer."
 echo "  This requires a GRE tunnel to a network device and protocol configuration."
@@ -1452,10 +1533,10 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 44: Deploy skills and set environment
+# Step 45: Deploy skills and set environment
 # ═══════════════════════════════════════════
 
-log_step "44/$TOTAL_STEPS Deploying skills and configuration..."
+log_step "45/$TOTAL_STEPS Deploying skills and configuration..."
 
 PYATS_SCRIPT="$PYATS_MCP_DIR/pyats_mcp_server.py"
 TESTBED_PATH="$NETCLAW_DIR/testbed/testbed.yaml"
@@ -1563,10 +1644,10 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 45: Verify installation
+# Step 46: Verify installation
 # ═══════════════════════════════════════════
 
-log_step "45/$TOTAL_STEPS Verifying installation..."
+log_step "46/$TOTAL_STEPS Verifying installation..."
 
 SERVERS_OK=0
 SERVERS_FAIL=0
@@ -1833,6 +1914,24 @@ else
     SERVERS_FAIL=$((SERVERS_FAIL + 1))
 fi
 
+# nmap MCP is git-cloned
+if [ -d "$NMAP_MCP_DIR" ] && [ -f "$NMAP_MCP_DIR/server.py" ]; then
+    log_info "nmap MCP: OK (14 tools, stdio — CIDR scope enforcement)"
+    SERVERS_OK=$((SERVERS_OK + 1))
+else
+    log_warn "nmap MCP: NOT INSTALLED (git clone failed)"
+    SERVERS_FAIL=$((SERVERS_FAIL + 1))
+fi
+
+# gtrace is a standalone Go binary
+if command -v gtrace &> /dev/null; then
+    log_info "gtrace MCP: OK (6 tools, stdio — $(gtrace --version 2>&1 | head -1))"
+    SERVERS_OK=$((SERVERS_OK + 1))
+else
+    log_warn "gtrace MCP: NOT INSTALLED (install via GitHub release or go install)"
+    SERVERS_FAIL=$((SERVERS_FAIL + 1))
+fi
+
 # Protocol MCP is bundled with NetClaw
 if [ -d "$PROTOCOL_MCP_DIR" ] && [ -f "$PROTOCOL_MCP_DIR/server.py" ]; then
     log_info "Protocol MCP: OK (10 tools, stdio — BGP + OSPF + GRE)"
@@ -1849,10 +1948,10 @@ log_info "Verification: $SERVERS_OK OK, $SERVERS_FAIL FAILED"
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 46: Summary
+# Step 47: Summary
 # ═══════════════════════════════════════════
 
-log_step "46/$TOTAL_STEPS Installation Summary"
+log_step "47/$TOTAL_STEPS Installation Summary"
 echo ""
 echo "========================================="
 echo "  NetClaw Installation Complete"
@@ -1861,7 +1960,7 @@ echo ""
 
 SKILL_COUNT=$(ls -d "$NETCLAW_DIR/workspace/skills/"*/ 2>/dev/null | wc -l)
 
-echo "MCP Servers Installed (38):"
+echo "MCP Servers Installed (39):"
 echo "  ┌─────────────────────────────────────────────────────────────"
 echo "  │ NETWORK DEVICE AUTOMATION:"
 echo "  │   pyATS              Cisco device CLI, Genie parsers"
@@ -1914,6 +2013,9 @@ echo "  │"
 echo "  │ SECURITY & COMPLIANCE:"
 echo "  │   NVD CVE             NIST vulnerability database (Python)"
 echo "  │   nmap                Host discovery, port/service/OS scanning, vuln assessment (14 tools)"
+echo "  │"
+echo "  │ PATH ANALYSIS & IP ENRICHMENT:"
+echo "  │   gtrace              Traceroute (MPLS/ECMP/NAT), MTR, GlobalPing, ASN, geo, rDNS (6 tools)"
 echo "  │"
 echo "  │ VERSION CONTROL:"
 echo "  │   GitHub              Issues, PRs, code search, Actions (Docker)"
@@ -2022,6 +2124,10 @@ echo "  │ nmap Network Scanning Skills:"
 echo "  │   nmap-network-scan       Host discovery, SYN/TCP/UDP port scanning (6 tools)"
 echo "  │   nmap-service-detection  Service/OS fingerprinting, vuln scanning (5 tools)"
 echo "  │   nmap-scan-management   Custom scans, scan history, result retrieval (3 tools)"
+echo "  │"
+echo "  │ gtrace Path Analysis & IP Enrichment Skills:"
+echo "  │   gtrace-path-analysis   Traceroute (MPLS/ECMP/NAT), MTR monitoring, GlobalPing (3 tools)"
+echo "  │   gtrace-ip-enrichment   ASN lookup, geolocation, reverse DNS (3 tools)"
 echo "  │"
 echo "  │ AWS Cloud Skills:"
 echo "  │   aws-network-ops        VPC, TGW, Cloud WAN, VPN, Firewall, flow logs"

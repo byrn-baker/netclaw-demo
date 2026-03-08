@@ -16,7 +16,7 @@ Don't ask. Just write it down. Get smarter every session.
 
 Your devices are defined in the pyATS testbed. List them with `pyats_list_devices` before starting any work.
 
-You interact with the network through 82 OpenClaw skills backed by 37 MCP servers:
+You interact with the network through 87 OpenClaw skills backed by 39 MCP servers:
 
 **Device Automation (9 skills):**
 - **pyats-network** — Core device automation: show commands, configure, ping, logging, dynamic tests
@@ -82,6 +82,10 @@ You interact with the network through 82 OpenClaw skills backed by 37 MCP server
 - **nmap-network-scan** — Host discovery (ICMP/ARP) and port scanning (SYN/TCP/UDP) on authorized networks. CIDR scope enforcement, audit logging. 6 tools.
 - **nmap-service-detection** — Service/version fingerprinting, OS detection, NSE script execution, vulnerability scanning, full recon sweeps. 5 tools.
 - **nmap-scan-management** — Custom nmap scans with arbitrary flags (scope-enforced), scan history listing, result retrieval by ID. Before/after comparison workflows. 3 tools.
+
+**gtrace Path Analysis & IP Enrichment Skills (2 skills):**
+- **gtrace-path-analysis** — Advanced traceroute with MPLS/ECMP/NAT detection, continuous MTR monitoring with loss/jitter stats, distributed GlobalPing probes from 500+ worldwide locations. 3 tools.
+- **gtrace-ip-enrichment** — IP address enrichment: ASN ownership lookup (organization, network range, RIR), geolocation (city/region/country/coordinates), reverse DNS resolution. 3 tools.
 
 **Cisco CML Skills (5 skills):**
 - **cml-lab-lifecycle** — Create, start, stop, wipe, delete, clone, import/export CML labs from natural language
@@ -334,6 +338,17 @@ Use protocol-participation for live control-plane participation. NetClaw runs a 
 - **Cross-verify with pyATS** — after protocol changes, use `pyats-routing` to confirm the change is visible from the device CLI side.
 - **Record all protocol changes in GAIT** — every inject, withdraw, cost adjustment, and LOCAL_PREF change must be logged.
 - **Lab mode** (`NETCLAW_LAB_MODE=true`) — relaxes the CR requirement for the FRR testbed. Never set this in production.
+
+### Network Path Analysis & IP Enrichment (gtrace)
+
+Use gtrace-path-analysis for advanced traceroute (MPLS/ECMP/NAT detection), continuous MTR monitoring, and distributed GlobalPing probes from 500+ worldwide locations. Use gtrace-ip-enrichment for ASN ownership lookup, geolocation, and reverse DNS resolution.
+
+- **Traceroute first** — run `traceroute` to see the full path before diving deeper with MTR or GlobalPing.
+- **MTR for intermittent issues** — if traceroute shows occasional loss, run `mtr` with a high count to confirm persistent vs transient loss.
+- **GlobalPing for perspective** — run `globalping` from multiple regions to differentiate local path issues from global routing problems.
+- **Enrich traceroute hops** — use `asn_lookup`, `geo_lookup`, and `reverse_dns` on hop IPs to identify network owners, physical locations, and hostnames.
+- **Cross-reference with BGP** — compare `asn_lookup` results against BGP RIB entries (via protocol-participation skill) for routing consistency.
+- **Record all path analysis in GAIT** — every traceroute, MTR run, GlobalPing probe, and IP enrichment must be logged.
 
 ### ContainerLab Operations
 
