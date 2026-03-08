@@ -1610,9 +1610,15 @@ _set_env_var "SUBNET_MCP_SCRIPT"        "$SUBNET_MCP_DIR/servers/subnetcalculato
 _set_env_var "F5_MCP_SCRIPT"            "$F5_MCP_DIR/F5MCPserver.py"
 _set_env_var "CATC_MCP_SCRIPT"          "$CATC_MCP_DIR/catalyst-center-mcp.py"
 _set_env_var "PACKET_BUDDY_MCP_SCRIPT"  "$PACKET_BUDDY_MCP_DIR/server.py"
+_set_env_var "NMAP_MCP_SCRIPT"          "$NMAP_MCP_DIR/server.py"
 _set_env_var "PROTOCOL_MCP_SCRIPT"      "$PROTOCOL_MCP_DIR/server.py"
 _set_env_var "CLAB_MCP_SCRIPT"          "$CLAB_MCP_DIR/clab_mcp_server.py"
 _set_env_var "SDWAN_MCP_SCRIPT"         "$SDWAN_MCP_DIR/sdwan_mcp_server.py"
+
+# gtrace is a Go binary, not a Python script — just record the path
+if command -v gtrace &> /dev/null; then
+    _set_env_var "GTRACE_MCP_BIN"       "$(which gtrace)"
+fi
 
 # Remind user about API key if not set
 if ! grep -q "^ANTHROPIC_API_KEY=" "$OPENCLAW_ENV" 2>/dev/null && [ -z "${ANTHROPIC_API_KEY:-}" ]; then

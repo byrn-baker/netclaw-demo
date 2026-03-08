@@ -3,7 +3,7 @@ name: gtrace-ip-enrichment
 description: "IP address enrichment — ASN ownership lookup, geolocation (city/region/country/coordinates), and reverse DNS resolution"
 user-invocable: true
 metadata:
-  { "openclaw": { "requires": { "bins": ["python3", "gtrace"], "env": [] } } }
+  { "openclaw": { "requires": { "bins": ["python3", "gtrace"], "env": ["GTRACE_MCP_BIN"] } } }
 ---
 
 # IP Address Enrichment with gtrace

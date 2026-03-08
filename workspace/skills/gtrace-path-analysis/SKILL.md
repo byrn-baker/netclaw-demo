@@ -3,7 +3,7 @@ name: gtrace-path-analysis
 description: "Network path tracing and monitoring — traceroute with MPLS/ECMP/NAT detection, continuous MTR monitoring, and distributed GlobalPing probes from 500+ worldwide locations"
 user-invocable: true
 metadata:
-  { "openclaw": { "requires": { "bins": ["python3", "gtrace"], "env": [] } } }
+  { "openclaw": { "requires": { "bins": ["python3", "gtrace"], "env": ["GTRACE_MCP_BIN"] } } }
 ---
 
 # Network Path Analysis with gtrace
