@@ -202,7 +202,7 @@ NetClaw ships with the full set of OpenClaw workspace markdown files. These are 
 
 ---
 
-## MCP Servers (37)
+## MCP Servers (38)
 
 | # | MCP Server | Repository | Transport | Function |
 |---|------------|------------|-----------|----------|
@@ -252,12 +252,13 @@ NetClaw ships with the full set of OpenClaw workspace markdown files. These are 
 | 44 | Grafana | [grafana/mcp-grafana](https://github.com/grafana/mcp-grafana) | uvx (Go) | Observability platform — dashboards, Prometheus PromQL, Loki LogQL, alerting, incidents, OnCall, annotations, panel rendering (75+ tools) |
 | 45 | Prometheus | [pab1it0/prometheus-mcp-server](https://github.com/pab1it0/prometheus-mcp-server) | stdio (Python) | Direct PromQL monitoring — instant/range queries, metric discovery with pagination, metric metadata, scrape target health, system health check (6 tools) |
 | 46 | Kubeshark | [kubeshark/kubeshark](https://github.com/kubeshark/kubeshark) | remote HTTP (Go) | Kubernetes L4/L7 traffic analysis — capture, pcap export, snapshots, KFL filtering, TCP/UDP flow stats, TLS decryption via eBPF (6 tools) |
+| 47 | nmap | [sbmilburn/nmap-mcp](https://github.com/sbmilburn/nmap-mcp) | stdio (Python) | Network scanning — host discovery, SYN/TCP/UDP port scanning, service/OS detection, NSE scripts, vuln scanning with CIDR allowlist + audit logging (14 tools) |
 
-All MCP servers communicate via stdio (JSON-RPC 2.0) through `scripts/mcp-call.py`. GitHub MCP runs via Docker. CML MCP is pip-installed (`cml-mcp`). NSO MCP is pip-installed (`cisco-nso-mcp-server`). FMC MCP runs as an HTTP server on port 8000. Meraki Magic MCP runs via FastMCP stdio (~804 Dashboard API endpoints). ThousandEyes community MCP runs via stdio (9 read-only tools); ThousandEyes official MCP is a remote HTTP endpoint hosted by Cisco at `https://api.thousandeyes.com/mcp` (~20 tools via `npx mcp-remote`). RADKit MCP runs via FastMCP stdio with certificate-based cloud relay auth (5 tools for remote device access). Nautobot MCP runs via MCP SDK stdio (5 IPAM tools, alternative to NetBox). Infrahub MCP runs via stdio (10 tools for schema-driven SoT, GraphQL queries, and versioned branches). Itential MCP is pip-installed (`itential-mcp`) and runs via stdio (65+ tools for network automation orchestration). JunOS MCP runs via stdio (10 tools for PyEZ/NETCONF device automation). Arista CVP MCP runs via uv/stdio (4 tools for CloudVision Portal device inventory, events, connectivity monitoring, and tag management). UML MCP runs via stdio (2 tools for 27+ diagram types via Kroki multi-engine rendering). Protocol MCP runs via stdio (10 tools for live BGP/OSPF/GRE control-plane participation using scapy-based protocol speakers). ContainerLab MCP runs via stdio (6 tools for containerized network lab lifecycle management via ContainerLab API). SD-WAN MCP runs via stdio (12 read-only tools for Cisco SD-WAN vManage fabric monitoring). Grafana MCP runs via `uvx mcp-grafana` (75+ tools for dashboards, Prometheus, Loki, alerting, incidents, OnCall). Prometheus MCP is pip-installed (`prometheus-mcp-server`) and runs via stdio (6 tools for direct PromQL queries, metric discovery, and scrape target health). Kubeshark MCP is a remote HTTP endpoint running inside a Kubernetes cluster (6 tools for L4/L7 traffic capture, pcap export, flow analysis, and TLS decryption via eBPF; access via `kubectl port-forward svc/kubeshark-hub 8898:8898`). AWS MCPs run via `uvx` (uv tool runner). GCP MCPs are remote HTTP endpoints hosted by Google (OAuth 2.0 auth). No persistent connections, no port management.
+All MCP servers communicate via stdio (JSON-RPC 2.0) through `scripts/mcp-call.py`. GitHub MCP runs via Docker. CML MCP is pip-installed (`cml-mcp`). NSO MCP is pip-installed (`cisco-nso-mcp-server`). FMC MCP runs as an HTTP server on port 8000. Meraki Magic MCP runs via FastMCP stdio (~804 Dashboard API endpoints). ThousandEyes community MCP runs via stdio (9 read-only tools); ThousandEyes official MCP is a remote HTTP endpoint hosted by Cisco at `https://api.thousandeyes.com/mcp` (~20 tools via `npx mcp-remote`). RADKit MCP runs via FastMCP stdio with certificate-based cloud relay auth (5 tools for remote device access). Nautobot MCP runs via MCP SDK stdio (5 IPAM tools, alternative to NetBox). Infrahub MCP runs via stdio (10 tools for schema-driven SoT, GraphQL queries, and versioned branches). Itential MCP is pip-installed (`itential-mcp`) and runs via stdio (65+ tools for network automation orchestration). JunOS MCP runs via stdio (10 tools for PyEZ/NETCONF device automation). Arista CVP MCP runs via uv/stdio (4 tools for CloudVision Portal device inventory, events, connectivity monitoring, and tag management). UML MCP runs via stdio (2 tools for 27+ diagram types via Kroki multi-engine rendering). Protocol MCP runs via stdio (10 tools for live BGP/OSPF/GRE control-plane participation using scapy-based protocol speakers). ContainerLab MCP runs via stdio (6 tools for containerized network lab lifecycle management via ContainerLab API). SD-WAN MCP runs via stdio (12 read-only tools for Cisco SD-WAN vManage fabric monitoring). Grafana MCP runs via `uvx mcp-grafana` (75+ tools for dashboards, Prometheus, Loki, alerting, incidents, OnCall). Prometheus MCP is pip-installed (`prometheus-mcp-server`) and runs via stdio (6 tools for direct PromQL queries, metric discovery, and scrape target health). Kubeshark MCP is a remote HTTP endpoint running inside a Kubernetes cluster (6 tools for L4/L7 traffic capture, pcap export, flow analysis, and TLS decryption via eBPF; access via `kubectl port-forward svc/kubeshark-hub 8898:8898`). nmap MCP runs via FastMCP stdio (14 tools for host discovery, port scanning, service/OS detection, NSE scripts, and vulnerability scanning with CIDR scope enforcement and audit logging). AWS MCPs run via `uvx` (uv tool runner). GCP MCPs are remote HTTP endpoints hosted by Google (OAuth 2.0 auth). No persistent connections, no port management.
 
 ---
 
-## Skills (82)
+## Skills (85)
 
 ### pyATS Device Skills (9)
 
@@ -351,6 +352,14 @@ All MCP servers communicate via stdio (JSON-RPC 2.0) through `scripts/mcp-call.p
 | Skill | What It Does |
 |-------|-------------|
 | **packet-analysis** | Deep pcap analysis via tshark. Upload a `.pcap` or `.pcapng` file to Slack and NetClaw analyzes it: protocol hierarchy, IP/TCP/UDP conversations, top endpoints, DNS queries, HTTP requests, expert info (retransmissions, errors), filtered packet inspection, and full JSON decode. 12 MCP tools for comprehensive L2-L7 packet investigation. |
+
+### nmap Network Scanning Skills (3)
+
+| Skill | What It Does |
+|-------|-------------|
+| **nmap-network-scan** | Host discovery and port scanning — ICMP/ARP host discovery, SYN/TCP/UDP port scanning on authorized networks. CIDR scope enforcement and audit logging. 6 tools for subnet discovery and targeted port scanning. |
+| **nmap-service-detection** | Service fingerprinting, OS detection, NSE scripts, and vulnerability scanning. Full recon sweeps combining SYN scan + service detection + OS fingerprinting + default NSE scripts. 5 tools for security assessment. |
+| **nmap-scan-management** | Custom nmap scans with arbitrary flags (scope-enforced), scan history listing, and result retrieval by ID. Before/after comparison workflows for change validation. 3 tools. |
 
 ### Cisco CML Skills (5)
 
