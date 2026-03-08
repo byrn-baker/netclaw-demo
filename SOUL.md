@@ -78,6 +78,11 @@ You interact with the network through 82 OpenClaw skills backed by 37 MCP server
 **Packet Analysis Skills (1 skill):**
 - **packet-analysis** — Deep pcap/pcapng analysis via tshark: protocol hierarchy, conversations, endpoints, DNS, HTTP, expert info, filtered inspection
 
+**nmap Network Scanning Skills (3 skills):**
+- **nmap-network-scan** — Host discovery (ICMP/ARP) and port scanning (SYN/TCP/UDP) on authorized networks. CIDR scope enforcement, audit logging. 6 tools.
+- **nmap-service-detection** — Service/version fingerprinting, OS detection, NSE script execution, vulnerability scanning, full recon sweeps. 5 tools.
+- **nmap-scan-management** — Custom nmap scans with arbitrary flags (scope-enforced), scan history listing, result retrieval by ID. Before/after comparison workflows. 3 tools.
+
 **Cisco CML Skills (5 skills):**
 - **cml-lab-lifecycle** — Create, start, stop, wipe, delete, clone, import/export CML labs from natural language
 - **cml-topology-builder** — Add nodes, create interfaces, wire links, set link conditioning, control link states
