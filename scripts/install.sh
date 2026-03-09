@@ -38,7 +38,7 @@ clone_or_pull() {
 
 NETCLAW_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MCP_DIR="$NETCLAW_DIR/mcp-servers"
-TOTAL_STEPS=47
+TOTAL_STEPS=48
 
 echo "========================================="
 echo "  NetClaw - CCIE Network Agent"
@@ -1340,10 +1340,35 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 43: Protocol MCP Server (BGP + OSPF + GRE)
+# Step 43: TTS MCP Server (Text-to-Speech via edge-tts)
 # ═══════════════════════════════════════════
 
-log_step "43/$TOTAL_STEPS Installing Protocol MCP Server..."
+log_step "43/$TOTAL_STEPS Installing TTS MCP Server..."
+echo "  Source: edge-tts (Microsoft Edge Read Aloud)"
+echo "  Text-to-speech for Slack voice responses — text_to_speech, list_voices (2 tools)"
+
+TTS_MCP_DIR="$MCP_DIR/tts-mcp"
+mkdir -p "$TTS_MCP_DIR/output"
+
+# Install edge-tts and fastmcp
+pip3 install edge-tts fastmcp 2>/dev/null || pip install edge-tts fastmcp 2>/dev/null || true
+
+# Verify edge-tts is available
+if python3 -c "import edge_tts" 2>/dev/null; then
+    log_info "edge-tts installed OK"
+else
+    log_warn "edge-tts not installed — voice responses will not work"
+fi
+
+log_info "TTS MCP ready: $TTS_MCP_DIR/server.py (2 tools, no API key required)"
+
+echo ""
+
+# ═══════════════════════════════════════════
+# Step 44: Protocol MCP Server (BGP + OSPF + GRE)
+# ═══════════════════════════════════════════
+
+log_step "44/$TOTAL_STEPS Installing Protocol MCP Server..."
 echo "  Source: WontYouBeMyNeighbour BGP/OSPFv3/GRE modules"
 echo "  Live control-plane participation — BGP peering, OSPF adjacency, GRE tunnels (10 tools)"
 
@@ -1371,10 +1396,10 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 44: Protocol Peering Wizard (optional)
+# Step 45: Protocol Peering Wizard (optional)
 # ═══════════════════════════════════════════
 
-log_step "44/$TOTAL_STEPS Protocol Peering Configuration (optional)..."
+log_step "45/$TOTAL_STEPS Protocol Peering Configuration (optional)..."
 echo ""
 echo "  NetClaw can participate in BGP/OSPF as a real routing peer."
 echo "  This requires a GRE tunnel to a network device and protocol configuration."
@@ -1533,10 +1558,10 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 45: Deploy skills and set environment
+# Step 46: Deploy skills and set environment
 # ═══════════════════════════════════════════
 
-log_step "45/$TOTAL_STEPS Deploying skills and configuration..."
+log_step "46/$TOTAL_STEPS Deploying skills and configuration..."
 
 PYATS_SCRIPT="$PYATS_MCP_DIR/pyats_mcp_server.py"
 TESTBED_PATH="$NETCLAW_DIR/testbed/testbed.yaml"
@@ -1620,6 +1645,8 @@ if command -v gtrace &> /dev/null; then
     _set_env_var "GTRACE_MCP_BIN"       "$(which gtrace)"
 fi
 
+_set_env_var "TTS_MCP_SCRIPT"            "$TTS_MCP_DIR/server.py"
+
 # Remind user about API key if not set
 if ! grep -q "^ANTHROPIC_API_KEY=" "$OPENCLAW_ENV" 2>/dev/null && [ -z "${ANTHROPIC_API_KEY:-}" ]; then
     echo "" >> "$OPENCLAW_ENV"
@@ -1650,10 +1677,10 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 46: Verify installation
+# Step 47: Verify installation
 # ═══════════════════════════════════════════
 
-log_step "46/$TOTAL_STEPS Verifying installation..."
+log_step "47/$TOTAL_STEPS Verifying installation..."
 
 SERVERS_OK=0
 SERVERS_FAIL=0
@@ -1938,6 +1965,15 @@ else
     SERVERS_FAIL=$((SERVERS_FAIL + 1))
 fi
 
+# TTS MCP
+if [ -d "$TTS_MCP_DIR" ] && [ -f "$TTS_MCP_DIR/server.py" ]; then
+    log_info "TTS MCP: OK (2 tools, stdio — edge-tts voice synthesis)"
+    SERVERS_OK=$((SERVERS_OK + 1))
+else
+    log_warn "TTS MCP: NOT INSTALLED"
+    SERVERS_FAIL=$((SERVERS_FAIL + 1))
+fi
+
 # Protocol MCP is bundled with NetClaw
 if [ -d "$PROTOCOL_MCP_DIR" ] && [ -f "$PROTOCOL_MCP_DIR/server.py" ]; then
     log_info "Protocol MCP: OK (10 tools, stdio — BGP + OSPF + GRE)"
@@ -1954,10 +1990,10 @@ log_info "Verification: $SERVERS_OK OK, $SERVERS_FAIL FAILED"
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 47: Summary
+# Step 48: Summary
 # ═══════════════════════════════════════════
 
-log_step "47/$TOTAL_STEPS Installation Summary"
+log_step "48/$TOTAL_STEPS Installation Summary"
 echo ""
 echo "========================================="
 echo "  NetClaw Installation Complete"
@@ -2022,6 +2058,9 @@ echo "  │   nmap                Host discovery, port/service/OS scanning, vuln
 echo "  │"
 echo "  │ PATH ANALYSIS & IP ENRICHMENT:"
 echo "  │   gtrace              Traceroute (MPLS/ECMP/NAT), MTR, GlobalPing, ASN, geo, rDNS (6 tools)"
+echo "  │"
+echo "  │ VOICE SYNTHESIS:"
+echo "  │   TTS (edge-tts)      Text-to-speech for Slack voice responses — 300+ voices, MP3 output (2 tools)"
 echo "  │"
 echo "  │ VERSION CONTROL:"
 echo "  │   GitHub              Issues, PRs, code search, Actions (Docker)"
@@ -2207,6 +2246,9 @@ echo "  │   slack-network-alerts   Alert formatting & delivery"
 echo "  │   slack-report-delivery  Report formatting for Slack"
 echo "  │   slack-incident-workflow Incident response in Slack"
 echo "  │   slack-user-context     User-aware interactions"
+echo "  │"
+echo "  │ Voice Interface Skills:"
+echo "  │   slack-voice-interface  Slack voice clip → transcribe → NetClaw → edge-tts → voice reply"
 echo "  └─────────────────────────────────────────────────────────────"
 echo ""
 
