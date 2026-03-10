@@ -4,7 +4,7 @@
 
 # NetClaw
 
-A CCIE-level AI network engineering coworker. Built on [OpenClaw](https://github.com/openclaw/openclaw) with Anthropic Claude, 87 skills, and 39 MCP server backends for complete network automation with ITSM gating, source-of-truth reconciliation, immutable audit trails, packet capture analysis, GitHub config-as-code, Cisco CML lab simulation, ContainerLab containerized network labs, Cisco NSO orchestration, Cisco SD-WAN vManage monitoring, Grafana observability (dashboards, Prometheus, Loki, alerting, incidents), Prometheus direct PromQL monitoring, Kubeshark Kubernetes traffic analysis, Cisco Meraki Dashboard management, Cisco ThousandEyes network intelligence, AWS cloud networking, Cisco Secure Firewall policy auditing, Itential network orchestration, Juniper JunOS device automation, Arista CloudVision Portal monitoring, F5 BIG-IP pyATS iControl REST coverage, UML diagram generation, live BGP/OSPF control-plane participation, nmap network scanning, gtrace path analysis and IP enrichment, Slack-native operations, and Microsoft 365 integration.
+A CCIE-level AI network engineering coworker. Built on [OpenClaw](https://github.com/openclaw/openclaw) with Anthropic Claude, 92 skills, and 43 MCP integrations for complete network automation with ITSM gating, source-of-truth reconciliation, immutable audit trails, packet capture analysis, GitHub config-as-code, Cisco CML lab simulation, ContainerLab containerized network labs, Cisco NSO orchestration, Cisco SD-WAN vManage monitoring, Grafana observability (dashboards, Prometheus, Loki, alerting, incidents), Prometheus direct PromQL monitoring, Kubeshark Kubernetes traffic analysis, Cisco Meraki Dashboard management, Cisco ThousandEyes network intelligence, AWS cloud networking, Cisco Secure Firewall policy auditing, Itential network orchestration, Juniper JunOS device automation, Arista CloudVision Portal monitoring, F5 BIG-IP pyATS iControl REST coverage, Infoblox DDI, Palo Alto Panorama, FortiManager, UML diagram generation, EVPN/VXLAN fabric workflows, live BGP/OSPF control-plane participation, nmap network scanning, gtrace path analysis and IP enrichment, Slack-native operations, and Microsoft 365 integration.
 
 ---
 
@@ -16,7 +16,7 @@ cd netclaw
 ./scripts/install.sh          # installs everything, then launches the setup wizard
 ```
 
-That's it. The installer clones 39 MCP servers, deploys 87 skills, then launches a two-phase setup:
+That's it. The installer deploys 92 skills, installs bundled MCP dependencies, and prepares configuration for 43 MCP integrations, then launches a two-phase setup:
 
 **Phase 1: `openclaw onboard`** (OpenClaw's built-in wizard)
 - Pick your AI provider (Anthropic, OpenAI, Bedrock, Vertex, 30+ options)
@@ -26,7 +26,7 @@ That's it. The installer clones 39 MCP servers, deploys 87 skills, then launches
 
 **Phase 2: `./scripts/setup.sh`** (NetClaw platform credentials)
 - Network devices (testbed.yaml editor)
-- Platform credentials (NetBox, Nautobot, Infrahub, Itential, ServiceNow, ACI, ISE, F5, Catalyst Center, NVD, Microsoft Graph, GitHub, CML, NSO, Meraki, FMC, ThousandEyes, RADKit, AWS, GCP, ContainerLab, SD-WAN, Grafana, Prometheus, Kubeshark)
+- Platform credentials (NetBox, Nautobot, Infrahub, Infoblox, Itential, ServiceNow, ACI, ISE, F5, Catalyst Center, NVD, Microsoft Graph, GitHub, CML, NSO, Meraki, FMC, Panorama, FortiManager, ThousandEyes, RADKit, AWS, GCP, ContainerLab, SD-WAN, Grafana, Prometheus, Kubeshark)
 - Your identity (name, role, timezone for USER.md)
 
 After setup, start NetClaw:
@@ -56,7 +56,9 @@ NetClaw is an autonomous network engineering agent powered by Claude that can:
 - **Manage** ACI fabric — health audits, policy analysis, safe tenant/VRF/BD/EPG changes with fault delta rollback
 - **Investigate** endpoints via ISE — auth history, posture, profiling, human-authorized quarantine
 - **Audit** Cisco Secure Firewall policies via FMC — search access rules by IP/FQDN, resolve FTD device policies, cross-FMC consistency checks, and SGT-based policy review
+- **Operate** Infoblox DDI — inspect DNS zones and records, DHCP scopes and leases, and IPAM utilization before address-related changes
 - **Manage** Cisco Meraki infrastructure via Dashboard API (~804 endpoints) — org inventory, networks, devices, wireless SSIDs, RF profiles, switch ports, VLANs, MX firewall rules, site-to-site VPN, content filtering, security events, camera analytics, live diagnostics (ping, cable test), and configuration change audit
+- **Audit** Palo Alto Panorama and FortiManager estates — policy search, device-group/ADOM/package review, NAT validation, and commit/install readiness checks
 - **Monitor** network paths via Cisco ThousandEyes — synthetic test results, agent health, hop-by-hop path visualization (latency, loss, MPLS labels per hop), BGP route analysis (AS path, reachability, origin validation), outage investigation, anomaly detection, instant on-demand tests, endpoint VPN diagnostics, and AI-powered views explanations — via both community (9 tools, local stdio) and official (~20 tools, remote HTTP) MCP servers
 - **Access** remote devices via Cisco RADKit cloud relay — discover device inventory, inspect device attributes and capabilities, execute CLI commands with timeout/truncation controls, and perform SNMP GET operations on air-gapped or cloud-unreachable devices without direct SSH/SNMP connectivity
 - **Automate** Juniper JunOS devices via PyEZ/NETCONF — CLI command execution, configuration management, Jinja2 template rendering, device facts collection, and batch operations across router fleets
@@ -65,6 +67,7 @@ NetClaw is an autonomous network engineering agent powered by Claude that can:
 - **Observe** infrastructure via Grafana (75+ tools) — search/view/modify dashboards, query Prometheus metrics with PromQL (interface traffic, CPU, BGP state, error rates, histogram percentiles), query Loki logs with LogQL (syslog, SNMP traps, application logs), manage alerting rules and contact points, track incidents with timeline activities, view OnCall schedules and current responders, annotate dashboards, render panel images, and generate deep links
 - **Query** Prometheus directly (6 tools) — execute instant and range PromQL queries, browse available metrics with pagination, retrieve metric metadata (type, help, unit), inspect scrape target health and status, and verify Prometheus server availability. Supports basic auth, bearer tokens (Grafana Cloud, Thanos, Cortex), and multi-tenant org IDs
 - **Inspect** Kubernetes traffic with Kubeshark (6 tools) — capture L4/L7 traffic across cluster pods, export pcaps for Wireshark analysis, create point-in-time snapshots, filter with KFL expressions, list TCP/UDP flows with RTT metrics, and get top-talker summaries. Automatic TLS decryption via eBPF. Dissects HTTP, gRPC, GraphQL, Redis, Kafka, DNS
+- **Troubleshoot** EVPN/VXLAN fabrics — VTEP reachability, VNI mapping, EVPN route-type inspection, multihoming state, and underlay/overlay correlation
 - **Participate** in BGP and OSPF as a live routing peer — inject/withdraw routes, query RIB/LSDB, adjust LOCAL_PREF and OSPF cost, peer with real routers over GRE tunnels via native protocol speakers (RFC 4271/5340)
 - **Trace** network paths with gtrace — advanced traceroute with MPLS label detection, ECMP path discovery, and NAT detection; continuous MTR monitoring with per-hop loss and jitter; distributed GlobalPing probes from 500+ worldwide locations; ASN ownership lookup, geolocation, and reverse DNS for IP enrichment
 - **Scan** for CVE vulnerabilities against the NVD database with CVSS severity correlation and exposure confirmation
@@ -405,11 +408,25 @@ All MCP servers communicate via stdio (JSON-RPC 2.0) through `scripts/mcp-call.p
 |-------|-------------|
 | **fmc-firewall-ops** | Cisco Secure Firewall policy search via FMC REST API (4 tools): list FMC profiles for multi-FMC environments, search access rules by IP/FQDN within a policy, resolve FTD devices to their assigned policies and search, FMC-wide rule search with network indicators (IP, FQDN), identity indicators (SGT, realm users/groups), and policy name filters. Read-only firewall rule audit, connectivity verification ("can Host A reach Host B?"), SGT policy review, and cross-FMC consistency analysis. |
 
+### Enterprise Platform Skills (3)
+
+| Skill | What It Does |
+|-------|-------------|
+| **infoblox-ddi** | Infoblox DNS, DHCP, and IPAM operations: zone and record lookup, DHCP scope and lease review, IP utilization checks, and pre-change address validation. |
+| **paloalto-panorama** | Panorama-managed firewall governance: device groups, templates, security policy and NAT search, object review, and commit validation. |
+| **fortimanager-ops** | FortiManager policy operations: ADOM inventory, package and rule review, revision history, and install-preview checks. |
+
 ### Cisco RADKit Skills (1)
 
 | Skill | What It Does |
 |-------|-------------|
 | **radkit-remote-access** | Cloud-relayed remote device access via Cisco RADKit (5 tools): discover device inventory from RADKit service, inspect device attributes (type, platform, SNMP/NETCONF capabilities), execute CLI commands with timeout and line-limit controls through the cloud relay, perform SNMP GET operations for lightweight metric polling (uptime, interface counters, CPU), and structured command execution with status tracking. Bridges cloud-hosted agents to air-gapped or on-premises devices without direct SSH/SNMP connectivity — ideal for multi-site operations, secure environments requiring certificate-based auth, and hybrid cloud-to-on-prem workflows. |
+
+### Data Center Fabric Skills (1)
+
+| Skill | What It Does |
+|-------|-------------|
+| **evpn-vxlan-fabric** | Vendor-neutral EVPN/VXLAN fabric audit and troubleshooting: VTEP reachability, VNI mapping, EVPN route types, multihoming/ESI state, and underlay/overlay correlation. |
 
 ### Juniper JunOS Skills (1)
 
