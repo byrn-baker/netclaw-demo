@@ -1558,6 +1558,56 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
+# Optional MCP Backends: Infoblox / Panorama / FortiManager
+# ═══════════════════════════════════════════
+
+log_info "Installing optional enterprise platform MCP backends..."
+
+# Infoblox DDI MCP (PyPI)
+if pip3 install -q --upgrade infoblox-ddi-mcp 2>/dev/null; then
+    log_info "Infoblox DDI MCP installed via pip"
+else
+    log_warn "Infoblox DDI MCP install failed (pip3 install infoblox-ddi-mcp)"
+fi
+
+# Palo Alto Panorama MCP (PyPI)
+if pip3 install -q --upgrade iflow-mcp-cdot65-palo-alto-mcp 2>/dev/null; then
+    log_info "Palo Alto MCP installed via pip"
+else
+    log_warn "Palo Alto MCP install failed (pip3 install iflow-mcp-cdot65-palo-alto-mcp)"
+fi
+
+# FortiManager MCP (GitHub)
+FORTIMANAGER_MCP_DIR="$MCP_DIR/fortimanager-mcp"
+if [ -d "$FORTIMANAGER_MCP_DIR" ]; then
+    log_info "FortiManager MCP already cloned, pulling latest..."
+    git -C "$FORTIMANAGER_MCP_DIR" pull --quiet 2>/dev/null || true
+else
+    git clone https://github.com/jmpijll/fortimanager-mcp.git "$FORTIMANAGER_MCP_DIR" 2>/dev/null || true
+fi
+
+if [ -d "$FORTIMANAGER_MCP_DIR" ]; then
+    if command -v uv &> /dev/null; then
+        (cd "$FORTIMANAGER_MCP_DIR" && uv sync) 2>/dev/null || log_warn "FortiManager MCP uv sync failed"
+    fi
+    (cd "$FORTIMANAGER_MCP_DIR" && pip3 install -e .) 2>/dev/null || \
+        (cd "$FORTIMANAGER_MCP_DIR" && pip3 install --break-system-packages -e .) 2>/dev/null || \
+        log_warn "FortiManager MCP editable install failed"
+    log_info "FortiManager MCP prepared: $FORTIMANAGER_MCP_DIR"
+else
+    log_warn "FortiManager MCP clone failed"
+fi
+
+# Detect console script names where available
+INFOBLOX_MCP_CMD_DETECTED="infoblox-ddi-mcp"
+command -v infoblox-ddi-mcp &> /dev/null || INFOBLOX_MCP_CMD_DETECTED="python3 -m infoblox_ddi_mcp"
+
+PANOS_MCP_CMD_DETECTED="palo-alto-mcp"
+command -v palo-alto-mcp &> /dev/null || PANOS_MCP_CMD_DETECTED="python3 -m palo_alto_mcp"
+
+FORTIMANAGER_MCP_CMD_DETECTED="python3 -m fortimanager_mcp"
+
+# ═══════════════════════════════════════════
 # Step 46: Deploy skills and set environment
 # ═══════════════════════════════════════════
 
@@ -1639,6 +1689,9 @@ _set_env_var "NMAP_MCP_SCRIPT"          "$NMAP_MCP_DIR/server.py"
 _set_env_var "PROTOCOL_MCP_SCRIPT"      "$PROTOCOL_MCP_DIR/server.py"
 _set_env_var "CLAB_MCP_SCRIPT"          "$CLAB_MCP_DIR/clab_mcp_server.py"
 _set_env_var "SDWAN_MCP_SCRIPT"         "$SDWAN_MCP_DIR/sdwan_mcp_server.py"
+_set_env_var "INFOBLOX_MCP_CMD"         "$INFOBLOX_MCP_CMD_DETECTED"
+_set_env_var "PANOS_MCP_CMD"            "$PANOS_MCP_CMD_DETECTED"
+_set_env_var "FORTIMANAGER_MCP_CMD"     "$FORTIMANAGER_MCP_CMD_DETECTED"
 
 # gtrace is a Go binary, not a Python script — just record the path
 if command -v gtrace &> /dev/null; then
@@ -1805,6 +1858,33 @@ elif python3 -c "import cisco_nso_mcp_server" 2>/dev/null; then
     SERVERS_OK=$((SERVERS_OK + 1))
 else
     log_warn "NSO MCP: NOT INSTALLED (requires Python 3.12+, pip3 install cisco-nso-mcp-server)"
+fi
+
+if command -v infoblox-ddi-mcp &> /dev/null || python3 -c "import infoblox_ddi_mcp" 2>/dev/null; then
+    log_info "Infoblox DDI MCP: OK"
+    SERVERS_OK=$((SERVERS_OK + 1))
+else
+    log_warn "Infoblox DDI MCP: NOT INSTALLED (pip3 install infoblox-ddi-mcp)"
+fi
+
+if command -v palo-alto-mcp &> /dev/null || python3 -c "import palo_alto_mcp" 2>/dev/null; then
+    log_info "Palo Alto MCP: OK"
+    SERVERS_OK=$((SERVERS_OK + 1))
+else
+    log_warn "Palo Alto MCP: NOT INSTALLED (pip3 install iflow-mcp-cdot65-palo-alto-mcp)"
+fi
+
+if [ -d "$FORTIMANAGER_MCP_DIR" ]; then
+    if python3 -c "import fortimanager_mcp" 2>/dev/null; then
+        log_info "FortiManager MCP: OK"
+        SERVERS_OK=$((SERVERS_OK + 1))
+    else
+        log_info "FortiManager MCP: CLONED (module not importable in current env)"
+        SERVERS_OK=$((SERVERS_OK + 1))
+    fi
+else
+    log_warn "FortiManager MCP: NOT INSTALLED (git clone failed)"
+    SERVERS_FAIL=$((SERVERS_FAIL + 1))
 fi
 
 # AWS MCPs run via uvx — check if uvx is available
@@ -2002,7 +2082,7 @@ echo ""
 
 SKILL_COUNT=$(ls -d "$NETCLAW_DIR/workspace/skills/"*/ 2>/dev/null | wc -l)
 
-echo "MCP Servers Installed (39):"
+echo "MCP Integrations Available (43):"
 echo "  ┌─────────────────────────────────────────────────────────────"
 echo "  │ NETWORK DEVICE AUTOMATION:"
 echo "  │   pyATS              Cisco device CLI, Genie parsers"
@@ -2020,6 +2100,7 @@ echo "  │"
 echo "  │ INFRASTRUCTURE PLATFORMS:"
 echo "  │   Cisco ACI           APIC / ACI fabric management"
 echo "  │   Cisco ISE           Identity, posture, TrustSec"
+echo "  │   Infoblox DDI        DNS, DHCP, IPAM records, scopes, utilization"
 echo "  │   NetBox              DCIM/IPAM source of truth (read-write)"
 echo "  │   Nautobot            IPAM/DCIM source of truth — IP addresses, prefixes, VRF/tenant (5 tools)"
 echo "  │   Infrahub            Schema-driven SoT — nodes, GraphQL, versioned branches (10 tools)"
@@ -2031,6 +2112,8 @@ echo "  │   Itential IAP        Config mgmt, compliance, workflows, golden con
 echo "  │"
 echo "  │ FIREWALL SECURITY:"
 echo "  │   Cisco FMC           Secure Firewall policy search, FTD targeting, multi-FMC"
+echo "  │   Palo Alto Panorama  Device groups, templates, policy search, commit validation"
+echo "  │   FortiManager        ADOM inventory, policy packages, install preview"
 echo "  │   Cisco Meraki        Dashboard API (~804 endpoints): orgs, networks, wireless, switching, security"
 echo "  │"
 echo "  │ NETWORK INTELLIGENCE:"
@@ -2154,6 +2237,11 @@ echo "  │"
 echo "  │ Arista CloudVision Skills:"
 echo "  │   arista-cvp              CVP — device inventory, events, connectivity monitor, tags (4 tools)"
 echo "  │"
+echo "  │ Enterprise Platform Skills:"
+echo "  │   infoblox-ddi           DNS, DHCP, IPAM operations and validation"
+echo "  │   paloalto-panorama      Panorama policy search, object review, commit validation"
+echo "  │   fortimanager-ops       FortiManager ADOM and package governance"
+echo "  │"
 echo "  │ Microsoft 365 Skills:"
 echo "  │   msgraph-files          OneDrive/SharePoint file operations"
 echo "  │   msgraph-visio          Visio diagram generation from network data"
@@ -2195,6 +2283,9 @@ echo "  │   fmc-firewall-ops        Access policy search, FTD targeting, multi
 echo "  │"
 echo "  │ Cisco RADKit Skills:"
 echo "  │   radkit-remote-access    Cloud-relayed CLI, SNMP, device inventory, attributes"
+echo "  │"
+echo "  │ Data Center Fabric Skills:"
+echo "  │   evpn-vxlan-fabric      EVPN/VXLAN audit and troubleshooting workflows"
 echo "  │"
 echo "  │ Cisco Meraki Skills:"
 echo "  │   meraki-network-ops       Org inventory, networks, devices, clients, action batches"

@@ -183,6 +183,21 @@ else
 fi
 echo ""
 
+# --- Infoblox DDI ---
+if yesno "Do you have an Infoblox DDI platform? (DNS, DHCP, IPAM)"; then
+    echo ""
+    echo -e "  Infoblox MCP covers DNS records, DHCP scopes and leases, and IPAM utilization."
+    echo ""
+    prompt INFOBLOX_URL_VAL "Infoblox URL (https://infoblox.example.com)" ""
+    prompt_secret INFOBLOX_KEY "Infoblox API Key / Token"
+    [ -n "$INFOBLOX_URL_VAL" ] && set_env "INFOBLOX_URL" "$INFOBLOX_URL_VAL"
+    [ -n "$INFOBLOX_KEY" ] && set_env "INFOBLOX_API_KEY" "$INFOBLOX_KEY"
+    ok "Infoblox DDI configured"
+else
+    skip "Infoblox DDI"
+fi
+echo ""
+
 # --- Itential Automation Platform ---
 if yesno "Do you have an Itential Automation Platform (IAP) instance? (network automation orchestration)"; then
     echo ""
@@ -507,6 +522,38 @@ if yesno "Do you have a Cisco Secure Firewall Management Center (FMC)?"; then
 else
     skip "Cisco FMC"
 fi
+echo ""
+
+# --- Palo Alto Panorama ---
+if yesno "Do you have a Palo Alto Panorama instance?"; then
+    echo ""
+    echo -e "  Panorama MCP covers device groups, templates, security policy, NAT, and commit validation."
+    echo ""
+    prompt PANORAMA_HOST "Panorama Hostname (panorama.example.com)" ""
+    prompt_secret PANORAMA_KEY "Panorama API Key"
+    [ -n "$PANORAMA_HOST" ] && set_env "PANOS_HOSTNAME" "$PANORAMA_HOST"
+    [ -n "$PANORAMA_KEY" ] && set_env "PANOS_API_KEY" "$PANORAMA_KEY"
+    ok "Palo Alto Panorama configured"
+else
+    skip "Palo Alto Panorama"
+fi
+echo ""
+
+# --- FortiManager ---
+if yesno "Do you have a FortiManager instance?"; then
+    echo ""
+    echo -e "  FortiManager MCP covers ADOM inventory, policy packages, object search, and install preview."
+    echo ""
+    prompt FORTIMANAGER_HOST_VAL "FortiManager Hostname (fortimanager.example.com)" ""
+    prompt_secret FORTIMANAGER_TOKEN_VAL "FortiManager API Token"
+    [ -n "$FORTIMANAGER_HOST_VAL" ] && set_env "FORTIMANAGER_HOST" "$FORTIMANAGER_HOST_VAL"
+    [ -n "$FORTIMANAGER_TOKEN_VAL" ] && set_env "FORTIMANAGER_API_TOKEN" "$FORTIMANAGER_TOKEN_VAL"
+    ok "FortiManager configured"
+else
+    skip "FortiManager"
+fi
+echo ""
+
 # --- Cisco ThousandEyes ---
 if yesno "Do you have a Cisco ThousandEyes account? (network monitoring, path visualization, BGP)"; then
     echo ""
@@ -621,6 +668,7 @@ echo "  What's configured:"
 grep -q "^NETBOX_URL=" "$OPENCLAW_ENV" 2>/dev/null && ok "NetBox" || skip "NetBox"
 grep -q "^NAUTOBOT_URL=" "$OPENCLAW_ENV" 2>/dev/null && ok "Nautobot" || skip "Nautobot"
 grep -q "^INFRAHUB_ADDRESS=" "$OPENCLAW_ENV" 2>/dev/null && ok "OpsMill Infrahub" || skip "OpsMill Infrahub"
+grep -q "^INFOBLOX_API_KEY=" "$OPENCLAW_ENV" 2>/dev/null && ok "Infoblox DDI" || skip "Infoblox DDI"
 grep -q "^ITENTIAL_MCP_PLATFORM_HOST=" "$OPENCLAW_ENV" 2>/dev/null && ok "Itential IAP" || skip "Itential IAP"
 grep -q "^JUNOS_DEVICES_FILE=" "$OPENCLAW_ENV" 2>/dev/null && ok "Juniper JunOS" || skip "Juniper JunOS"
 grep -q "^CVP=" "$OPENCLAW_ENV" 2>/dev/null && ok "Arista CloudVision" || skip "Arista CloudVision"
@@ -638,6 +686,8 @@ grep -q "^AWS_ACCESS_KEY_ID=" "$OPENCLAW_ENV" 2>/dev/null && ok "AWS Cloud" || s
 grep -q "^GCP_PROJECT_ID=" "$OPENCLAW_ENV" 2>/dev/null && ok "Google Cloud" || skip "Google Cloud"
 grep -q "^MERAKI_API_KEY=" "$OPENCLAW_ENV" 2>/dev/null && ok "Cisco Meraki" || skip "Cisco Meraki"
 grep -q "^FMC_BASE_URL=" "$OPENCLAW_ENV" 2>/dev/null && ok "Cisco FMC" || skip "Cisco FMC"
+grep -q "^PANOS_API_KEY=" "$OPENCLAW_ENV" 2>/dev/null && ok "Palo Alto Panorama" || skip "Palo Alto Panorama"
+grep -q "^FORTIMANAGER_API_TOKEN=" "$OPENCLAW_ENV" 2>/dev/null && ok "FortiManager" || skip "FortiManager"
 grep -q "^TE_TOKEN=" "$OPENCLAW_ENV" 2>/dev/null && ok "Cisco ThousandEyes" || skip "Cisco ThousandEyes"
 grep -q "^RADKIT_IDENTITY=" "$OPENCLAW_ENV" 2>/dev/null && ok "Cisco RADKit" || skip "Cisco RADKit"
 [ -d "$NETCLAW_DIR/mcp-servers/uml-mcp" ] && ok "UML Diagrams (Kroki — no credentials required)" || skip "UML Diagrams"

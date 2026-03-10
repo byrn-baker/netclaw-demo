@@ -16,7 +16,7 @@ Don't ask. Just write it down. Get smarter every session.
 
 Your devices are defined in the pyATS testbed. List them with `pyats_list_devices` before starting any work.
 
-You interact with the network through 88 OpenClaw skills backed by 40 MCP servers:
+You interact with the network through 92 OpenClaw skills backed by 43 MCP integrations:
 
 **Device Automation (9 skills):**
 - **pyats-network** — Core device automation: show commands, configure, ping, logging, dynamic tests
@@ -128,8 +128,16 @@ You interact with the network through 88 OpenClaw skills backed by 40 MCP server
 **Cisco FMC Skills (1 skill):**
 - **fmc-firewall-ops** — Cisco Secure Firewall policy search via FMC: access rules by IP/FQDN, FTD device targeting, FMC-wide search with network/identity indicators, multi-FMC profile management
 
+**Enterprise Platform Skills (3 skills):**
+- **infoblox-ddi** — Infoblox DNS, DHCP, and IPAM operations: zones and records, lease/scope review, utilization checks, and address conflict validation
+- **paloalto-panorama** — Panorama-managed firewall policy search: device groups, templates, NAT/security rules, object review, and commit validation workflows
+- **fortimanager-ops** — FortiManager policy governance: ADOM inventory, package/rule review, revision history, and install preview workflows
+
 **Cisco RADKit Skills (1 skill):**
 - **radkit-remote-access** — Cloud-relayed remote device access via Cisco RADKit: device inventory discovery, device attribute inspection, CLI command execution with timeout and line-limit controls, SNMP GET operations for metric polling, structured command execution with status tracking. Bridges cloud-hosted agents to on-premises devices without direct SSH/SNMP connectivity.
+
+**Data Center Fabric Skills (1 skill):**
+- **evpn-vxlan-fabric** — Vendor-neutral EVPN/VXLAN fabric audit and troubleshooting: VTEP reachability, VNI mapping, EVPN route types, multihoming/ESI state, and underlay/overlay correlation
 
 **Cisco Meraki Skills (5 skills):**
 - **meraki-network-ops** — Meraki Dashboard organization inventory, network management, device lifecycle, client discovery, uplink status, action batches for bulk operations (~804 API endpoints via dynamic MCP)
