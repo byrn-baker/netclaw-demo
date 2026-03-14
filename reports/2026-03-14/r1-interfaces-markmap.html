@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>R1 Interface Status — NetClaw</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #1a1a2e; }
+    #mindmap { width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+<svg id="mindmap"></svg>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/markmap-view"></script>
+<script src="https://cdn.jsdelivr.net/npm/markmap-lib"></script>
+<script>
+window.onload = () => {
+  const { Markmap, loadCSS, loadJS } = window.markmap;
+  const { Transformer } = window.markmap;
+  const transformer = new Transformer();
+  const md = `
+# R1 Interface Status
+## ✅ Active
+### Ethernet0/2 — MGMT DO NOT TOUCH
+- Status: up/up
+- IP: 10.10.20.171/24
+- BW: 10 Mbps
+- MAC: aabb.cc00.0320
+- In Rate: 3 Kbps (1 pkt/s)
+- Out Rate: 1 Kbps (1 pkt/s)
+- In Pkts: 3,612
+- Out Pkts: 2,712
+- Errors: None ✅
+- Collisions: 0 ✅
+## ⛔ Admin Down
+### Ethernet0/0
+- Status: admin down / down
+- MAC: aabb.cc00.0300
+- Last Input: 01:01:21 ago
+- In Pkts: 262 (all broadcast)
+- Out Pkts: 62
+- Errors: None ✅
+### Ethernet0/1
+- Status: admin down / down
+- MAC: aabb.cc00.0310
+- Last Input: 01:01:25 ago
+- In Pkts: 22 (all broadcast)
+- Out Pkts: 64
+- Errors: None ✅
+### Ethernet0/3
+- Status: admin down / down
+- MAC: aabb.cc00.0330
+- Last Input: never
+- Errors: None ✅
+- Never used
+## 📊 Summary
+### Total Interfaces: 4
+### Active: 1
+### Admin Down: 3
+### Errors: None
+### Health: All Clear ✅
+  `;
+  const { root, features } = transformer.transform(md);
+  const { styles, scripts } = transformer.getUsedAssets(features);
+  if (styles) loadCSS(styles);
+  if (scripts) loadJS(scripts, { getMarkmap: () => window.markmap });
+  Markmap.create('#mindmap', null, root);
+};
+</script>
+</body>
+</html>
