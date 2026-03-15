@@ -11,12 +11,19 @@
 #   edge1–core P2P:  fd00:12::/127    (edge1: ::0, core: ::1,  RFC 6164 /127)
 #   core–edge2 P2P:  fd00:23::/127    (core:  ::0, edge2: ::1, RFC 6164 /127)
 #   GRE inner:       fd00:ee::/127    (edge1: ::0, WSL: ::1,   RFC 6164 /127)
-#   Lab network:     fd00:dead:beef::/48  (Edge2 stub, replaces 192.168.99.0/24)
+#   Lab network:     fd00:dead:beef::/48  (Edge2 stub)
 #
-# Underlay transport (Docker bridges — IPv4-only, not in routing domain):
-#   edge1-core:  10.0.12.0/24
-#   core-edge2:  10.0.23.0/24
-#   peering:     10.0.100.0/24  (GRE outer endpoint for WSL host)
+# Underlay transport (Docker bridges — IPv6-only, fd00:dc::/32):
+#   edge1-core:  fd00:dc:12::/64  (pre-created: docker network create --ipv4=false)
+#   core-edge2:  fd00:dc:23::/64  (pre-created: docker network create --ipv4=false)
+#   peering:     fd00:dc:ee::/64  (pre-created: docker network create --ipv4=false)
+#
+# Networks are marked external — they were created with --ipv4=false --ipv6
+# to guarantee no IPv4 addresses on container interfaces.
+# To recreate:
+#   docker network create --ipv4=false --ipv6 --subnet fd00:dc:12::/64 --gateway fd00:dc:12::fe --driver bridge frr-testbed_edge1-core
+#   docker network create --ipv4=false --ipv6 --subnet fd00:dc:23::/64 --gateway fd00:dc:23::fe --driver bridge frr-testbed_core-edge2
+#   docker network create --ipv4=false --ipv6 --subnet fd00:dc:ee::/64 --gateway fd00:dc:ee::fe --driver bridge frr-testbed_peering
 
 services:
   edge1:
@@ -28,7 +35,6 @@ services:
       - SYS_ADMIN
       - NET_RAW
     sysctls:
-      - net.ipv4.ip_forward=1
       - net.ipv4.conf.all.rp_filter=0
       - net.ipv4.conf.default.rp_filter=0
       - net.ipv6.conf.all.forwarding=1
@@ -39,9 +45,9 @@ services:
       - ./configs/edge1/daemons:/etc/frr/daemons
     networks:
       edge1-core:
-        ipv4_address: 10.0.12.1
+        ipv6_address: fd00:dc:12::1
       peering:
-        ipv4_address: 10.0.100.1
+        ipv6_address: fd00:dc:ee::1
     restart: unless-stopped
 
   core:
@@ -53,7 +59,6 @@ services:
       - SYS_ADMIN
       - NET_RAW
     sysctls:
-      - net.ipv4.ip_forward=1
       - net.ipv6.conf.all.forwarding=1
       - net.ipv6.conf.all.disable_ipv6=0
       - net.ipv6.conf.default.disable_ipv6=0
@@ -62,9 +67,9 @@ services:
       - ./configs/core/daemons:/etc/frr/daemons
     networks:
       edge1-core:
-        ipv4_address: 10.0.12.2
+        ipv6_address: fd00:dc:12::2
       core-edge2:
-        ipv4_address: 10.0.23.2
+        ipv6_address: fd00:dc:23::2
     restart: unless-stopped
 
   edge2:
@@ -76,7 +81,6 @@ services:
       - SYS_ADMIN
       - NET_RAW
     sysctls:
-      - net.ipv4.ip_forward=1
       - net.ipv6.conf.all.forwarding=1
       - net.ipv6.conf.all.disable_ipv6=0
       - net.ipv6.conf.default.disable_ipv6=0
@@ -85,25 +89,16 @@ services:
       - ./configs/edge2/daemons:/etc/frr/daemons
     networks:
       core-edge2:
-        ipv4_address: 10.0.23.3
+        ipv6_address: fd00:dc:23::3
     restart: unless-stopped
 
 networks:
   edge1-core:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 10.0.12.0/24
-          gateway: 10.0.12.254
+    name: frr-testbed_edge1-core
+    external: true
   core-edge2:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 10.0.23.0/24
-          gateway: 10.0.23.254
+    name: frr-testbed_core-edge2
+    external: true
   peering:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 10.0.100.0/24
-          gateway: 10.0.100.254
+    name: frr-testbed_peering
+    external: true

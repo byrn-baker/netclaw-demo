@@ -42,6 +42,26 @@ Reconfigure anytime:
 
 ---
 
+## Visual HUD
+
+<p align="center">
+  <img src="ui/netclaw-visual/logos/netclawvisualhud.png" alt="NetClaw Visual HUD — 3D Network Operations Dashboard" width="800">
+</p>
+
+NetClaw includes a Three.js 3D operations dashboard that visualizes all 43 integrations, 92 skills, your device fleet, and live BGP peering topology. Chat with NetClaw directly from the browser, watch integrations light up as tools execute, and inspect every node in the graph.
+
+```bash
+cd ui/netclaw-visual
+npm install
+npm run dev                   # opens at http://localhost:3000
+```
+
+Requires the OpenClaw gateway to be running for live chat (`openclaw gateway run`).
+
+**[Full setup guide, peering instructions, and feature documentation >>>](ui/netclaw-visual/README.md)**
+
+---
+
 ## What It Does
 
 NetClaw is an autonomous network engineering agent powered by Claude that can:
