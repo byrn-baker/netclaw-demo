@@ -110,10 +110,10 @@ function initScene() {
   const root = document.getElementById('scene-root');
 
   state.scene = new THREE.Scene();
-  state.scene.fog = new THREE.FogExp2(0x040a14, 0.011);
+  state.scene.fog = new THREE.FogExp2(0x040a14, 0.006);
 
   state.camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 260);
-  state.camera.position.set(6, 42, 78);
+  state.camera.position.set(12, 55, 110);
 
   state.renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
   state.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -165,7 +165,7 @@ function initScene() {
   state.controls.enableDamping = true;
   state.controls.dampingFactor = 0.06;
   state.controls.minDistance = 12;
-  state.controls.maxDistance = 140;
+  state.controls.maxDistance = 180;
   state.controls.maxPolarAngle = Math.PI * 0.48;
   state.controls.target.set(CORE_CENTROID.x, CORE_CENTROID.y, CORE_CENTROID.z);
 
@@ -290,10 +290,10 @@ function makeLabel(text) {
 // Triangular layout positions for multi-core topology
 const CORE_POSITIONS = {
   local: new THREE.Vector3(-18, 0, 0),
-  peer1: new THREE.Vector3(28, 0, -20),
-  peer2: new THREE.Vector3(28, 0, 20),
+  peer1: new THREE.Vector3(52, 0, -28),
+  peer2: new THREE.Vector3(52, 0, 28),
 };
-const CORE_CENTROID = new THREE.Vector3(6, 0, 0);
+const CORE_CENTROID = new THREE.Vector3(12, 0, 0);
 
 function buildCore(identity, position, labelText, colorTint) {
   const pos = position || new THREE.Vector3(0, 0, 0);
@@ -533,19 +533,37 @@ function buildIntegrations(graph) {
     nodes: graph.integrations.filter((integration) => integration.category === category.name),
   }));
 
-  const radiusBase = 22;
+  const radiusBase = 34;
   const coreAnchor = state.localCore ? state.localCore.position : new THREE.Vector3(0, 0, 0);
-  grouped.forEach((bucket, bucketIndex) => {
-    const baseAngle = (bucketIndex / grouped.length) * Math.PI * 2;
-    bucket.nodes.forEach((integration, index) => {
-      const orbitSpread = Math.max(bucket.nodes.length - 1, 1);
-      const angle = baseAngle + ((index / orbitSpread) - 0.5) * 0.85;
-      const radius = radiusBase + (index % 2) * 4.2;
-      const position = new THREE.Vector3(
-        coreAnchor.x + Math.cos(angle) * radius,
-        (Math.sin(index * 1.7) * 1.8) + Math.sin(bucketIndex) * 1.2,
-        coreAnchor.z + Math.sin(angle) * radius,
-      );
+
+  // Flatten all integrations into a single ordered list (grouped by category)
+  const allIntegrations = [];
+  grouped.forEach((bucket) => bucket.nodes.forEach((n) => allIntegrations.push(n)));
+  const totalN = allIntegrations.length;
+  const goldenRatio = (1 + Math.sqrt(5)) / 2;
+
+  // Build a look-up with spherical coords + unstable orbit parameters
+  const orbitMap = new Map();
+  allIntegrations.forEach((integration, i) => {
+    // Fibonacci sphere — even distribution across a full sphere
+    const theta0 = 2 * Math.PI * i / goldenRatio;
+    const phi0 = Math.acos(1 - 2 * (i + 0.5) / totalN);
+    const radius = radiusBase + (i % 3) * 2.5;
+    // Unique slow orbit speed + slight polar drift
+    const orbitSpeed = 0.0012 + (((i * 7 + 3) % 13) / 13) * 0.0018;
+    const axisTilt = ((i * 11 + 5) % 17) / 17 * 0.15 - 0.075;
+    const position = new THREE.Vector3(
+      coreAnchor.x + radius * Math.sin(phi0) * Math.cos(theta0),
+      radius * Math.cos(phi0),
+      coreAnchor.z + radius * Math.sin(phi0) * Math.sin(theta0),
+    );
+    orbitMap.set(integration.id, { position, theta0, phi0, radius, orbitSpeed, axisTilt });
+  });
+
+  grouped.forEach((bucket) => {
+    bucket.nodes.forEach((integration) => {
+      const orbitData = orbitMap.get(integration.id);
+      const position = orbitData.position;
 
       const group = new THREE.Group();
       group.position.copy(position);
@@ -623,6 +641,7 @@ function buildIntegrations(graph) {
         payload: integration,
         skills,
         skillSprites,
+        orbit: orbitData,
       });
     });
   });
@@ -1992,36 +2011,107 @@ function onClick(event) {
 function animate() {
   requestAnimationFrame(animate);
   const elapsed = state.clock.getElapsedTime();
+  const frozen = !!state.selected;
+
+  // Track time offset for freeze: when frozen, hold rotations at the moment of freeze
+  if (frozen && state._frozenAt == null) state._frozenAt = elapsed;
+  if (!frozen) state._frozenAt = null;
+  const rotTime = frozen ? state._frozenAt : elapsed;
 
   // Animate all core nodes (local + peers)
+  let coresMovedThisFrame = false;
   state.cores.forEach((core, idx) => {
     const offset = idx * 0.3;
-    core.shell.rotation.y = elapsed * 0.18 + offset;
-    core.shell.rotation.x = elapsed * 0.08 + offset * 0.5;
-    core.torus.rotation.z = elapsed * 0.28 + offset;
-    if (core.torus2) core.torus2.rotation.z = -elapsed * 0.22 + offset;
+
+    // Orbit core around centroid when not frozen
+    if (!frozen && core.orbit) {
+      core.orbit.angle += core.orbit.speed;
+      const ox = core.orbit.center.x + core.orbit.radius * Math.cos(core.orbit.angle);
+      const oz = core.orbit.center.z + core.orbit.radius * Math.sin(core.orbit.angle);
+      core.group.position.set(ox, core.orbit.y, oz);
+      core.position.set(ox, core.orbit.y, oz);
+      coresMovedThisFrame = true;
+    }
+
+    core.shell.rotation.y = rotTime * 0.18 + offset;
+    core.shell.rotation.x = rotTime * 0.08 + offset * 0.5;
+    core.torus.rotation.z = rotTime * 0.28 + offset;
+    if (core.torus2) core.torus2.rotation.z = -rotTime * 0.22 + offset;
+    // Shader time always advances (keeps glow alive)
     if (core.shell.material.uniforms) {
       core.shell.material.uniforms.uTime.value = elapsed;
     }
     core.nucleus.material.emissiveIntensity = 0.7 + Math.sin(elapsed * 2.1 + offset) * 0.25;
-    // Animate peer route dendrites
+    // Animate peer route dendrites — move with core
     if (core.routeDendrites) {
       core.routeDendrites.forEach((rd) => {
         if (rd.mat.uniforms?.uTime) rd.mat.uniforms.uTime.value = elapsed;
       });
     }
   });
+
+  // Rebuild peer-link tubes when cores move
+  if (coresMovedThisFrame && state.peerLinks.length > 0) {
+    let linkIdx = 0;
+    for (let a = 0; a < state.cores.length; a++) {
+      for (let b = a + 1; b < state.cores.length; b++) {
+        if (linkIdx >= state.peerLinks.length) break;
+        const link = state.peerLinks[linkIdx];
+        const posA = state.cores[a].position;
+        const posB = state.cores[b].position;
+        const mid = new THREE.Vector3(
+          (posA.x + posB.x) * 0.5, Math.max(posA.y, posB.y) + 3.0, (posA.z + posB.z) * 0.5,
+        );
+        const curve = new THREE.CatmullRomCurve3([posA.clone(), mid, posB.clone()]);
+        const newGeo = new THREE.TubeGeometry(curve, 32, 0.08, 6, false);
+        link.tube.geometry.dispose();
+        link.tube.geometry = newGeo;
+        linkIdx++;
+      }
+    }
+  }
+
   // Animate peer-link tubes
   state.peerLinks.forEach((link) => {
     if (link.mat.uniforms?.uTime) link.mat.uniforms.uTime.value = elapsed;
   });
 
+  const coreAnchor = state.localCore ? state.localCore.position : new THREE.Vector3(0, 0, 0);
+
   state.integrations.forEach((entry, index) => {
     if (!entry.group.visible) return;
     const offset = index * 0.27;
-    entry.group.position.y = entry.basePosition.y + Math.sin(elapsed * 0.7 + offset) * 0.48;
-    entry.node.rotation.y = elapsed * 0.4 + offset;
-    entry.halo.rotation.z = elapsed * 0.55 + offset;
+    const orb = entry.orbit;
+
+    // Orbit: advance theta when not frozen
+    if (!frozen && orb) {
+      orb.theta0 += orb.orbitSpeed;
+      orb.phi0 += orb.axisTilt * 0.0004;
+      orb.phi0 = Math.max(0.15, Math.min(Math.PI - 0.15, orb.phi0));
+
+      const newPos = new THREE.Vector3(
+        coreAnchor.x + orb.radius * Math.sin(orb.phi0) * Math.cos(orb.theta0),
+        orb.radius * Math.cos(orb.phi0),
+        coreAnchor.z + orb.radius * Math.sin(orb.phi0) * Math.sin(orb.theta0),
+      );
+      entry.group.position.copy(newPos);
+      entry.basePosition.copy(newPos);
+
+      // Rebuild tube curve to follow orbiting node
+      const midY = Math.max(newPos.y, coreAnchor.y) + 4.5;
+      const mid = new THREE.Vector3(
+        (coreAnchor.x + newPos.x) * 0.5, midY, (coreAnchor.z + newPos.z) * 0.5,
+      );
+      const newCurve = new THREE.CatmullRomCurve3([coreAnchor.clone(), mid, newPos.clone()]);
+      const newGeo = new THREE.TubeGeometry(newCurve, 32, 0.06, 6, false);
+      entry.tube.geometry.dispose();
+      entry.tube.geometry = newGeo;
+    }
+
+    // Gentle bob + spin — frozen when selected
+    entry.group.position.y = entry.basePosition.y + Math.sin(rotTime * 0.7 + offset) * 0.48;
+    entry.node.rotation.y = rotTime * 0.4 + offset;
+    entry.halo.rotation.z = rotTime * 0.55 + offset;
 
     // Update holographic material time uniform
     if (entry.node.material.uniforms?.uTime) {
@@ -2033,15 +2123,14 @@ function animate() {
       entry.tubeMat.uniforms.uTime.value = elapsed;
     }
 
-    // Static dendrite positioning (virus-tree layout)
+    // Dendrite positioning (virus-tree layout)
     entry.skillSprites.forEach((sprite) => {
       if (!sprite.mesh.visible) return;
       const worldPos = entry.group.position.clone().add(sprite.localPosition);
       sprite.mesh.position.copy(worldPos);
-      sprite.mesh.rotation.y = elapsed * 0.8;
-      sprite.mesh.rotation.x = elapsed * 0.3;
+      sprite.mesh.rotation.y = rotTime * 0.8;
+      sprite.mesh.rotation.x = rotTime * 0.3;
       sprite.label.position.set(worldPos.x, worldPos.y + 0.5, worldPos.z);
-      // Update wire position + shader time
       if (sprite.wire && sprite.wire.visible) {
         sprite.wire.position.copy(entry.group.position);
       }
@@ -2053,8 +2142,8 @@ function animate() {
 
   state.devices.forEach((entry, index) => {
     if (!entry.mesh.visible) return;
-    entry.mesh.rotation.y = elapsed * 0.15 + index;
-    entry.mesh.material.emissiveIntensity = 0.55 + Math.sin(elapsed * 1.4 + index) * 0.15;
+    entry.mesh.rotation.y = rotTime * 0.15 + index;
+    entry.mesh.material.emissiveIntensity = 0.55 + Math.sin(rotTime * 1.4 + index) * 0.15;
     // Update device wire shader time
     if (entry.wireMat?.uniforms?.uTime) {
       entry.wireMat.uniforms.uTime.value = elapsed;
@@ -2398,6 +2487,15 @@ async function boot() {
     const hasPeers = state.bgp?.available && state.bgp.peers.length > 0;
     const localPos = hasPeers ? CORE_POSITIONS.local : new THREE.Vector3(0, 0, 0);
     const localCore = buildCore(state.graph.identity, localPos, state.graph.identity.name.toUpperCase(), 0x66ccff);
+    // Orbit data for local core — orbits around the centroid
+    const lcDist = localPos.distanceTo(CORE_CENTROID);
+    localCore.orbit = {
+      center: CORE_CENTROID.clone(),
+      radius: lcDist,
+      angle: Math.atan2(localPos.z - CORE_CENTROID.z, localPos.x - CORE_CENTROID.x),
+      y: localPos.y,
+      speed: 0.0008,
+    };
     state.localCore = localCore;
     state.core = localCore; // backward compat
     state.cores.push(localCore);
@@ -2415,6 +2513,15 @@ async function boot() {
         const peerCore = buildCore(state.graph.identity, peerPositions[i], label, tint);
         peerCore.peerPayload = peer;
         peerCore.isClaw = isClaw;
+        // Orbit data — orbits around the centroid
+        const pDist = peerPositions[i].distanceTo(CORE_CENTROID);
+        peerCore.orbit = {
+          center: CORE_CENTROID.clone(),
+          radius: pDist,
+          angle: Math.atan2(peerPositions[i].z - CORE_CENTROID.z, peerPositions[i].x - CORE_CENTROID.x),
+          y: peerPositions[i].y,
+          speed: 0.0006 + i * 0.0003,
+        };
         state.peerCores.push(peerCore);
         state.cores.push(peerCore);
 
