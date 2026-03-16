@@ -1,14 +1,12 @@
 ---
 name: pyats-dynamic-test
-description: "Generate and execute deterministic pyATS aetest validation scripts - interface state, OSPF neighbors, BGP paths, ping matrices, and custom compliance tests"
+description: "Generate and execute deterministic pyATS aetest validation scripts - interface state, OSPF neighbors, BGP paths, ping matrices, and custom compliance tests. Use when writing a network test, validating post-change state, running pass/fail checks, or building automated regression tests."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["PYATS_TESTBED_PATH"] } } }
 ---
 
 # Dynamic pyATS Test Execution
-
-Generate and execute deterministic pyATS aetest validation scripts using the `pyats_run_dynamic_test` tool. This skill covers how to write complete aetest scripts with embedded TEST_DATA, pass them as the `test_script` parameter, and interpret results.
 
 ## When to Use
 

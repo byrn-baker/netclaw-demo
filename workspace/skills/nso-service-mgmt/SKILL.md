@@ -1,13 +1,11 @@
 ---
 name: nso-service-mgmt
-description: Cisco NSO service management — discover service types, list service instances, orchestrate network services
+description: "Cisco NSO service management — discover service types, list service instances, orchestrate network services. Use when listing NSO services, checking service health, auditing deployed service instances, or asking what services NSO can provision."
 version: 1.0.0
 tags: [nso, services, orchestration, automation]
 ---
 
 # NSO Service Management
-
-Manage NSO services — discover what service types are available, list deployed service instances, and understand the orchestration layer that provisions configuration across multiple devices.
 
 ## MCP Server
 

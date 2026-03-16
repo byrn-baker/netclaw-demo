@@ -1,14 +1,12 @@
 ---
 name: ise-posture-audit
-description: "Cisco ISE posture and policy audit - authorization rules, posture compliance, profiling gaps, TrustSec SGT matrix, active session health"
+description: "Cisco ISE posture and policy audit - authorization rules, posture compliance, profiling gaps, TrustSec SGT matrix, active session health. Use when running a periodic ISE compliance audit, reviewing authorization policies for over-permissiveness, checking TrustSec segmentation, assessing endpoint profiling accuracy, or preparing for SOC2 or PCI-DSS review."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["ISE_MCP_SCRIPT", "ISE_BASE"] } } }
 ---
 
 # ISE Posture and Policy Audit
-
-Comprehensive security posture assessment of Cisco Identity Services Engine (ISE) deployment. Reviews authorization policies for over-permissiveness, identifies endpoints without posture compliance, detects profiling gaps, analyzes the TrustSec SGT/SGACL matrix, and validates active session health.
 
 ## When to Use
 

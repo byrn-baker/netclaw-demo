@@ -1,14 +1,12 @@
 ---
 name: junos-network
-description: "Juniper JunOS device automation via PyEZ/NETCONF — CLI execution, configuration management, Jinja2 template rendering, device facts, batch operations, config diff and rollback comparison (10 tools)"
+description: "Juniper JunOS device automation via PyEZ/NETCONF — CLI execution, configuration management, Jinja2 template rendering, device facts, batch operations, config diff and rollback comparison (10 tools). Use when managing Juniper routers, pushing JunOS configs, running show commands on Juniper devices, or comparing rollback versions"
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["JUNOS_DEVICES_FILE"] } } }
 ---
 
 # Juniper JunOS Network Automation
-
-Manage Juniper devices through the JunOS MCP server powered by PyEZ over NETCONF. Execute CLI commands, retrieve and push configurations, render Jinja2 templates, gather device facts, compare rollback configs, and operate across multiple routers in parallel.
 
 ## MCP Server
 

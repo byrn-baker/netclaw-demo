@@ -1,13 +1,11 @@
 ---
 name: meraki-security-appliance
-description: Cisco Meraki Security Appliance (MX) — firewall rules, site-to-site VPN, content filtering, traffic shaping, security events
+description: "Cisco Meraki Security Appliance (MX) — firewall rules, site-to-site VPN, content filtering, traffic shaping, security events. Use when auditing Meraki MX firewall rules, troubleshooting site-to-site VPN tunnels, managing content filtering, or investigating Meraki security events and IDS alerts"
 version: 1.0.0
 tags: [cisco, meraki, mx, firewall, vpn, security, content-filtering, traffic-shaping]
 ---
 
 # Meraki Security Appliance (MX) Operations
-
-Manage Cisco Meraki MX security appliances via the Meraki Magic MCP server — audit and modify L3/L7 firewall rules, configure site-to-site VPN, manage content filtering, set traffic shaping policies, and investigate security events.
 
 ## MCP Server
 
@@ -30,19 +28,6 @@ Manage Cisco Meraki MX security appliances via the Meraki Magic MCP server — a
 | Security events | `getNetworkSecuritySecurityEvents` | IDS/IPS events, malware, C2 callbacks |
 | Traffic shaping | `getNetworkSecurityTrafficShaping` | Global bandwidth limits, per-rule shaping |
 | Update shaping | `updateNetworkSecurityTrafficShaping` | **[WRITE]** Modify bandwidth limits and shaping rules |
-
-## Key Concepts
-
-| Concept | What It Means |
-|---------|---------------|
-| **MX** | Meraki security appliance — firewall, VPN concentrator, content filter, IDS/IPS, SD-WAN |
-| **L3 Firewall** | Stateful packet filtering — source/dest IP, port, protocol, action (allow/deny) |
-| **L7 Firewall** | Application-layer filtering — block by application category (P2P, gaming, social media) |
-| **Auto VPN** | Meraki's zero-config site-to-site VPN mesh — IPsec tunnels auto-negotiated via Dashboard |
-| **Hub/Spoke** | VPN topology — spoke sites send all VPN traffic through hub sites; hubs exchange directly |
-| **Content Filtering** | URL-based filtering — block categories (adult, gambling, malware) or specific URLs |
-| **Traffic Shaping** | Bandwidth management — per-rule or global limits, prioritization by application |
-| **SD-WAN** | Software-Defined WAN — policy-based routing across WAN links (MPLS, Internet, cellular) |
 
 ## Workflow: Firewall Rule Audit
 

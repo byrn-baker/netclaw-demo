@@ -1,14 +1,12 @@
 ---
 name: f5-health-check
-description: "F5 BIG-IP health monitoring - virtual server status, pool member health, log analysis, performance statistics, and systematic health assessment"
+description: "F5 BIG-IP health monitoring - virtual server status, pool member health, log analysis, performance statistics, and systematic health assessment. Use when checking F5 load balancer health, running a pre-change or post-change validation, investigating pool member failures, or auditing SSL certificate expiration."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["F5_MCP_SCRIPT", "MCP_CALL"] } } }
 ---
 
 # F5 BIG-IP Health Check
-
-Perform comprehensive health assessments on F5 BIG-IP appliances using the iControl REST API via MCP. This skill defines the systematic approach for evaluating BIG-IP health across virtual servers, pools, profiles, iRules, and system logs.
 
 ## When to Use
 

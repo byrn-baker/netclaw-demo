@@ -1,14 +1,12 @@
 ---
 name: slack-incident-workflow
-description: "Manage network incident response workflows in Slack - incident channels, status updates, escalation, resolution tracking, and post-incident review coordination"
+description: "Manage network incident response workflows in Slack - incident channels, status updates, escalation, resolution tracking, and post-incident review coordination. Use when declaring a network incident, coordinating outage response in Slack, tracking incident status, or running a post-incident review."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"] } } }
 ---
 
 # Slack Incident Workflow
-
-Coordinate network incident response through Slack using NetClaw's App Agent capabilities. This skill defines structured workflows for incident detection, triage, investigation, resolution, and post-incident review — all conducted through Slack threads and channels.
 
 ## Slack OAuth Scopes Used
 

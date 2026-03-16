@@ -1,14 +1,12 @@
 ---
 name: gtrace-ip-enrichment
-description: "IP address enrichment — ASN ownership lookup, geolocation (city/region/country/coordinates), and reverse DNS resolution"
+description: "IP address enrichment — ASN ownership lookup, geolocation (city/region/country/coordinates), and reverse DNS resolution. Use when identifying who owns an IP address, locating an IP geographically, resolving reverse DNS for a traceroute hop, or enriching unknown IPs from logs or flow data."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3", "gtrace"], "env": ["GTRACE_MCP_BIN"] } } }
 ---
 
 # IP Address Enrichment with gtrace
-
-Enrich IP addresses with ASN ownership, geographic location, and reverse DNS information using gtrace MCP. Use these tools to add context to traceroute hops, identify network owners, locate infrastructure, and resolve PTR records.
 
 ## How to Call the gtrace MCP Tools
 

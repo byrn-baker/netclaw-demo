@@ -1,13 +1,11 @@
 ---
 name: cml-admin
-description: CML administration — user/group management, system info, licensing, resource monitoring
+description: "CML administration — user/group management, system info, licensing, resource monitoring. Use when creating CML users, checking license status, monitoring CML server resources, or auditing lab usage across teams."
 version: 1.0.0
 tags: [cml, admin, users, groups, system, licensing]
 ---
 
 # CML Administration
-
-Manage CML server administration — users, groups, system information, licensing status, and resource monitoring. This skill covers the operational management of the CML platform itself.
 
 ## MCP Server
 

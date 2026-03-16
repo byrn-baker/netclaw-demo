@@ -1,14 +1,12 @@
 ---
 name: nmap-service-detection
-description: "Service fingerprinting, OS detection, NSE script execution, and vulnerability scanning using nmap MCP"
+description: "Service fingerprinting, OS detection, NSE script execution, and vulnerability scanning using nmap MCP. Use when identifying services on open ports, fingerprinting OS versions, running NSE scripts for SSL or SMB checks, or scanning for known CVEs and vulnerabilities"
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3", "nmap"], "env": ["NMAP_MCP_SCRIPT"] } } }
 ---
 
 # Service Detection & Vulnerability Scanning with nmap
-
-Identify running services, fingerprint operating systems, run NSE scripts, and check for known vulnerabilities on authorized targets.
 
 ## How to Call the nmap MCP Tools
 

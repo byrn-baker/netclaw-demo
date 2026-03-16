@@ -1,14 +1,12 @@
 ---
 name: pyats-f5-ltm
-description: "F5 BIG-IP LTM/GTM operations via pyATS iControl REST — virtual servers, pools, nodes, monitors, profiles, iRules, persistence, GTM wide IPs, DNS, data groups"
+description: "F5 BIG-IP LTM/GTM operations via pyATS iControl REST — virtual servers, pools, nodes, monitors, profiles, iRules, persistence, GTM wide IPs, DNS, data groups. Use when checking F5 virtual server status, auditing pool members, reviewing iRules, or inspecting GTM wide IP health."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["PYATS_TESTBED_PATH"] } } }
 ---
 
 # F5 BIG-IP LTM/GTM Operations via pyATS
-
-Query F5 BIG-IP Local Traffic Manager (LTM) and Global Traffic Manager (GTM) objects via pyATS using the iControl REST API (`/mgmt/tm/ltm/*` and `/mgmt/tm/gtm/*`). This complements the F5 BIG-IP MCP server with comprehensive REST API coverage for traffic management objects.
 
 ## Testbed Requirements
 

@@ -1,13 +1,11 @@
 ---
 name: packet-analysis
-description: Analyze network packet captures (.pcap/.pcapng) using Packet Buddy MCP
+description: "Analyze network packet captures (.pcap/.pcapng) using Packet Buddy MCP. Use when opening a pcap file, inspecting packet captures, troubleshooting network traffic, analyzing retransmissions, or filtering packets by protocol."
 version: 1.0.0
 tags: [packets, pcap, wireshark, tshark, troubleshooting]
 ---
 
 # Packet Analysis Skill
-
-You have access to Packet Buddy MCP — a set of tools for analyzing network packet captures using tshark (Wireshark's CLI).
 
 ## MCP Server
 - **Script**: `$PACKET_BUDDY_MCP_SCRIPT`

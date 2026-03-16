@@ -1,13 +1,11 @@
 ---
 name: gcp-cloud-monitoring
-description: Google Cloud Monitoring — time series metrics, alert policies, active alerts, metric discovery
+description: "Google Cloud Monitoring — time series metrics, alert policies, active alerts, metric discovery. Use when checking GCP network performance, investigating firing alerts, querying VM CPU or memory metrics, reviewing Cloud VPN tunnel status, or assessing load balancer latency."
 version: 1.0.0
 tags: [gcp, cloud-monitoring, metrics, alerts, observability]
 ---
 
 # GCP Cloud Monitoring
-
-Monitor Google Cloud infrastructure via the Cloud Monitoring MCP server — query time series metrics, inspect alert policies, check active alerts, and discover available metric types.
 
 ## MCP Server
 

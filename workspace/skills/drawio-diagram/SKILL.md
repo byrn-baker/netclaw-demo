@@ -1,6 +1,6 @@
 ---
 name: drawio-diagram
-description: "Generate draw.io network diagrams — native .drawio files with CLI export (PNG/SVG/PDF), plus browser-based Mermaid/XML/CSV via MCP server"
+description: "Generate draw.io network diagrams — native .drawio files with CLI export (PNG/SVG/PDF), plus browser-based Mermaid/XML/CSV via MCP server. Use when creating network topology diagrams, generating architecture visuals, exporting diagrams to PNG or PDF, or building draw.io files from discovery data."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["npx"] } } }
@@ -8,7 +8,7 @@ metadata:
 
 # Draw.io Network Diagrams
 
-Generate network diagrams using two complementary approaches:
+Generate network diagrams using two approaches:
 
 1. **Native File Mode** — Generate `.drawio` XML files on disk with optional PNG/SVG/PDF export via the draw.io desktop CLI (official jgraph skill-cli)
 2. **Browser Mode** — Open diagrams in the Draw.io browser editor via the `@drawio/mcp` MCP server (Mermaid, XML, or CSV input)

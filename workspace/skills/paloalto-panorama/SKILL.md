@@ -1,14 +1,12 @@
 ---
 name: paloalto-panorama
-description: "Palo Alto Panorama operations — device groups, templates, security policy search, NAT review, commit status, and audit workflows"
+description: "Palo Alto Panorama operations — device groups, templates, security policy search, NAT review, commit status, and audit workflows. Use when searching Palo Alto firewall rules, checking if traffic is allowed through Panorama, reviewing NAT policies, or auditing device groups."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["PANOS_MCP_CMD", "PANOS_HOSTNAME", "PANOS_API_KEY"] } } }
 ---
 
 # Palo Alto Panorama
-
-Operate against Panorama-managed Palo Alto Networks firewalls using the `palo-alto-mcp` backend for policy search, device-group audits, template review, NAT verification, and commit validation. This is the natural complement to Cisco FMC and Meraki security coverage.
 
 ## MCP Server
 

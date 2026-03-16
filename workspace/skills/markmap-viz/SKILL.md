@@ -1,14 +1,12 @@
 ---
 name: markmap-viz
-description: "Create interactive mind map visualizations from markdown - network inventory, OSPF areas, BGP topology, security audit results"
+description: "Create interactive mind map visualizations from markdown - network inventory, OSPF areas, BGP topology, security audit results. Use when visualizing network topology as a mind map, creating audit result diagrams, or generating hierarchical views of OSPF areas, BGP peers, or VLAN structures"
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["node"], "env": ["MARKMAP_MCP_SCRIPT"] } } }
 ---
 
 # Markmap Mind Map Visualization
-
-You can create interactive mind maps from markdown content using the markmap MCP server.
 
 ## How to Call the Tools
 

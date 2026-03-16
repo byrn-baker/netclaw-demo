@@ -1,14 +1,12 @@
 ---
 name: netbox-reconcile
-description: "Reconcile NetBox source of truth against live network state - detect IP drift, missing interfaces, undocumented links, cable mismatches, VLAN mismatches, and ticket discrepancies in ServiceNow"
+description: "Reconcile NetBox source of truth against live network state - detect IP drift, missing interfaces, undocumented links, cable mismatches, VLAN mismatches, and ticket discrepancies in ServiceNow. Use when validating NetBox accuracy, checking for config drift, auditing network documentation, or reconciling source of truth after changes"
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["NETBOX_MCP_SCRIPT", "PYATS_TESTBED_PATH"] } } }
 ---
 
 # NetBox Reconciliation
-
-Compare NetBox (source of truth) intent against live device state collected via pyATS. Identify discrepancies, classify them by type and severity, and ticket critical findings in ServiceNow.
 
 ## Golden Rule
 

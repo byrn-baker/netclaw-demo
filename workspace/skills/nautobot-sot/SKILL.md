@@ -1,13 +1,11 @@
 ---
 name: nautobot-sot
-description: Nautobot IPAM & source of truth — IP address queries, prefix lookups, VRF/tenant/site filtering, IPAM search, connection testing
+description: "Nautobot IPAM & source of truth — IP address queries, prefix lookups, VRF/tenant/site filtering, IPAM search, connection testing. Use when looking up IP addresses in Nautobot, checking subnet allocations, querying IPAM by VRF or tenant, or validating Nautobot as the network source of truth"
 version: 1.0.0
 tags: [nautobot, ipam, source-of-truth, ip-addresses, prefixes, vrf, dcim]
 ---
 
 # Nautobot Source of Truth
-
-Query Nautobot as a network source of truth for IPAM data — retrieve IP addresses with filtering by status, role, VRF, and tenant; look up network prefixes by site and role; search across all IP address data; and verify Nautobot connectivity. This is the Nautobot counterpart to the NetBox `netbox-reconcile` skill — use this skill when the organization runs Nautobot instead of (or alongside) NetBox.
 
 ## MCP Server
 

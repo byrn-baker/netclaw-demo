@@ -1,14 +1,12 @@
 ---
 name: catc-inventory
-description: "Catalyst Center device inventory and site management - list/filter devices by hostname, IP, platform, family, role, reachability; view site hierarchy; get interface details per device; device reachability monitoring; cross-reference with pyATS"
+description: "Catalyst Center device inventory and site management - list/filter devices by hostname, IP, platform, family, role, reachability; view site hierarchy; get interface details per device; device reachability monitoring; cross-reference with pyATS. Use when listing network devices, checking device reachability, auditing software versions, viewing site hierarchy, or finding a device by serial number."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["CATC_MCP_SCRIPT", "MCP_CALL"] } } }
 ---
 
 # Catalyst Center Device Inventory and Site Management
-
-Comprehensive device inventory operations through Cisco Catalyst Center (formerly DNA Center). This skill covers device enumeration, filtering, site hierarchy management, interface inspection, reachability monitoring, and inventory reporting.
 
 ## Catalyst Center MCP Server
 

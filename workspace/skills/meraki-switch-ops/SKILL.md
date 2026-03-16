@@ -1,13 +1,11 @@
 ---
 name: meraki-switch-ops
-description: Cisco Meraki Switching — port configuration, VLANs, port status, ACLs, QoS rules, port cycling
+description: "Cisco Meraki Switching — port configuration, VLANs, port status, ACLs, QoS rules, port cycling. Use when configuring Meraki switch ports, creating VLANs, checking port status and PoE, troubleshooting switch connectivity, or managing Meraki ACLs and QoS"
 version: 1.0.0
 tags: [cisco, meraki, switch, port, vlan, acl, qos, ms]
 ---
 
 # Meraki Switch Operations
-
-Manage Cisco Meraki switches via the Meraki Magic MCP server — configure switch ports, manage VLANs, inspect port statuses, set ACLs, create QoS rules, and cycle ports for troubleshooting.
 
 ## MCP Server
 
@@ -29,18 +27,6 @@ Manage Cisco Meraki switches via the Meraki Magic MCP server — configure switc
 | Update ACLs | `updateDeviceSwitchAccessControlLists` | **[WRITE]** Modify ACL rules |
 | Get QoS rules | `getDeviceSwitchQosRules` | QoS rules: VLAN, protocol, port, DSCP |
 | Create QoS rule | `createDeviceSwitchQosRule` | **[WRITE]** New QoS rule for traffic prioritization |
-
-## Key Concepts
-
-| Concept | What It Means |
-|---------|---------------|
-| **Access Port** | Carries a single VLAN — endpoints (PCs, phones, printers) |
-| **Trunk Port** | Carries multiple VLANs (802.1Q tagged) — uplinks, AP connections |
-| **BPDU Guard** | Protects against rogue switches; shuts port on BPDU receipt |
-| **PoE** | Power over Ethernet — Meraki switches provide 802.3af/at/bt |
-| **RSTP** | Rapid Spanning Tree Protocol — loop prevention |
-| **Port Cycling** | Bounce a port to reset PoE device or force client re-auth |
-| **QoS** | Quality of Service — prioritize voice/video traffic via DSCP marking |
 
 ## Workflow: Switch Port Audit
 

@@ -1,14 +1,12 @@
 ---
 name: pyats-linux-network
-description: "Linux host network operations via pyATS — interface configuration, routing tables, network connections, and multi-table route inspection across fleet hosts"
+description: "Linux host network operations via pyATS — interface configuration, routing tables, network connections, and multi-table route inspection across fleet hosts. Use when checking Linux interface status, viewing routing tables, auditing host network config, or comparing routes across hosts."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["PYATS_TESTBED_PATH"] } } }
 ---
 
 # Linux Host Network Operations
-
-Inspect and analyze networking on Linux hosts in the pyATS testbed using `pyats_run_linux_command`. This skill covers interface configuration, routing tables (including policy routing), and network connection state.
 
 ## Testbed Requirements
 

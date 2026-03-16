@@ -1,13 +1,11 @@
 ---
 name: github-ops
-description: GitHub repository operations — issues, PRs, code search, and config-as-code workflows
+description: "GitHub repository operations — issues, PRs, code search, and config-as-code workflows. Use when creating a GitHub issue for a network finding, opening a pull request for a config change, searching repos for IP or VLAN references, or committing an audit report to a repository."
 version: 1.0.0
 tags: [github, version-control, change-management]
 ---
 
 # GitHub Operations Skill
-
-You have access to GitHub's MCP server which provides 100+ tools for interacting with GitHub repositories.
 
 ## Available Capabilities
 

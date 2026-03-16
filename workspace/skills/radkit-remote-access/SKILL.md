@@ -1,13 +1,11 @@
 ---
 name: radkit-remote-access
-description: Cisco RADKit — cloud-relayed remote device access, CLI execution, SNMP polling, device inventory discovery, attribute inspection
+description: "Cisco RADKit — cloud-relayed remote device access, CLI execution, SNMP polling, device inventory discovery, attribute inspection. Use when accessing remote network devices through a cloud relay, running CLI on air-gapped devices, polling SNMP metrics remotely, or discovering device inventory via RADKit."
 version: 1.0.0
 tags: [cisco, radkit, remote-access, cli, snmp, inventory, cloud-relay]
 ---
 
 # RADKit Remote Device Access
-
-Securely access remote network devices via the Cisco RADKit cloud relay — discover device inventory, inspect device attributes and capabilities, execute CLI commands with timeout and truncation controls, and perform SNMP GET operations. RADKit bridges the gap between cloud-hosted AI agents and on-premises network devices without requiring direct SSH/SNMP connectivity from the agent host.
 
 ## MCP Server
 

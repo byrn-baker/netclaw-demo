@@ -1,13 +1,11 @@
 ---
 name: meraki-monitoring
-description: Cisco Meraki Monitoring & Diagnostics — live ping, cable test, LED blink, wake-on-LAN, camera analytics, config change tracking
+description: "Cisco Meraki Monitoring & Diagnostics — live ping, cable test, LED blink, wake-on-LAN, camera analytics, config change tracking. Use when running ping tests from Meraki devices, troubleshooting switch port cables, blinking LEDs to identify hardware, checking camera analytics, or auditing Meraki config changes"
 version: 1.0.0
 tags: [cisco, meraki, monitoring, diagnostics, ping, cable-test, camera, analytics]
 ---
 
 # Meraki Monitoring & Live Diagnostics
-
-Monitor and diagnose Cisco Meraki infrastructure via the Meraki Magic MCP server — run live ping tests from devices, cable tests on switch ports, LED blinking for physical identification, wake-on-LAN, camera analytics, and config change tracking.
 
 ## MCP Server
 

@@ -1,14 +1,12 @@
 ---
 name: uml-diagram
-description: "UML and diagram generation via Kroki — class, sequence, activity, state, component, deployment, network, ER, C4, Mermaid, D2, Graphviz, BPMN, 27+ types"
+description: "UML and diagram generation via Kroki — class, sequence, activity, state, component, deployment, network, ER, C4, Mermaid, D2, Graphviz, BPMN, 27+ types. Use when generating a network diagram, creating a sequence diagram, drawing a rack layout, visualizing a protocol state machine, or producing architecture documentation."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": [] } } }
 ---
 
 # UML & Diagram Generation via Kroki
-
-Generate 27+ diagram types using the UML MCP server backed by [Kroki](https://kroki.io) multi-engine rendering. Supports PlantUML, Mermaid, D2, Graphviz, BPMN, ERD, C4, network diagrams, rack diagrams, packet diagrams, and more — output as SVG, PNG, PDF, or JPEG.
 
 ## MCP Server
 

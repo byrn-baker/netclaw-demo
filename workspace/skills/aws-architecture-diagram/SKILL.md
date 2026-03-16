@@ -1,13 +1,11 @@
 ---
 name: aws-architecture-diagram
-description: AWS architecture diagrams — generate visual network topology diagrams from live AWS infrastructure
+description: "AWS architecture diagrams — generate visual network topology diagrams from live AWS infrastructure. Use when drawing AWS network diagrams, visualizing VPCs, mapping Transit Gateway topology, or generating architecture documentation."
 version: 1.0.0
 tags: [aws, diagram, architecture, visualization, topology]
 ---
 
 # AWS Architecture Diagram
-
-Generate visual architecture diagrams of AWS infrastructure using the AWS Diagram MCP server — automatically discover and render VPCs, subnets, Transit Gateways, load balancers, and network connections.
 
 ## MCP Server
 

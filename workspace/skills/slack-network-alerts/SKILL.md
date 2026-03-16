@@ -1,14 +1,12 @@
 ---
 name: slack-network-alerts
-description: "Format and deliver network alerts, health warnings, and critical notifications via Slack with rich formatting, reactions, and file attachments"
+description: "Format and deliver network alerts, health warnings, and critical notifications via Slack with rich formatting, reactions, and file attachments. Use when sending alerts to Slack, posting health check results, notifying the team about a device issue, or formatting network status updates for a channel."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"] } } }
 ---
 
 # Slack Network Alerts
-
-NetClaw operates as a Slack App Agent with `assistant:write`, `chat:write`, `reactions:write`, and `files:write` scopes. This skill defines how to format and deliver network alerts through Slack.
 
 ## Slack OAuth Scopes Used
 

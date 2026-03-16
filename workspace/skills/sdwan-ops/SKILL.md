@@ -1,14 +1,12 @@
 ---
 name: sdwan-ops
-description: "Cisco SD-WAN vManage read-only operations — fabric devices, WAN Edge inventory, templates, policies, alarms, events, interface stats, BFD sessions, OMP routes, control connections, running config"
+description: "Cisco SD-WAN vManage read-only operations — fabric devices, WAN Edge inventory, templates, policies, alarms, events, interface stats, BFD sessions, OMP routes, control connections, running config. Use when checking SD-WAN fabric health, viewing vManage alarms, auditing SD-WAN policies and templates, or troubleshooting BFD tunnels."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["VMANAGE_IP", "VMANAGE_USERNAME", "VMANAGE_PASSWORD"] } } }
 ---
 
 # Cisco SD-WAN Operations
-
-Read-only visibility into Cisco SD-WAN fabric managed by vManage. 12 tools for monitoring, auditing, and troubleshooting SD-WAN overlays without configuration risk.
 
 ## MCP Server
 

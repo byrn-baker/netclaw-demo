@@ -1,14 +1,12 @@
 ---
 name: f5-config-mgmt
-description: "F5 BIG-IP configuration management - safe change workflow with baseline capture, planning, creation/update/deletion of virtual servers, pools, iRules, and profiles with full verification"
+description: "F5 BIG-IP configuration management - safe change workflow with baseline capture, planning, creation/update/deletion of virtual servers, pools, iRules, and profiles with full verification. Use when creating or modifying F5 virtual servers, adding pool members, deploying iRules, performing blue-green traffic shifts, or rolling back a BIG-IP change."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["F5_MCP_SCRIPT", "MCP_CALL"] } } }
 ---
 
 # F5 BIG-IP Configuration Management
-
-Structured change management workflows for F5 BIG-IP configuration changes via the iControl REST API. Every change follows: Baseline -> Plan -> Apply -> Verify -> Document.
 
 ## Golden Rule
 

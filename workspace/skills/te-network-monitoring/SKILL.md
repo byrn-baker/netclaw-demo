@@ -1,13 +1,11 @@
 ---
 name: te-network-monitoring
-description: Cisco ThousandEyes — test management, agent inventory, test results, dashboards, path visualization, user/account management
+description: "Cisco ThousandEyes — test management, agent inventory, test results, dashboards, path visualization, user/account management. Use when checking ThousandEyes test results, viewing network monitoring dashboards, listing agents, investigating alerts, or assessing overall network performance."
 version: 1.0.0
 tags: [cisco, thousandeyes, monitoring, network-tests, agents, dashboards, path-vis]
 ---
 
 # ThousandEyes Network Monitoring
-
-Query Cisco ThousandEyes network intelligence via two MCP servers — the community server (9 tools, local stdio) for core monitoring and the official server (~20 tools, remote HTTP) for advanced analysis. Monitor synthetic tests, inspect agent health, view path visualizations, query dashboards, and investigate network events.
 
 ## MCP Servers
 
@@ -86,17 +84,13 @@ Query Cisco ThousandEyes network intelligence via two MCP servers — the commun
 
 ## Key Concepts
 
-| Concept | What It Means |
-|---------|---------------|
-| **Test** | Synthetic monitoring probe — HTTP, page load, web transaction, network (ICMP/TCP), DNS, voice, SIP |
-| **Agent** | ThousandEyes vantage point — Enterprise (on-prem), Enterprise Cluster (distributed), Cloud (Cisco-hosted global) |
-| **Path Visualization** | Hop-by-hop network path from agent to target — shows each router, latency per hop, loss, MPLS labels |
-| **Event** | Detected network or application problem — outage, latency spike, packet loss, DNS failure |
-| **Alert Rule** | Threshold-based trigger — fires when metrics exceed defined conditions |
-| **Dashboard** | Custom visualization with widgets — aggregated views of test data, metrics, and alerts |
-| **Endpoint Agent** | Lightweight agent on user workstations — monitors real user experience (WiFi, VPN, SaaS) |
-| **Instant Test** | On-demand test execution — active troubleshooting without waiting for scheduled test cycles |
-| **BGP Route** | BGP reachability data — AS path, prefix, origin, route visibility from ThousandEyes BGP monitors |
+| Concept | Description |
+|---------|-------------|
+| **Test** | Synthetic probe: HTTP, network (ICMP/TCP), DNS, voice, SIP |
+| **Agent** | Vantage point: Enterprise (on-prem), Cloud (Cisco-hosted) |
+| **Path Visualization** | Hop-by-hop path showing latency, loss, and MPLS labels per hop |
+| **Instant Test** | On-demand test execution for active troubleshooting |
+| **Endpoint Agent** | Workstation agent monitoring WiFi, VPN, and SaaS experience |
 
 ## Workflow: Network Performance Assessment
 

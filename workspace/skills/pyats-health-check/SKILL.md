@@ -1,14 +1,12 @@
 ---
 name: pyats-health-check
-description: "Comprehensive network device health monitoring - CPU, memory, interfaces, hardware, NTP, logging, environment, and uptime analysis"
+description: "Comprehensive network device health monitoring - CPU, memory, interfaces, hardware, NTP, logging, environment, and uptime analysis. Use when running a device health check, monitoring CPU or memory usage, checking interface errors, or validating NTP sync."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["PYATS_TESTBED_PATH"] } } }
 ---
 
 # Device Health Check
-
-Perform comprehensive health assessments on network devices using pyATS. This skill defines the systematic approach for evaluating device health across all critical dimensions.
 
 ## When to Use
 

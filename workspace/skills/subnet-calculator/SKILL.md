@@ -1,14 +1,12 @@
 ---
 name: subnet-calculator
-description: "IPv4 and IPv6 subnet calculator - CIDR breakdown, usable hosts, previous/next subnets, address classification, VLSM planning, and dual-stack analysis"
+description: "IPv4 and IPv6 subnet calculator - CIDR breakdown, usable hosts, previous/next subnets, address classification, VLSM planning, and dual-stack analysis. Use when calculating subnets, figuring out how many hosts fit in a prefix, planning IP addressing, getting wildcard masks for ACLs, or checking if two IPs are in the same subnet."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["SUBNET_MCP_SCRIPT", "MCP_CALL"] } } }
 ---
 
 # Subnet Calculator (IPv4 + IPv6)
-
-Calculate subnet details for both IPv4 and IPv6 networks. Supports CIDR notation, provides usable host ranges, neighboring subnets, address classification, and standard allocation annotations.
 
 ## Available Tools
 

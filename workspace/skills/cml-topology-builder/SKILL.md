@@ -1,13 +1,11 @@
 ---
 name: cml-topology-builder
-description: Build CML topologies — add nodes, create interfaces, wire links, set link conditioning, add annotations
+description: "Build CML topologies — add nodes, create interfaces, wire links, set link conditioning, add annotations. Use when building a network topology in CML, adding routers or switches to a lab, wiring links between nodes, or simulating WAN conditions."
 version: 1.0.0
 tags: [cml, topology, nodes, links, interfaces]
 ---
 
 # CML Topology Builder
-
-Build network topologies in Cisco Modeling Labs from natural language. Add nodes, create interfaces, wire links, set bandwidth/delay/loss conditions, and annotate the topology with visual documentation.
 
 ## MCP Server
 
