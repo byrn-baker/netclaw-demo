@@ -1,13 +1,11 @@
 ---
 name: aws-network-ops
-description: AWS cloud networking — VPC, Transit Gateway, Cloud WAN, VPN, Network Firewall, ENI, flow logs
+description: "AWS cloud networking — VPC, Transit Gateway, Cloud WAN, VPN, Network Firewall, ENI, flow logs. Use when auditing AWS VPCs, troubleshooting connectivity between EC2 instances, checking Transit Gateway routes, or investigating VPN tunnel status."
 version: 1.0.0
 tags: [aws, vpc, transit-gateway, cloud-wan, vpn, network-firewall, flow-logs]
 ---
 
 # AWS Network Operations
-
-You have access to AWS cloud networking via the AWS Network MCP server. This is a **read-only** server with 27 tools for inspecting VPCs, Transit Gateways, Cloud WAN, VPN connections, Network Firewalls, and flow logs.
 
 ## MCP Server
 

@@ -1,14 +1,12 @@
 ---
 name: wikipedia-research
-description: "Research networking protocols, standards history, and technology context via Wikipedia - OSPF, BGP, MPLS, 802.1X, VXLAN, and more"
+description: "Research networking protocols, standards history, and technology context via Wikipedia - OSPF, BGP, MPLS, 802.1X, VXLAN, and more. Use when looking up protocol background, researching how a technology works, building reference material for the team, or understanding standards history."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["WIKIPEDIA_MCP_SCRIPT"] } } }
 ---
 
 # Wikipedia Research
-
-Look up networking protocols, standards history, and technology context on Wikipedia. Use this skill to educate team members, build protocol reference material, understand the evolution of standards, and provide background context alongside hands-on network operations.
 
 ## How to Call the Tools
 

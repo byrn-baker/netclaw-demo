@@ -1,14 +1,12 @@
 ---
 name: kubeshark-traffic
-description: "Kubeshark Kubernetes traffic analysis — L4/L7 deep packet inspection, TLS decryption, pcap export, flow analysis, service mapping (6 tools)"
+description: "Kubeshark Kubernetes traffic analysis — L4/L7 deep packet inspection, TLS decryption, pcap export, flow analysis, service mapping (6 tools). Use when capturing Kubernetes pod traffic, debugging service-to-service latency, exporting pcaps from a cluster, or analyzing encrypted east-west traffic"
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["kubectl"], "env": ["KUBESHARK_MCP_URL"] } } }
 ---
 
 # Kubeshark Kubernetes Traffic Analysis
-
-Deep packet inspection and traffic analysis for Kubernetes clusters: capture L4/L7 traffic in real-time, export pcaps for Wireshark analysis, create point-in-time snapshots, apply KFL filters, list TCP/UDP flows with RTT metrics, and get top-talker summaries. Decrypts TLS/HTTPS traffic via eBPF without manual key management. 6 tools via the Kubeshark MCP server.
 
 ## MCP Server
 

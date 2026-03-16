@@ -1,13 +1,11 @@
 ---
 name: aws-cost-ops
-description: AWS Cost Explorer — spending analysis, service breakdowns, forecasts, cost anomalies
+description: "AWS Cost Explorer — spending analysis, service breakdowns, forecasts, cost anomalies. Use when analyzing AWS spending, investigating cost spikes, reviewing network cost drivers like NAT Gateway, or forecasting next month's bill."
 version: 1.0.0
 tags: [aws, cost-explorer, billing, finops, cost-optimization]
 ---
 
 # AWS Cost Operations
-
-Analyze AWS spending via the Cost Explorer MCP server — break down costs by service, track trends, identify anomalies, and forecast future spend.
 
 ## MCP Server
 

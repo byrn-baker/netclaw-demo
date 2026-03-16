@@ -1,14 +1,12 @@
 ---
 name: itential-automation
-description: "Itential Automation Platform (IAP) — network automation orchestration, device configuration management, compliance enforcement, workflow execution, golden config, lifecycle management, and gateway services via 65+ MCP tools"
+description: "Itential Automation Platform (IAP) — network automation orchestration, device configuration management, compliance enforcement, workflow execution, golden config, lifecycle management, and gateway services via 65+ MCP tools. Use when automating network changes through Itential, running compliance plans, deploying golden configs, or orchestrating IAP workflows"
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["ITENTIAL_MCP_PLATFORM_HOST"] } } }
 ---
 
 # Itential Automation Platform
-
-Orchestrate network automation at scale through Itential Automation Platform (IAP). This skill provides access to 65+ tools spanning device configuration management, compliance enforcement, workflow orchestration, golden configuration, lifecycle management, command templates, inventory management, and gateway services.
 
 ## MCP Server
 

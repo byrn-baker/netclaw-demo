@@ -1,14 +1,12 @@
 ---
 name: catc-troubleshoot
-description: "Catalyst Center troubleshooting workflows - device unreachable investigation, client connectivity issues, interface down analysis, site-wide outage triage, wireless roaming problems, integration with pyATS for CLI-level diagnostics"
+description: "Catalyst Center troubleshooting workflows - device unreachable investigation, client connectivity issues, interface down analysis, site-wide outage triage, wireless roaming problems, integration with pyATS for CLI-level diagnostics. Use when a device is unreachable, a user reports connectivity problems, an interface is down, a site has an outage, or wireless clients have roaming issues."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["CATC_MCP_SCRIPT", "MCP_CALL"] } } }
 ---
 
 # Catalyst Center Troubleshooting Workflows
-
-Structured troubleshooting methodology using Cisco Catalyst Center (formerly DNA Center) as the primary diagnostic platform, with escalation to pyATS CLI-level tools when the controller APIs are insufficient. This skill provides decision trees, triage procedures, and escalation paths for the most common network issues surfaced through Catalyst Center.
 
 ## Catalyst Center MCP Server
 

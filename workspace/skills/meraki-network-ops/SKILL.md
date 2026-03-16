@@ -1,13 +1,11 @@
 ---
 name: meraki-network-ops
-description: Cisco Meraki Dashboard — organization inventory, network management, device lifecycle, client discovery, action batches
+description: "Cisco Meraki Dashboard — organization inventory, network management, device lifecycle, client discovery, action batches. Use when listing Meraki devices, managing networks, checking device status, investigating clients, or running bulk Meraki API operations"
 version: 1.0.0
 tags: [cisco, meraki, dashboard, network, devices, clients, inventory, organization]
 ---
 
 # Meraki Network & Device Operations
-
-Manage Cisco Meraki organizations, networks, and devices via the Meraki Magic MCP server — discover inventory, manage networks, claim/unclaim devices, query clients, inspect uplinks, and run action batches for bulk operations.
 
 ## MCP Server
 

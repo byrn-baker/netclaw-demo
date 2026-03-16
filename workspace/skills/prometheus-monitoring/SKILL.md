@@ -1,14 +1,12 @@
 ---
 name: prometheus-monitoring
-description: "Prometheus monitoring — PromQL instant/range queries, metric discovery, metadata, scrape target health, system health checks (6 tools)"
+description: "Prometheus monitoring — PromQL instant/range queries, metric discovery, metadata, scrape target health, system health checks (6 tools). Use when querying Prometheus metrics, checking scrape targets, investigating alert thresholds, or analyzing network device utilization trends."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["pip3"], "env": ["PROMETHEUS_URL"] } } }
 ---
 
 # Prometheus Monitoring
-
-Direct access to Prometheus time-series databases for network infrastructure monitoring: execute PromQL queries (instant and range), discover available metrics, retrieve metric metadata, inspect scrape target health, and perform system health checks. 6 tools via the prometheus-mcp-server.
 
 ## MCP Server
 

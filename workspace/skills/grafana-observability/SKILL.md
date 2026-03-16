@@ -1,14 +1,12 @@
 ---
 name: grafana-observability
-description: "Grafana observability platform — dashboards, Prometheus PromQL, Loki LogQL, alerting, incidents, OnCall schedules, annotations, datasource queries, panel rendering (75+ tools)"
+description: "Grafana observability platform — dashboards, Prometheus PromQL, Loki LogQL, alerting, incidents, OnCall schedules, annotations, datasource queries, panel rendering (75+ tools). Use when querying Grafana dashboards, running PromQL for interface metrics, searching Loki logs for syslog events, investigating firing alerts, or checking who is on call."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["uvx"], "env": ["GRAFANA_URL", "GRAFANA_SERVICE_ACCOUNT_TOKEN"] } } }
 ---
 
 # Grafana Observability
-
-Full access to Grafana instances (self-hosted or Grafana Cloud) for network infrastructure observability: dashboards, Prometheus metrics (PromQL), Loki logs (LogQL), alerting rules, incident management, OnCall schedules, annotations, and panel image rendering. 75+ tools via the official Grafana MCP server.
 
 ## MCP Server
 

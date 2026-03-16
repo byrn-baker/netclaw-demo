@@ -1,13 +1,11 @@
 ---
 name: aws-security-audit
-description: AWS security auditing — IAM users/roles/policies, CloudTrail API events, security posture analysis
+description: "AWS security auditing — IAM users/roles/policies, CloudTrail API events, security posture analysis. Use when auditing IAM permissions, investigating security incidents, checking MFA compliance, or tracing API activity in CloudTrail."
 version: 1.0.0
 tags: [aws, iam, cloudtrail, security, audit, compliance]
 ---
 
 # AWS Security Audit
-
-Audit AWS security posture via IAM and CloudTrail MCP servers — inspect users, roles, policies, and trace API activity for incident investigation and compliance.
 
 ## MCP Servers
 

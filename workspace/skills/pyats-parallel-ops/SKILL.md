@@ -1,14 +1,12 @@
 ---
 name: pyats-parallel-ops
-description: "Fleet-wide parallel device operations - concurrent health checks, config audits, routing snapshots, severity-sorted reporting, and failure-isolated multi-device automation"
+description: "Fleet-wide parallel device operations - concurrent health checks, config audits, routing snapshots, severity-sorted reporting, and failure-isolated multi-device automation. Use when checking all devices at once, running bulk health checks, collecting configs from the entire fleet, or comparing state across multiple routers and switches."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["PYATS_TESTBED_PATH"] } } }
 ---
 
 # Parallel Fleet Operations
-
-Execute operations across multiple network devices concurrently using OpenClaw's pCall (parallel call) capability. This skill governs how to scale single-device operations to an entire fleet with failure isolation, result aggregation, and severity-sorted reporting.
 
 ## When to Use
 

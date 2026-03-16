@@ -1,14 +1,12 @@
 ---
 name: pyats-routing
-description: "CCIE-level routing protocol analysis - OSPF, BGP, EIGRP, IS-IS, static routes, RIB/FIB verification, redistribution audit, and convergence validation"
+description: "CCIE-level routing protocol analysis - OSPF, BGP, EIGRP, IS-IS, static routes, RIB/FIB verification, redistribution audit, and convergence validation. Use when analyzing routing tables, debugging OSPF neighbors, checking BGP peering, verifying route redistribution, or validating convergence after changes."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["PYATS_TESTBED_PATH"] } } }
 ---
 
 # Routing Protocol Analysis
-
-Deep routing protocol expertise for OSPF, BGP, EIGRP, IS-IS, and the routing table. This skill provides CCIE-level analysis workflows.
 
 ## Routing Table Analysis
 

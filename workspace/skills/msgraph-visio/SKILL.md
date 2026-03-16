@@ -1,14 +1,12 @@
 ---
 name: msgraph-visio
-description: "Generate and manage Visio network diagrams on SharePoint via Microsoft Graph API - create topology diagrams from CDP/LLDP discovery, update existing diagrams, export to PDF"
+description: "Generate and manage Visio network diagrams on SharePoint via Microsoft Graph API - create topology diagrams from CDP/LLDP discovery, update existing diagrams, export to PDF. Use when creating Visio topology diagrams, uploading network diagrams to SharePoint, or generating physical/logical topology views from discovery data"
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["npx"], "env": ["AZURE_TENANT_ID", "AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET"] } } }
 ---
 
 # Microsoft Graph — Visio Diagram Generation
-
-Generate professional Visio (.vsdx) network topology diagrams from live device discovery data. Upload and manage them on SharePoint via Microsoft Graph API. This is the production documentation workflow — from CDP/LLDP discovery output to a Visio file that lives in your team's SharePoint.
 
 ## How to Call the Tools
 

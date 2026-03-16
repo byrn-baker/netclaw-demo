@@ -1,18 +1,12 @@
 ---
 name: slack-voice-interface
-description: >
-  Respond to Slack voice clips with both text and an MP3 voice reply
-  using edge-tts. Voice IN is already handled by OpenClaw transcription.
+description: "Respond to Slack voice clips with both text and an MP3 voice reply using edge-tts. Voice IN is already handled by OpenClaw transcription. Use when a user sends a voice message in Slack, you need to reply with audio, or you want to generate a spoken MP3 response."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["TTS_MCP_SCRIPT", "MCP_CALL"] } } }
 ---
 
 # Slack Voice Interface
-
-When a user sends a voice clip in Slack, OpenClaw automatically transcribes it.
-NetClaw processes the transcribed question with full MCP tool access, then
-responds with both a text answer AND an MP3 voice clip.
 
 ## How It Works
 

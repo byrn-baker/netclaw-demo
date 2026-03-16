@@ -1,14 +1,12 @@
 ---
 name: msgraph-teams
-description: "Send notifications and reports to Microsoft Teams channels via Graph API - alert delivery, report posting, incident updates, and diagram sharing"
+description: "Send notifications and reports to Microsoft Teams channels via Graph API - alert delivery, report posting, incident updates, and diagram sharing. Use when posting health alerts to Teams, sending security notifications, sharing change completion updates, or delivering reports to a Teams channel"
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["npx"], "env": ["AZURE_TENANT_ID", "AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET"] } } }
 ---
 
 # Microsoft Graph — Teams Notifications
-
-Send notifications, reports, and alerts to Microsoft Teams channels via the Microsoft Graph API. Use this as an alternative or complement to Slack for organizations running Microsoft 365.
 
 ## How to Call the Tools
 

@@ -1,14 +1,12 @@
 ---
 name: nmap-scan-management
-description: "Custom nmap scans with arbitrary flags, plus scan history retrieval and management"
+description: "Custom nmap scans with arbitrary flags, plus scan history retrieval and management. Use when running nmap with custom flags, reviewing past scan results, comparing before/after scans, or retrieving a previous scan by ID"
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3", "nmap"], "env": ["NMAP_MCP_SCRIPT"] } } }
 ---
 
 # nmap Scan Management
-
-Run custom nmap scans with arbitrary flags and manage scan history. All scans remain scope-enforced and audit-logged regardless of flags used.
 
 ## How to Call the nmap MCP Tools
 

@@ -1,14 +1,12 @@
 ---
 name: pyats-junos-interfaces
-description: "JunOS interface operations via pyATS — physical/logical interfaces, LACP, CoS, LLDP, ARP, BFD, IPv6 neighbors, traffic monitoring, optics diagnostics"
+description: "JunOS interface operations via pyATS — physical/logical interfaces, LACP, CoS, LLDP, ARP, BFD, IPv6 neighbors, traffic monitoring, optics diagnostics. Use when checking Juniper interface status, auditing LACP members, inspecting optics power levels, or reviewing ARP and LLDP neighbors."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["PYATS_TESTBED_PATH"] } } }
 ---
 
 # JunOS Interface Operations via pyATS
-
-Inspect Juniper device interfaces, link aggregation, class of service, LLDP neighbors, ARP tables, BFD sessions, and optics diagnostics using pyATS `pyats_run_show_command`. Complements the JunOS MCP server (PyEZ/NETCONF) with SSH/CLI-based operational commands.
 
 ## How to Call
 

@@ -1,14 +1,12 @@
 ---
 name: pyats-f5-platform
-description: "F5 BIG-IP platform operations via pyATS iControl REST — system, networking, HA/CM, auth, analytics, security, APM, live-update, ADC certs, file management"
+description: "F5 BIG-IP platform operations via pyATS iControl REST — system, networking, HA/CM, auth, analytics, security, APM, live-update, ADC certs, file management. Use when checking BIG-IP system health, verifying HA sync status, auditing certificates, or inspecting F5 platform resources."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["PYATS_TESTBED_PATH"] } } }
 ---
 
 # F5 BIG-IP Platform Operations via pyATS
-
-Query F5 BIG-IP platform, system, networking, and cluster management objects via pyATS using the iControl REST API (`/mgmt/tm/sys/*`, `/mgmt/tm/net/*`, `/mgmt/tm/cm/*`, and more). This complements pyats-f5-ltm (traffic management) with full platform visibility.
 
 ## Testbed Requirements
 

@@ -1,14 +1,12 @@
 ---
 name: gait-session-tracking
-description: "GAIT session lifecycle management - branch creation, turn recording, audit logging for every NetClaw operation"
+description: "GAIT session lifecycle management - branch creation, turn recording, audit logging for every NetClaw operation. Use when starting a new NetClaw session, recording a health check or config change, pinning a pre-change baseline, or viewing the audit trail for a troubleshooting session."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["GAIT_MCP_SCRIPT"] } } }
 ---
 
 # GAIT Session Tracking
-
-Track every NetClaw session with full audit history using the GAIT version control system. Every network engineering action -- configuration changes, health checks, troubleshooting steps, reconciliation runs -- is recorded as a Git-backed audit trail.
 
 **This skill is mandatory.** Every NetClaw session MUST begin with `gait_branch` and end with `gait_log`.
 

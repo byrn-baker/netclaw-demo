@@ -1,13 +1,11 @@
 ---
 name: cml-node-operations
-description: CML node operations — start, stop, console access, CLI execution, config management, node details
+description: "CML node operations — start, stop, console access, CLI execution, config management, node details. Use when starting or stopping a CML node, running show commands on a lab router, setting startup configs, or reading console logs."
 version: 1.0.0
 tags: [cml, nodes, console, cli, config]
 ---
 
 # CML Node Operations
-
-Operate individual CML nodes — start, stop, get console access, execute CLI commands, manage startup/running configurations, and inspect node state. This is how you interact with devices inside a CML lab.
 
 ## MCP Server
 

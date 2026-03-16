@@ -1,14 +1,12 @@
 ---
 name: msgraph-files
-description: "Manage files on OneDrive and SharePoint via Microsoft Graph API - upload, download, list, search, and organize network documentation and artifacts"
+description: "Manage files on OneDrive and SharePoint via Microsoft Graph API - upload, download, list, search, and organize network documentation and artifacts. Use when uploading reports to SharePoint, retrieving network docs from OneDrive, organizing config backups, or searching for topology diagrams"
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["npx"], "env": ["AZURE_TENANT_ID", "AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET"] } } }
 ---
 
 # Microsoft Graph — File Operations
-
-Manage files on OneDrive and SharePoint document libraries using the Microsoft Graph MCP server. Use this for storing, retrieving, and organizing network documentation, configuration backups, audit reports, and diagram artifacts.
 
 ## How to Call the Tools
 

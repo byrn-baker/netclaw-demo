@@ -1,14 +1,12 @@
 ---
 name: arista-cvp
-description: "Arista CloudVision Portal (CVP) automation via REST API — device inventory, events, connectivity monitoring, tag management (4 tools)"
+description: "Arista CloudVision Portal (CVP) automation via REST API — device inventory, events, connectivity monitoring, tag management (4 tools). Use when managing Arista devices, checking CloudVision events, monitoring network connectivity probes, or tagging devices in CVP."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["uv"], "env": ["CVP", "CVPTOKEN"] } } }
 ---
 
 # Arista CloudVision Portal (CVP) Automation
-
-Manage Arista network infrastructure through the CloudVision Portal MCP server. Query device inventory, monitor events and alerts, analyze connectivity probe data (jitter, latency, packet loss), and create device tags through CloudVision's workspace workflow.
 
 ## MCP Server
 

@@ -1,14 +1,12 @@
 ---
 name: nmap-network-scan
-description: "Host discovery and port scanning using nmap — ICMP/ARP host discovery, SYN/TCP/UDP port scanning with scope enforcement and audit logging"
+description: "Host discovery and port scanning using nmap — ICMP/ARP host discovery, SYN/TCP/UDP port scanning with scope enforcement and audit logging. Use when discovering live hosts on a subnet, scanning for open ports, verifying firewall rules, or doing pre/post-change port scans"
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3", "nmap"], "env": ["NMAP_MCP_SCRIPT"] } } }
 ---
 
 # Network Scanning with nmap
-
-Discover live hosts and scan ports on authorized networks using nmap MCP. All scans are scope-enforced (CIDR allowlist) and audit-logged.
 
 ## How to Call the nmap MCP Tools
 

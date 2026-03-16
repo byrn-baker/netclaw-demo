@@ -1,13 +1,11 @@
 ---
 name: cml-lab-lifecycle
-description: Cisco CML lab lifecycle management — create, start, stop, wipe, delete, clone, import/export labs
+description: "Cisco CML lab lifecycle management — create, start, stop, wipe, delete, clone, import/export labs. Use when building a network lab, starting or stopping a CML lab, cloning a topology, or importing lab YAML files."
 version: 1.0.0
 tags: [cml, labs, simulation, lifecycle]
 ---
 
 # CML Lab Lifecycle Management
-
-You have access to Cisco Modeling Labs (CML) via the CML MCP server. This skill covers full lab lifecycle operations — everything from creating a brand-new lab to cleaning up finished ones.
 
 ## MCP Server
 

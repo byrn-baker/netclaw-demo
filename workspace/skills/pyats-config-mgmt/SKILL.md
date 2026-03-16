@@ -1,14 +1,12 @@
 ---
 name: pyats-config-mgmt
-description: "Network change management - pre-change baselines, configuration deployment, post-change verification, rollback procedures, and compliance validation"
+description: "Network change management - pre-change baselines, configuration deployment, post-change verification, rollback procedures, and compliance validation. Use when pushing config to a device, planning a network change, rolling back a configuration, or running compliance checks."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["PYATS_TESTBED_PATH"] } } }
 ---
 
 # Configuration Management
-
-Structured change management workflows for network configuration changes. Every change follows: Baseline → Plan → Apply → Verify → Document.
 
 ## Golden Rule
 

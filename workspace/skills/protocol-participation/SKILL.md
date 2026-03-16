@@ -1,14 +1,12 @@
 ---
 name: protocol-participation
-description: "Live BGP and OSPF control-plane participation — peer with real routers, inject/withdraw routes, query RIB/LSDB, adjust metrics, GRE tunnel status"
+description: "Live BGP and OSPF control-plane participation — peer with real routers, inject/withdraw routes, query RIB/LSDB, adjust metrics, GRE tunnel status. Use when injecting or withdrawing BGP routes, checking BGP peer state, querying the OSPF LSDB, or testing route advertisement in a lab."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["NETCLAW_ROUTER_ID"] } } }
 ---
 
 # Protocol Participation — BGP + OSPF + GRE
-
-NetClaw becomes a real routing peer. Instead of just observing network state via SSH, the Protocol MCP server runs a full BGP-4 speaker (RFC 4271) and OSPFv3 speaker (RFC 5340) natively on the host, peering with production or lab routers over GRE tunnels.
 
 ## MCP Server
 

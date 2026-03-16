@@ -1,14 +1,12 @@
 ---
 name: ise-incident-response
-description: "Rapid ISE endpoint investigation and quarantine workflow - endpoint lookup, auth history, posture review, human-authorized quarantine, ServiceNow Security Incident"
+description: "Rapid ISE endpoint investigation and quarantine workflow - endpoint lookup, auth history, posture review, human-authorized quarantine, ServiceNow Security Incident. Use when a SOC alert flags a compromised endpoint, an unauthorized device is detected on the network, an endpoint is doing port scanning or lateral movement, or you need to quarantine a MAC address in ISE."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["ISE_MCP_SCRIPT", "ISE_BASE", "SERVICENOW_MCP_SCRIPT"] } } }
 ---
 
 # ISE Incident Response
-
-Rapid endpoint investigation and quarantine workflow for Cisco ISE. Provides structured steps to identify a suspect endpoint, review its authentication history and posture state, assess risk, and -- only with explicit human authorization -- move it to a quarantine group. Every action is tracked in ServiceNow and GAIT.
 
 ## Safety -- Non-Negotiable Rules
 

@@ -1,13 +1,11 @@
 ---
 name: meraki-wireless-ops
-description: Cisco Meraki Wireless — SSID management, RF profiles, channel utilization, signal quality, client connectivity events
+description: "Cisco Meraki Wireless — SSID management, RF profiles, channel utilization, signal quality, client connectivity events. Use when managing Meraki SSIDs, troubleshooting WiFi connectivity, analyzing RF channel utilization, checking wireless signal quality, or investigating client roaming issues"
 version: 1.0.0
 tags: [cisco, meraki, wireless, ssid, rf, wifi, access-point, channel]
 ---
 
 # Meraki Wireless Operations
-
-Manage Cisco Meraki wireless networks via the Meraki Magic MCP server — configure SSIDs, create RF profiles, analyze channel utilization, monitor signal quality, and investigate client wireless connectivity events.
 
 ## MCP Server
 
@@ -28,17 +26,6 @@ Manage Cisco Meraki wireless networks via the Meraki Magic MCP server — config
 | Signal quality | `getWirelessSignalQuality` | SNR and signal strength metrics over time |
 | Connection stats | `getWirelessConnectionStats` | Success/failure rates, association, auth, DHCP stats |
 | Client events | `getWirelessClientConnectivityEvents` | Per-client roaming, auth, deauth, DHCP events |
-
-## Key Concepts
-
-| Concept | What It Means |
-|---------|---------------|
-| **SSID** | Service Set Identifier — Meraki supports 15 per network, each independently configured |
-| **RF Profile** | Radio frequency settings — band selection (dual/2.4/5/6 GHz), min/max power, channel width, DFS |
-| **Channel Utilization** | Percentage of airtime used per channel — high utilization = congestion |
-| **SNR** | Signal-to-Noise Ratio — measure of wireless signal quality (>25 dB is good, <15 dB is poor) |
-| **Band Selection** | 2.4 GHz (range), 5 GHz (speed), 6 GHz (Wi-Fi 6E) — control which bands APs and clients use |
-| **Splash Page** | Captive portal for guest auth — click-through, sign-on, sponsored, RADIUS |
 
 ## Workflow: Wireless Health Assessment
 

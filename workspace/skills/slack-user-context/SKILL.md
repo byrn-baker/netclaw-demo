@@ -1,14 +1,12 @@
 ---
 name: slack-user-context
-description: "Leverage Slack user profiles, presence, DND status, and workspace context to personalize responses, route escalations, and coordinate team operations"
+description: "Leverage Slack user profiles, presence, DND status, and workspace context to personalize responses, route escalations, and coordinate team operations. Use when checking who is on-call, routing an escalation, personalizing responses based on user role, or respecting Do Not Disturb before paging someone."
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"] } } }
 ---
 
 # Slack User Context
-
-Use Slack workspace awareness to make NetClaw's interactions smarter — knowing who's online, who's on-call, respecting Do Not Disturb, and personalizing responses based on user roles and expertise.
 
 ## Slack OAuth Scopes Used
 
