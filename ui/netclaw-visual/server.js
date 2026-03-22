@@ -683,6 +683,15 @@ async function fetchBGPState() {
           break;
         }
       }
+      // Fallback: derive router-id from adj-rib-in next_hop (IPv4 next_hop = router-id)
+      if (!routerId && adjRoutes.length > 0) {
+        for (const r of adjRoutes) {
+          if (r.next_hop && !r.next_hop.includes(':') && r.next_hop !== '0.0.0.0') {
+            routerId = r.next_hop;
+            break;
+          }
+        }
+      }
 
       return {
         ...p,

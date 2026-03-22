@@ -87,6 +87,7 @@
         </div>
         <div class="footer-row muted">
           <span>HUD mode: layered network operations graph</span>
+          <span>Quality <button id="quality-toggle" class="quality-toggle" type="button">BALANCED</button></span>
           <span>Use mouse drag + wheel to navigate</span>
         </div>
       </footer>
@@ -102,7 +103,10 @@
       <div id="chat-drawer" class="chat-drawer panel">
         <div class="chat-header">
           <p class="eyebrow">NetClaw Terminal <span id="gateway-status" class="gateway-indicator offline">OFFLINE</span></p>
-          <button id="chat-toggle" class="chat-toggle-btn" type="button">_</button>
+          <div class="chat-header-actions">
+            <button id="new-session" class="new-session-btn" type="button">New Session</button>
+            <button id="chat-toggle" class="chat-toggle-btn" type="button">_</button>
+          </div>
         </div>
         <div id="chat-messages" class="chat-messages"></div>
         <form id="chat-form" class="chat-input-row">

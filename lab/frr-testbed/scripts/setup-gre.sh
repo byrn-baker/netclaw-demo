@@ -59,6 +59,15 @@ fi
 echo "  Found bridge: $PEERING_BRIDGE"
 ip -6 addr add "$HOST_PEERING_IP/64" dev "$PEERING_BRIDGE" 2>/dev/null || \
   echo "  (IPv6 peering IP already assigned — OK)"
+# Add link-local IPv4 to ALL IPv6-only bridges so mDNS libraries (ciao) don't crash
+LINK_LOCAL_SEQ=1
+for _br in $(ip -o link show type bridge 2>/dev/null | awk -F': ' '{print $2}'); do
+  if [ "$(ip -4 addr show "$_br" 2>/dev/null | grep -c inet)" -eq 0 ]; then
+    ip addr add "169.254.100.${LINK_LOCAL_SEQ}/24" dev "$_br" 2>/dev/null || true
+    echo "  Added IPv4 link-local to $_br"
+    LINK_LOCAL_SEQ=$((LINK_LOCAL_SEQ + 1))
+  fi
+done
 
 # --- Step 2: GRE tunnel (IPv6 outer — ip6gre) ---
 echo "[2/5] Creating ip6gre tunnel on host (IPv6 outer: $HOST_PEERING_IP → $EDGE1_PEERING_IP)..."
