@@ -72,3 +72,70 @@ devices:
         port: 22
         arguments:
           connection_timeout: 360                  
+  PC1:
+    alias: "CML-PC1-Alpine"
+    type: "linux"
+    os: "linux"
+    platform: alpine
+    credentials:
+      default:
+        username: cisco
+        password: cisco
+    connections:
+      cli:
+        protocol: ssh
+        ip: "fd00:10:0:10::100"
+        port: 22
+        arguments:
+          connection_timeout: 30
+
+  PC2:
+    alias: "CML-PC2-Alpine"
+    type: "linux"
+    os: "linux"
+    platform: alpine
+    credentials:
+      default:
+        username: cisco
+        password: cisco
+    connections:
+      cli:
+        protocol: ssh
+        ip: "fd00:10:0:20::100"
+        port: 22
+        arguments:
+          connection_timeout: 30
+
+  Server1:
+    alias: "CML-Server1-TinyCore"
+    type: "linux"
+    os: "linux"
+    platform: tinycore
+    credentials:
+      default:
+        username: cisco
+        password: cisco
+    connections:
+      cli:
+        protocol: ssh
+        ip: "fd00:10:0:30::100"
+        port: 22
+        arguments:
+          connection_timeout: 30
+
+  Server2:
+    alias: "CML-Server2-TinyCore"
+    type: "linux"
+    os: "linux"
+    platform: tinycore
+    credentials:
+      default:
+        username: cisco
+        password: cisco
+    connections:
+      cli:
+        protocol: ssh
+        ip: "fd00:10:0:40::100"
+        port: 22
+        arguments:
+          connection_timeout: 30

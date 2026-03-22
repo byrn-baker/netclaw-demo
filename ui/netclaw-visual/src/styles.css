@@ -444,6 +444,32 @@ input {
   margin: 0;
 }
 
+.chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.new-session-btn {
+  background: rgba(255, 75, 75, 0.1);
+  border: 1px solid rgba(255, 75, 75, 0.35);
+  color: #ff6b6b;
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  transition: opacity 0.2s, background 0.2s;
+}
+.new-session-btn:hover {
+  opacity: 1;
+  background: rgba(255, 75, 75, 0.2);
+}
+
 .chat-toggle-btn {
   background: none;
   border: 1px solid var(--line);
@@ -973,6 +999,27 @@ input {
   padding: 4px 18px;
   border-radius: 10px 10px 0 0;
   border-bottom: none;
+}
+
+/* ── Quality Budget Toggle ──────────────────────────────────────── */
+.quality-toggle {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: rgba(101, 195, 255, 0.1);
+  color: var(--accent);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.quality-toggle:hover {
+  background: rgba(101, 195, 255, 0.22);
+  color: var(--text);
 }
 
 /* ── 3D Activation beam flash ────────────────────────────────────── */

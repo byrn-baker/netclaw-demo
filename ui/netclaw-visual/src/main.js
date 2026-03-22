@@ -14,6 +14,11 @@ import { VignetteShader } from 'three/addons/shaders/VignetteShader.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import gsap from 'gsap';
 
+// ── Quality budget modes ───────────────────────────────────────────
+// Focus: minimal effects, best perf. Balanced: default. Broadcast: all effects.
+const QUALITY_MODES = ['focus', 'balanced', 'broadcast'];
+const QUALITY_LABELS = { focus: 'FOCUS', balanced: 'BALANCED', broadcast: 'BROADCAST' };
+
 const state = {
   graph: null,
   scene: null,
@@ -32,6 +37,7 @@ const state = {
   skillSprites: [],
   hovered: null,
   selected: null,
+  qualityMode: 'balanced',
   filters: {
     query: '',
     categories: new Set(),
@@ -45,6 +51,10 @@ const state = {
   glitchPass: null,
   rgbShiftPass: null,
   afterimagePass: null,
+  filmPass: null,
+  bloomPass: null,
+  vignettePass: null,
+  smaaPass: null,
   // Particle flow system
   particleSystem: null,
   particleData: [],
@@ -53,6 +63,12 @@ const state = {
   terminalCards: [],
   // BGP topology
   bgp: null,
+  // Chat session focus mode
+  chatSession: {
+    active: false,               // true when user has sent a message
+    litIntegrations: new Set(),  // integration ids currently lit
+    litTools: new Map(),         // tool name → { integrationId, spriteIndex }
+  },
 };
 
 const dom = {
@@ -91,9 +107,242 @@ const dom = {
   },
 };
 
+// ── Quality mode switching ──────────────────────────────────────────
+function setQualityMode(mode) {
+  state.qualityMode = mode;
+  const isFocus = mode === 'focus';
+  const isBroadcast = mode === 'broadcast';
+
+  // Afterimage: off in focus, off in balanced-idle, on in broadcast
+  if (state.afterimagePass) state.afterimagePass.enabled = isBroadcast;
+  // Film grain: off in focus, on in balanced+broadcast
+  if (state.filmPass) state.filmPass.enabled = !isFocus;
+  // RGB shift: off in focus, reduced in balanced, full in broadcast
+  if (state.rgbShiftPass) {
+    state.rgbShiftPass.enabled = !isFocus;
+    state.rgbShiftPass.uniforms.amount.value = isBroadcast ? 0.0012 : 0.0008;
+  }
+  // SMAA: always on (cheap)
+  // Bloom: reduced in focus
+  if (state.bloomPass) {
+    state.bloomPass.strength = isFocus ? 0.6 : 1.1;
+  }
+  // Shadows: off in focus
+  if (state.renderer) {
+    state.renderer.shadowMap.enabled = !isFocus;
+  }
+
+  // Update UI label
+  const btn = document.getElementById('quality-toggle');
+  if (btn) btn.textContent = QUALITY_LABELS[mode];
+}
+
+function cycleQualityMode() {
+  const idx = QUALITY_MODES.indexOf(state.qualityMode);
+  const next = QUALITY_MODES[(idx + 1) % QUALITY_MODES.length];
+  setQualityMode(next);
+}
+
+// Temporarily enable cinematic effects during activations
+function enableCinematicBurst() {
+  if (state.qualityMode === 'broadcast') return; // already on
+  if (state.afterimagePass) state.afterimagePass.enabled = true;
+  if (state.filmPass) state.filmPass.enabled = true;
+  // Restore after 6 seconds
+  setTimeout(() => {
+    if (state.qualityMode !== 'broadcast') {
+      if (state.afterimagePass) state.afterimagePass.enabled = state.qualityMode !== 'focus';
+      if (state.filmPass) state.filmPass.enabled = state.qualityMode !== 'focus';
+    }
+  }, 6000);
+}
+
+// ── Chat Focus Mode ─────────────────────────────────────────────
+// When the user sends a message the scene dims so only the core is prominent.
+// As activations arrive, each integration lights up sequentially and stays lit
+// for the remainder of the session. "New Session" resets everything.
+
+function enterChatFocus() {
+  if (state.chatSession.active) return; // already in focus
+  state.chatSession.active = true;
+
+  // Dim every integration
+  state.integrations.forEach((entry) => {
+    gsap.to(entry.tubeMat.uniforms.uOpacity, { value: 0.04, duration: 0.6 });
+    gsap.to(entry.halo.material, { opacity: 0.04, duration: 0.6 });
+    gsap.to(entry.node.material.uniforms.uBrightness, { value: 0.15, duration: 0.6 });
+    // Hide any visible skills
+    entry.skillSprites.forEach((sprite) => {
+      sprite.mesh.visible = false;
+      sprite.label.visible = false;
+      if (sprite.wire) sprite.wire.visible = false;
+    });
+  });
+
+  // Dim devices
+  state.devices.forEach((entry) => {
+    gsap.to(entry.mesh.material, { opacity: 0.15, duration: 0.6 });
+  });
+
+  // Pulse the core so it stands out
+  if (state.localCore) {
+    gsap.to(state.localCore.nucleus.material, { emissiveIntensity: 3.0, duration: 0.8, ease: 'power2.out' });
+    gsap.to(state.localCore.torus.material, { opacity: 1.0, duration: 0.6, ease: 'power2.out' });
+  }
+}
+
+function lightIntegration(integrationId) {
+  // Mark as lit so it stays visible for the rest of the session
+  state.chatSession.litIntegrations.add(integrationId);
+
+  const entry = state.integrations.find((e) => e.payload.id === integrationId);
+  if (!entry || !entry.group.visible) return;
+
+  // Phase 1: Trace tube from core → node
+  gsap.fromTo(entry.tubeMat.uniforms.uOpacity,
+    { value: 0.04 },
+    { value: 1.0, duration: 0.8, ease: 'power2.out' },
+  );
+
+  // Phase 2: Light up the node
+  gsap.to(entry.node.material.uniforms.uBrightness, {
+    value: 2.5, delay: 0.8, duration: 0.5, ease: 'power2.out',
+  });
+  gsap.to(entry.halo.material, { opacity: 1.0, delay: 0.8, duration: 0.4, ease: 'power2.out' });
+
+  // Scale burst on arrival
+  gsap.fromTo(entry.group.scale,
+    { x: 1, y: 1, z: 1 },
+    { x: 1.5, y: 1.5, z: 1.5, delay: 0.8, duration: 0.4, yoyo: true, repeat: 1, ease: 'back.out(2)' },
+  );
+
+  // Fire beam
+  fireActivationBeam(entry.basePosition, entry.payload.color);
+
+  // Phase 3: Reveal skills and keep them visible (persistent session)
+  setTimeout(() => {
+    revealSkills(entry);
+    // Pulse each skill sequentially
+    entry.skillSprites.forEach((sprite, i) => {
+      setTimeout(() => {
+        if (sprite.mesh.visible && sprite.mesh.material) {
+          gsap.to(sprite.mesh.material, {
+            opacity: 1.0, duration: 0.3, ease: 'power2.out',
+            onComplete: () => { gsap.to(sprite.mesh.material, { opacity: 0.66, duration: 0.5 }); },
+          });
+          gsap.fromTo(sprite.mesh.scale,
+            { x: 1, y: 1, z: 1 },
+            { x: 2.2, y: 2.2, z: 2.2, duration: 0.25, yoyo: true, repeat: 1, ease: 'back.out(3)' },
+          );
+        }
+      }, i * 40 + 600);
+    });
+    // NOTE: skills stay visible — no hide timeout (persistent session)
+  }, 1400);
+
+  // Settle node to a dimmer-but-still-visible state after full animation
+  setTimeout(() => {
+    gsap.to(entry.tubeMat.uniforms.uOpacity, { value: 0.45, duration: 0.8 });
+    gsap.to(entry.node.material.uniforms.uBrightness, { value: 1.4, duration: 0.8 });
+    gsap.to(entry.halo.material, { opacity: 0.4, duration: 0.8 });
+  }, 1400 + entry.skillSprites.length * 40 + 600 + 1500);
+}
+
+function lightDevice(deviceId) {
+  const entry = state.devices.find((e) => e.payload.id === deviceId);
+  if (!entry || !entry.mesh.visible) return;
+
+  gsap.to(entry.mesh.material, {
+    opacity: 1.0, emissiveIntensity: 2.0, duration: 0.3,
+    yoyo: true, repeat: 3, ease: 'power2.inOut',
+    onComplete: () => { entry.mesh.material.emissiveIntensity = 0.55; entry.mesh.material.opacity = 0.9; },
+  });
+  gsap.fromTo(entry.mesh.scale,
+    { x: 1, y: 1, z: 1 },
+    { x: 1.6, y: 1.6, z: 1.6, duration: 0.3, yoyo: true, repeat: 1, ease: 'back.out(2)' },
+  );
+  fireActivationBeam(entry.basePosition, 0x68f5b2);
+}
+
+function resetChatSession() {
+  state.chatSession.active = false;
+  state.chatSession.litIntegrations.clear();
+  state.chatSession.litTools.clear();
+
+  // Restore all integrations to default brightness
+  state.integrations.forEach((entry) => {
+    gsap.to(entry.tubeMat.uniforms.uOpacity, { value: 0.25, duration: 0.8 });
+    gsap.to(entry.halo.material, { opacity: 0.26, duration: 0.8 });
+    gsap.to(entry.node.material.uniforms.uBrightness, { value: 1.0, duration: 0.8 });
+    // Hide any visible skills
+    entry.skillSprites.forEach((sprite) => {
+      sprite.mesh.visible = false;
+      sprite.label.visible = false;
+      if (sprite.wire) sprite.wire.visible = false;
+    });
+  });
+
+  // Restore devices
+  state.devices.forEach((entry) => {
+    gsap.to(entry.mesh.material, { opacity: 0.9, duration: 0.8 });
+  });
+
+  // Restore core to normal
+  if (state.localCore) {
+    gsap.to(state.localCore.nucleus.material, { emissiveIntensity: 0.9, duration: 1.0 });
+    gsap.to(state.localCore.torus.material, { opacity: 0.36, duration: 0.8 });
+  }
+
+  // Clear chat messages
+  dom.chatMessages.innerHTML = '';
+}
+
 // ── Activation beam lines (reusable pool) ──────────────────────────
 const activationBeams = [];
 const BEAM_POOL_SIZE = 20;
+
+// ── Pre-allocated scratch vectors (avoid per-frame allocations) ────
+const _v0 = new THREE.Vector3();
+const _v1 = new THREE.Vector3();
+const _v2 = new THREE.Vector3();
+const _v3 = new THREE.Vector3();
+
+// ── Shared geometry cache (avoid duplicating identical geometries) ──
+const _sharedGeo = {
+  skillTetra: new THREE.TetrahedronGeometry(0.24, 0),
+  coreShell: new THREE.IcosahedronGeometry(3.4, 1),
+  coreNucleus: new THREE.IcosahedronGeometry(1.85, 3),
+  deviceRouter: new THREE.CylinderGeometry(0.7, 0.7, 0.4, 8),
+  deviceSwitch: new THREE.BoxGeometry(1.1, 0.42, 0.9),
+};
+
+// ── Shared material caches (avoid per-object material duplication) ──
+const _skillMaterialCache = new Map();
+function getSkillMaterial(color) {
+  const key = typeof color === 'number' ? color : new THREE.Color(color).getHex();
+  if (_skillMaterialCache.has(key)) return _skillMaterialCache.get(key).clone();
+  const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.66 });
+  _skillMaterialCache.set(key, mat);
+  return mat.clone();
+}
+
+const _haloMaterialCache = new Map();
+function getHaloMaterial(color) {
+  const key = typeof color === 'number' ? color : new THREE.Color(color).getHex();
+  if (_haloMaterialCache.has(key)) return _haloMaterialCache.get(key);
+  const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.26 });
+  _haloMaterialCache.set(key, mat);
+  return mat;
+}
+
+const _haloGeoCache = new Map();
+function getHaloGeometry(innerR) {
+  const key = innerR.toFixed(2);
+  if (_haloGeoCache.has(key)) return _haloGeoCache.get(key);
+  const geo = new THREE.TorusGeometry(innerR, 0.05, 12, 90);
+  _haloGeoCache.set(key, geo);
+  return geo;
+}
 
 function setLoading(progress, text) {
   dom.loadingProgress.style.width = `${progress}%`;
@@ -137,27 +386,30 @@ function initScene() {
   // 1. Render
   state.composer.addPass(new RenderPass(state.scene, state.camera));
   // 2. Bloom
-  state.composer.addPass(new UnrealBloomPass(sz, 1.1, 0.55, 0.5));
+  state.bloomPass = new UnrealBloomPass(sz, 1.1, 0.55, 0.5);
+  state.composer.addPass(state.bloomPass);
   // 3. Afterimage (motion trails)
-  state.afterimagePass = new AfterimagePass(0.92);
+  state.afterimagePass = new AfterimagePass(0.82);
   state.composer.addPass(state.afterimagePass);
   // 4. Film grain
-  state.composer.addPass(new FilmPass(0.18));
+  state.filmPass = new FilmPass(0.18);
+  state.composer.addPass(state.filmPass);
   // 5. RGB shift (chromatic aberration)
   state.rgbShiftPass = new ShaderPass(RGBShiftShader);
   state.rgbShiftPass.uniforms.amount.value = 0.0008;
   state.composer.addPass(state.rgbShiftPass);
   // 6. Vignette
-  const vignettePass = new ShaderPass(VignetteShader);
-  vignettePass.uniforms.offset.value = 0.95;
-  vignettePass.uniforms.darkness.value = 1.4;
-  state.composer.addPass(vignettePass);
+  state.vignettePass = new ShaderPass(VignetteShader);
+  state.vignettePass.uniforms.offset.value = 0.95;
+  state.vignettePass.uniforms.darkness.value = 1.4;
+  state.composer.addPass(state.vignettePass);
   // 7. Glitch (disabled by default, fires during activations)
   state.glitchPass = new GlitchPass();
   state.glitchPass.enabled = false;
   state.composer.addPass(state.glitchPass);
   // 8. SMAA anti-aliasing
-  state.composer.addPass(new SMAAPass(window.innerWidth * state.renderer.getPixelRatio(), window.innerHeight * state.renderer.getPixelRatio()));
+  state.smaaPass = new SMAAPass(window.innerWidth * state.renderer.getPixelRatio(), window.innerHeight * state.renderer.getPixelRatio());
+  state.composer.addPass(state.smaaPass);
   // 9. Output (sRGB tone mapping)
   state.composer.addPass(new OutputPass());
 
@@ -200,6 +452,8 @@ function addEnvironment() {
   ground.position.y = -10;
   ground.material.transparent = true;
   ground.material.opacity = 0.2;
+  ground.matrixAutoUpdate = false;
+  ground.updateMatrix();
   state.scene.add(ground);
 
   // Animated ground rings with pulsing shader
@@ -227,6 +481,8 @@ function addEnvironment() {
     const ring = new THREE.Mesh(new THREE.RingGeometry(8 * i - 0.06, 8 * i + 0.06, 96), ringMat);
     ring.rotation.x = -Math.PI / 2;
     ring.position.y = -9.98;
+    ring.matrixAutoUpdate = false;
+    ring.updateMatrix();
     ring.userData.ringUniforms = ringUniforms;
     state.scene.add(ring);
   }
@@ -277,7 +533,12 @@ function addEnvironment() {
   });
   const stars = new THREE.Points(starGeo, starMat);
   stars.userData.starUniforms = starMat.uniforms;
+  stars.matrixAutoUpdate = false;
+  stars.updateMatrix();
   state.scene.add(stars);
+
+  // Store direct uniform references — avoids scene.traverse in animate loop
+  state.envUniforms = { starTime: starMat.uniforms.uTime, ringTime: ringUniforms.uTime };
 }
 
 function makeLabel(text) {
@@ -292,6 +553,7 @@ const CORE_POSITIONS = {
   local: new THREE.Vector3(-18, 0, 0),
   peer1: new THREE.Vector3(52, 0, -28),
   peer2: new THREE.Vector3(52, 0, 28),
+  peer3: new THREE.Vector3(18, 0, -56),
 };
 const CORE_CENTROID = new THREE.Vector3(12, 0, 0);
 
@@ -302,10 +564,9 @@ function buildCore(identity, position, labelText, colorTint) {
   const tintColor = new THREE.Color(tint);
   const group = new THREE.Group();
 
-  // Shell — custom shader wireframe with fresnel + scan-lines
-  const r = tintColor.r.toFixed(2), g = tintColor.g.toFixed(2), b = tintColor.b.toFixed(2);
+  // Shell — custom shader wireframe with fresnel + scan-lines (uniform-based color)
   const shellMat = new THREE.ShaderMaterial({
-    uniforms: { uTime: { value: 0 } },
+    uniforms: { uTime: { value: 0 }, uTintColor: { value: tintColor.clone() } },
     vertexShader: `
       varying vec3 vNormal;
       varying vec3 vWorldPos;
@@ -317,6 +578,7 @@ function buildCore(identity, position, labelText, colorTint) {
     `,
     fragmentShader: `
       uniform float uTime;
+      uniform vec3 uTintColor;
       varying vec3 vNormal;
       varying vec3 vWorldPos;
       void main() {
@@ -324,7 +586,7 @@ function buildCore(identity, position, labelText, colorTint) {
         float fresnel = pow(1.0 - abs(dot(viewDir, vNormal)), 3.0);
         float scan = sin(vWorldPos.y * 18.0 - uTime * 2.5) * 0.5 + 0.5;
         scan = smoothstep(0.4, 0.6, scan) * 0.3;
-        vec3 col = vec3(${r}, ${g}, ${b}) * (0.15 + fresnel * 0.8 + scan);
+        vec3 col = uTintColor * (0.15 + fresnel * 0.8 + scan);
         gl_FragColor = vec4(col, 0.12 + fresnel * 0.35);
       }
     `,
@@ -333,12 +595,12 @@ function buildCore(identity, position, labelText, colorTint) {
     side: THREE.DoubleSide,
     depthWrite: false,
   });
-  const shell = new THREE.Mesh(new THREE.IcosahedronGeometry(3.4, 1), shellMat);
+  const shell = new THREE.Mesh(_sharedGeo.coreShell, shellMat);
   group.add(shell);
 
   // Nucleus — thin glass shell
   const nucleus = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(1.85, 3),
+    _sharedGeo.coreNucleus,
     new THREE.MeshPhysicalMaterial({
       color: tint,
       emissive: tint,
@@ -470,9 +732,12 @@ function createNodeMaterial(color) {
   });
 }
 
-// Device material with iridescence
+// Device material with iridescence — shared instances per color
+const _deviceMaterialCache = new Map();
 function createDeviceMaterial(color) {
-  return new THREE.MeshPhysicalMaterial({
+  const key = typeof color === 'number' ? color : new THREE.Color(color).getHex();
+  if (_deviceMaterialCache.has(key)) return _deviceMaterialCache.get(key);
+  const mat = new THREE.MeshPhysicalMaterial({
     color,
     emissive: color,
     emissiveIntensity: 0.55,
@@ -484,6 +749,94 @@ function createDeviceMaterial(color) {
     transparent: true,
     opacity: 0.92,
   });
+  _deviceMaterialCache.set(key, mat);
+  return mat;
+}
+
+// ── Pre-allocated ribbon geometry for dynamic tubes ────────────────
+// Replaces per-frame TubeGeometry rebuilds with in-place buffer updates.
+// A ribbon is a flat strip with SEGMENTS+1 cross-sections, 2 verts each.
+const RIBBON_SEGMENTS = 32;
+const RIBBON_VERTS = (RIBBON_SEGMENTS + 1) * 2;
+const RIBBON_INDICES_COUNT = RIBBON_SEGMENTS * 6;
+
+function createRibbonGeometry(halfWidth) {
+  const positions = new Float32Array(RIBBON_VERTS * 3);
+  const uvs = new Float32Array(RIBBON_VERTS * 2);
+  const indices = new Uint16Array(RIBBON_INDICES_COUNT);
+
+  // Build index buffer (static — triangle strip as indexed triangles)
+  for (let i = 0; i < RIBBON_SEGMENTS; i++) {
+    const base = i * 2;
+    const off = i * 6;
+    indices[off] = base;
+    indices[off + 1] = base + 1;
+    indices[off + 2] = base + 2;
+    indices[off + 3] = base + 1;
+    indices[off + 4] = base + 3;
+    indices[off + 5] = base + 2;
+  }
+
+  // Build UV buffer (static — u goes along the ribbon, v is 0/1 across)
+  for (let i = 0; i <= RIBBON_SEGMENTS; i++) {
+    const u = i / RIBBON_SEGMENTS;
+    uvs[i * 4] = u;
+    uvs[i * 4 + 1] = 0;
+    uvs[i * 4 + 2] = u;
+    uvs[i * 4 + 3] = 1;
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+  geo.setIndex(new THREE.BufferAttribute(indices, 1));
+  geo.userData.halfWidth = halfWidth || 0.06;
+  return geo;
+}
+
+// Reusable scratch for ribbon updates
+const _ribbonPt = new THREE.Vector3();
+const _ribbonTan = new THREE.Vector3();
+const _ribbonUp = new THREE.Vector3(0, 1, 0);
+const _ribbonSide = new THREE.Vector3();
+
+function updateRibbonGeometry(geo, p0, p1, p2) {
+  // Simple quadratic Bezier evaluation (replaces CatmullRomCurve3 + TubeGeometry)
+  const positions = geo.attributes.position.array;
+  const hw = geo.userData.halfWidth;
+
+  for (let i = 0; i <= RIBBON_SEGMENTS; i++) {
+    const t = i / RIBBON_SEGMENTS;
+    const t1 = 1 - t;
+    // Quadratic Bezier: P = (1-t)^2*P0 + 2(1-t)t*P1 + t^2*P2
+    _ribbonPt.set(
+      t1 * t1 * p0.x + 2 * t1 * t * p1.x + t * t * p2.x,
+      t1 * t1 * p0.y + 2 * t1 * t * p1.y + t * t * p2.y,
+      t1 * t1 * p0.z + 2 * t1 * t * p1.z + t * t * p2.z,
+    );
+    // Tangent: dP/dt = 2(1-t)(P1-P0) + 2t(P2-P1)
+    _ribbonTan.set(
+      2 * t1 * (p1.x - p0.x) + 2 * t * (p2.x - p1.x),
+      2 * t1 * (p1.y - p0.y) + 2 * t * (p2.y - p1.y),
+      2 * t1 * (p1.z - p0.z) + 2 * t * (p2.z - p1.z),
+    ).normalize();
+    // Side vector = tangent x up
+    _ribbonSide.crossVectors(_ribbonTan, _ribbonUp).normalize().multiplyScalar(hw);
+    // If tangent is nearly parallel to up, use a fallback
+    if (_ribbonSide.lengthSq() < 0.001) {
+      _ribbonSide.set(hw, 0, 0);
+    }
+
+    const idx = i * 6; // 2 verts * 3 components
+    positions[idx] = _ribbonPt.x - _ribbonSide.x;
+    positions[idx + 1] = _ribbonPt.y - _ribbonSide.y;
+    positions[idx + 2] = _ribbonPt.z - _ribbonSide.z;
+    positions[idx + 3] = _ribbonPt.x + _ribbonSide.x;
+    positions[idx + 4] = _ribbonPt.y + _ribbonSide.y;
+    positions[idx + 5] = _ribbonPt.z + _ribbonSide.z;
+  }
+  geo.attributes.position.needsUpdate = true;
+  geo.computeBoundingSphere();
 }
 
 // ── Tube shader material for data-flow connections (Section F) ────
@@ -576,7 +929,7 @@ function buildIntegrations(graph) {
       group.add(node);
 
       const halo = new THREE.Mesh(
-        new THREE.TorusGeometry(size + 0.45, 0.05, 12, 90),
+        getHaloGeometry(size + 0.45),
         new THREE.MeshBasicMaterial({ color: integration.color, transparent: true, opacity: 0.26 }),
       );
       halo.rotation.x = Math.PI / 2;
@@ -607,19 +960,19 @@ function buildIntegrations(graph) {
         group.add(logoSprite);
       }
 
-      // Connection tube with data-flow shader (Section F)
+      // Connection ribbon with data-flow shader (replaces per-frame TubeGeometry)
+      const ribbonGeo = createRibbonGeometry(0.06);
       const midY = Math.max(position.y, 0) + 4.5;
-      const mid = new THREE.Vector3(
-        (coreAnchor.x + position.x) * 0.5, midY, (coreAnchor.z + position.z) * 0.5,
-      );
-      const curve = new THREE.CatmullRomCurve3([
-        coreAnchor.clone(),
-        mid,
-        position.clone(),
-      ]);
-      const tubeGeo = new THREE.TubeGeometry(curve, 32, 0.06, 6, false);
+      _v0.copy(coreAnchor);
+      _v1.set((coreAnchor.x + position.x) * 0.5, midY, (coreAnchor.z + position.z) * 0.5);
+      _v2.copy(position);
+      updateRibbonGeometry(ribbonGeo, _v0, _v1, _v2);
       const tubeMat = createTubeMaterial(integration.color);
-      const tube = new THREE.Mesh(tubeGeo, tubeMat);
+      const tube = new THREE.Mesh(ribbonGeo, tubeMat);
+      // Keep a CatmullRomCurve3 for particle flow (updated on orbit)
+      const curve = new THREE.CatmullRomCurve3([
+        coreAnchor.clone(), _v1.clone(), position.clone(),
+      ]);
       state.scene.add(tube);
 
       const skills = graph.skills.filter((skill) => skill.integrationId === integration.id);
@@ -722,10 +1075,7 @@ function createSkillSprites(anchor, skills, color, integrationPosition) {
   const dendrites = computeDendritePositions(clampedSkills.length, integrationPosition);
 
   return clampedSkills.map((skill, index) => {
-    const mesh = new THREE.Mesh(
-      new THREE.TetrahedronGeometry(0.24, 0),
-      new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.66 }),
-    );
+    const mesh = new THREE.Mesh(_sharedGeo.skillTetra, getSkillMaterial(color));
     mesh.visible = false;
     mesh.userData = { type: 'skill', payload: skill };
     state.scene.add(mesh);
@@ -791,7 +1141,7 @@ function buildDevices(graph) {
 
     const isRouter = device.type.toLowerCase().includes('router');
     const color = isRouter ? 0x68f5b2 : 0xffb703;
-    const geometry = isRouter ? new THREE.CylinderGeometry(0.7, 0.7, 0.4, 8) : new THREE.BoxGeometry(1.1, 0.42, 0.9);
+    const geometry = isRouter ? _sharedGeo.deviceRouter : _sharedGeo.deviceSwitch;
     const mesh = new THREE.Mesh(geometry, createDeviceMaterial(color));
     mesh.position.copy(position);
     mesh.castShadow = true;
@@ -886,15 +1236,16 @@ function buildPeerLinks() {
     for (let j = i + 1; j < allCores.length; j++) {
       const posA = allCores[i].position;
       const posB = allCores[j].position;
-      const midPoint = posA.clone().add(posB).multiplyScalar(0.5);
-      midPoint.y += 3.0;
-      const linkCurve = new THREE.CatmullRomCurve3([posA.clone(), midPoint, posB.clone()]);
-      const linkGeo = new THREE.TubeGeometry(linkCurve, 48, 0.08, 8, false);
+      const ribbonGeo = createRibbonGeometry(0.08);
+      _v0.copy(posA);
+      _v1.set((posA.x + posB.x) * 0.5, Math.max(posA.y, posB.y) + 3.0, (posA.z + posB.z) * 0.5);
+      _v2.copy(posB);
+      updateRibbonGeometry(ribbonGeo, _v0, _v1, _v2);
       const linkMat = createTubeMaterial(0xe040fb);
       linkMat.uniforms.uOpacity.value = 0.4;
-      const link = new THREE.Mesh(linkGeo, linkMat);
+      const link = new THREE.Mesh(ribbonGeo, linkMat);
       state.scene.add(link);
-      state.peerLinks.push({ tube: link, mat: linkMat, curve: linkCurve, from: i, to: j });
+      state.peerLinks.push({ tube: link, mat: linkMat, from: i, to: j });
     }
   }
 }
@@ -1446,6 +1797,11 @@ async function sendChatMessage(message) {
   addChatMessage('user', message);
   dom.chatInput.value = '';
 
+  // Enter focus mode on first send (dims scene, highlights core)
+  if (!state.chatSession.active) {
+    enterChatFocus();
+  }
+
   try {
     const res = await fetch('/api/chat', {
       method: 'POST',
@@ -1577,17 +1933,19 @@ function activateIntegration(integrationId) {
     }, arrivalTime);
   });
 
-  // Hide skills + wires after full trace animation completes
-  const totalLeafTime = 1400 + (entry.skillSprites.length * 40) + 600 + 2000;
-  setTimeout(() => {
-    if (state.selected?.kind !== 'integration' || state.selected?.id !== integrationId) {
-      entry.skillSprites.forEach((sprite) => {
-        sprite.mesh.visible = false;
-        sprite.label.visible = false;
-        if (sprite.wire) sprite.wire.visible = false;
-      });
-    }
-  }, totalLeafTime);
+  // Hide skills + wires after full trace animation completes (only outside chat session)
+  if (!state.chatSession.active) {
+    const totalLeafTime = 1400 + (entry.skillSprites.length * 40) + 600 + 2000;
+    setTimeout(() => {
+      if (state.selected?.kind !== 'integration' || state.selected?.id !== integrationId) {
+        entry.skillSprites.forEach((sprite) => {
+          sprite.mesh.visible = false;
+          sprite.label.visible = false;
+          if (sprite.wire) sprite.wire.visible = false;
+        });
+      }
+    }, totalLeafTime);
+  }
 }
 
 function activateDevice(deviceId) {
@@ -1612,69 +1970,26 @@ function activateDevice(deviceId) {
 }
 
 function handleActivations(activations) {
-  // Trigger post-processing effects
+  // Trigger post-processing effects + cinematic burst for quality modes
   triggerActivationEffects();
+  enableCinematicBurst();
 
-  // Step 1: Dim ALL nodes so the user sees a blank slate
-  state.integrations.forEach((entry) => {
-    gsap.to(entry.tubeMat.uniforms.uOpacity, { value: 0.04, duration: 0.6 });
-    gsap.to(entry.halo.material, { opacity: 0.04, duration: 0.6 });
-    gsap.to(entry.node.material.uniforms.uBrightness, { value: 0.15, duration: 0.6 });
-  });
-  state.devices.forEach((entry) => {
-    gsap.to(entry.mesh.material, { opacity: 0.15, duration: 0.6 });
-  });
+  // Enter chat focus mode if not already active — dims the whole scene
+  if (!state.chatSession.active) {
+    enterChatFocus();
+  }
 
-  // Step 2: After dimming, pulse the core (the request origin)
-  setTimeout(() => {
-    if (state.localCore) {
-      gsap.to(state.localCore.nucleus.material, {
-        emissiveIntensity: 3.0,
-        duration: 0.8,
-        ease: 'power2.out',
-      });
-      gsap.to(state.localCore.torus.material, {
-        opacity: 1.0,
-        duration: 0.6,
-        ease: 'power2.out',
-      });
-    }
-  }, 600);
-
-  // Step 3: Sequentially trace from core → tube → node → wires → leaf skills
-  // Each integration takes ~2.6s to fully trace to leaves, stagger accordingly
+  // Sequential integration activation — each one lights up in order and stays lit
   const stagger = 2600;
   activations.integrations.forEach((id, i) => {
-    setTimeout(() => activateIntegration(id), 1200 + i * stagger);
+    setTimeout(() => lightIntegration(id), 600 + i * stagger);
   });
 
-  // Step 4: Activate devices after all integrations finish tracing
-  const devicesStart = 1200 + activations.integrations.length * stagger;
+  // Activate devices after integrations
+  const devicesStart = 600 + activations.integrations.length * stagger;
   activations.devices.forEach((id, i) => {
-    setTimeout(() => activateDevice(id), devicesStart + i * 400);
+    setTimeout(() => lightDevice(id), devicesStart + i * 400);
   });
-
-  // Step 5: Restore all nodes after the full animation completes
-  const totalDuration = devicesStart + Math.max(
-    3500, // last integration's leaf hide timeout
-    activations.devices.length * 400 + 2000,
-  );
-  setTimeout(() => {
-    // Restore local core
-    if (state.localCore) {
-      gsap.to(state.localCore.nucleus.material, { emissiveIntensity: 0.9, duration: 1.0 });
-      gsap.to(state.localCore.torus.material, { opacity: 0.36, duration: 0.8 });
-    }
-    // Restore all integrations
-    state.integrations.forEach((entry) => {
-      gsap.to(entry.tubeMat.uniforms.uOpacity, { value: 0.25, duration: 0.8 });
-      gsap.to(entry.halo.material, { opacity: 0.26, duration: 0.8 });
-      gsap.to(entry.node.material.uniforms.uBrightness, { value: 1.0, duration: 0.8 });
-    });
-    state.devices.forEach((entry) => {
-      gsap.to(entry.mesh.material, { opacity: 0.9, duration: 0.8 });
-    });
-  }, totalDuration);
 }
 
 // ── Specific tool call highlighting (Section H) ─────────────────
@@ -1691,6 +2006,11 @@ function handleToolCall(payload) {
   });
 
   if (matchedSprite) {
+    // Track this tool in the session
+    state.chatSession.litTools.set(tool, { integrationId: integration });
+    // Ensure integration is also tracked as lit
+    state.chatSession.litIntegrations.add(integration);
+
     // Show full dendrite tree for this integration
     revealSkills(entry);
 
@@ -1720,16 +2040,18 @@ function handleToolCall(payload) {
       },
     });
 
-    // Hide after a delay if not selected
-    setTimeout(() => {
-      if (state.selected?.kind !== 'integration' || state.selected?.id !== integration) {
-        entry.skillSprites.forEach((sprite) => {
-          sprite.mesh.visible = false;
-          sprite.label.visible = false;
-          if (sprite.wire) sprite.wire.visible = false;
-        });
-      }
-    }, 5000);
+    // Only hide after delay if NOT in a chat session (session keeps skills persistent)
+    if (!state.chatSession.active) {
+      setTimeout(() => {
+        if (state.selected?.kind !== 'integration' || state.selected?.id !== integration) {
+          entry.skillSprites.forEach((sprite) => {
+            sprite.mesh.visible = false;
+            sprite.label.visible = false;
+            if (sprite.wire) sprite.wire.visible = false;
+          });
+        }
+      }, 5000);
+    }
   }
 
   // Integration node pulse
@@ -2050,7 +2372,7 @@ function animate() {
     }
   });
 
-  // Rebuild peer-link tubes when cores move
+  // Update peer-link ribbons in-place when cores move (no alloc, no dispose)
   if (coresMovedThisFrame && state.peerLinks.length > 0) {
     let linkIdx = 0;
     for (let a = 0; a < state.cores.length; a++) {
@@ -2059,13 +2381,10 @@ function animate() {
         const link = state.peerLinks[linkIdx];
         const posA = state.cores[a].position;
         const posB = state.cores[b].position;
-        const mid = new THREE.Vector3(
-          (posA.x + posB.x) * 0.5, Math.max(posA.y, posB.y) + 3.0, (posA.z + posB.z) * 0.5,
-        );
-        const curve = new THREE.CatmullRomCurve3([posA.clone(), mid, posB.clone()]);
-        const newGeo = new THREE.TubeGeometry(curve, 32, 0.08, 6, false);
-        link.tube.geometry.dispose();
-        link.tube.geometry = newGeo;
+        _v0.copy(posA);
+        _v1.set((posA.x + posB.x) * 0.5, Math.max(posA.y, posB.y) + 3.0, (posA.z + posB.z) * 0.5);
+        _v2.copy(posB);
+        updateRibbonGeometry(link.tube.geometry, _v0, _v1, _v2);
         linkIdx++;
       }
     }
@@ -2076,7 +2395,7 @@ function animate() {
     if (link.mat.uniforms?.uTime) link.mat.uniforms.uTime.value = elapsed;
   });
 
-  const coreAnchor = state.localCore ? state.localCore.position : new THREE.Vector3(0, 0, 0);
+  const coreAnchor = state.localCore ? state.localCore.position : _v3.set(0, 0, 0);
 
   state.integrations.forEach((entry, index) => {
     if (!entry.group.visible) return;
@@ -2089,23 +2408,26 @@ function animate() {
       orb.phi0 += orb.axisTilt * 0.0004;
       orb.phi0 = Math.max(0.15, Math.min(Math.PI - 0.15, orb.phi0));
 
-      const newPos = new THREE.Vector3(
+      entry.group.position.set(
         coreAnchor.x + orb.radius * Math.sin(orb.phi0) * Math.cos(orb.theta0),
         orb.radius * Math.cos(orb.phi0),
         coreAnchor.z + orb.radius * Math.sin(orb.phi0) * Math.sin(orb.theta0),
       );
-      entry.group.position.copy(newPos);
-      entry.basePosition.copy(newPos);
+      entry.basePosition.copy(entry.group.position);
 
-      // Rebuild tube curve to follow orbiting node
-      const midY = Math.max(newPos.y, coreAnchor.y) + 4.5;
-      const mid = new THREE.Vector3(
-        (coreAnchor.x + newPos.x) * 0.5, midY, (coreAnchor.z + newPos.z) * 0.5,
-      );
-      const newCurve = new THREE.CatmullRomCurve3([coreAnchor.clone(), mid, newPos.clone()]);
-      const newGeo = new THREE.TubeGeometry(newCurve, 32, 0.06, 6, false);
-      entry.tube.geometry.dispose();
-      entry.tube.geometry = newGeo;
+      // Update ribbon geometry in-place (no alloc, no dispose)
+      const gp = entry.group.position;
+      const midY = Math.max(gp.y, coreAnchor.y) + 4.5;
+      _v0.copy(coreAnchor);
+      _v1.set((coreAnchor.x + gp.x) * 0.5, midY, (coreAnchor.z + gp.z) * 0.5);
+      _v2.copy(gp);
+      updateRibbonGeometry(entry.tube.geometry, _v0, _v1, _v2);
+      // Update the spline curve for particle flow
+      if (entry.curve) {
+        entry.curve.points[0].copy(coreAnchor);
+        entry.curve.points[1].copy(_v1);
+        entry.curve.points[2].copy(gp);
+      }
     }
 
     // Gentle bob + spin — frozen when selected
@@ -2123,14 +2445,14 @@ function animate() {
       entry.tubeMat.uniforms.uTime.value = elapsed;
     }
 
-    // Dendrite positioning (virus-tree layout)
+    // Dendrite positioning (virus-tree layout) — uses scratch _v0 to avoid allocs
     entry.skillSprites.forEach((sprite) => {
       if (!sprite.mesh.visible) return;
-      const worldPos = entry.group.position.clone().add(sprite.localPosition);
-      sprite.mesh.position.copy(worldPos);
+      _v0.copy(entry.group.position).add(sprite.localPosition);
+      sprite.mesh.position.copy(_v0);
       sprite.mesh.rotation.y = rotTime * 0.8;
       sprite.mesh.rotation.x = rotTime * 0.3;
-      sprite.label.position.set(worldPos.x, worldPos.y + 0.5, worldPos.z);
+      sprite.label.position.set(_v0.x, _v0.y + 0.5, _v0.z);
       if (sprite.wire && sprite.wire.visible) {
         sprite.wire.position.copy(entry.group.position);
       }
@@ -2151,11 +2473,11 @@ function animate() {
   });
 
 
-  // Update environment shader uniforms (stars + rings)
-  state.scene.traverse((obj) => {
-    if (obj.userData.starUniforms) obj.userData.starUniforms.uTime.value = elapsed;
-    if (obj.userData.ringUniforms) obj.userData.ringUniforms.uTime.value = elapsed;
-  });
+  // Update environment shader uniforms (stars + rings) — direct refs, no traverse
+  if (state.envUniforms) {
+    state.envUniforms.starTime.value = elapsed;
+    state.envUniforms.ringTime.value = elapsed;
+  }
 
   // Animate particle data flow (Section G)
   updateParticleFlow(elapsed);
@@ -2260,6 +2582,12 @@ function wireUI() {
     sendChatMessage(message);
   });
 
+  // New Session button — resets chat and scene state
+  const newSessionBtn = document.getElementById('new-session');
+  if (newSessionBtn) {
+    newSessionBtn.addEventListener('click', resetChatSession);
+  }
+
   // Chat toggle collapse/expand
   dom.chatToggle.addEventListener('click', () => {
     dom.chatDrawer.classList.toggle('collapsed');
@@ -2289,6 +2617,12 @@ function wireUI() {
     dom.footerPanel.classList.remove('collapsed');
     dom.reopenFooter.classList.remove('visible');
   });
+
+  // Quality budget toggle
+  const qualityToggle = document.getElementById('quality-toggle');
+  if (qualityToggle) {
+    qualityToggle.addEventListener('click', cycleQualityMode);
+  }
 
   window.addEventListener('pointermove', onPointerMove);
   window.addEventListener('click', onClick);
@@ -2371,18 +2705,13 @@ function updateParticleFlow(elapsed) {
   state.particleSystem.instanceMatrix.needsUpdate = true;
 }
 
-// ── Activation glitch + chromatic spike ─────────────────────────
+// ── Activation chromatic spike (subtle) ─────────────────────────
 function triggerActivationEffects() {
-  // Glitch burst
-  if (state.glitchPass) {
-    state.glitchPass.enabled = true;
-    setTimeout(() => { state.glitchPass.enabled = false; }, 400);
-  }
-  // Chromatic aberration spike
+  // Subtle chromatic aberration spike only — no glitch pass (too disruptive)
   if (state.rgbShiftPass) {
     gsap.to(state.rgbShiftPass.uniforms.amount, {
-      value: 0.004,
-      duration: 0.15,
+      value: 0.0025,
+      duration: 0.12,
       yoyo: true,
       repeat: 1,
       ease: 'power2.out',
@@ -2503,8 +2832,8 @@ async function boot() {
     // Build peer cores as equal central nodes
     if (hasPeers) {
       const uniquePeers = deduplicatePeers(state.bgp.peers);
-      const peerPositions = [CORE_POSITIONS.peer1, CORE_POSITIONS.peer2];
-      uniquePeers.slice(0, 2).forEach((peer, i) => {
+      const peerPositions = [CORE_POSITIONS.peer1, CORE_POSITIONS.peer2, CORE_POSITIONS.peer3];
+      uniquePeers.slice(0, 3).forEach((peer, i) => {
         const isClaw = peer.type === 'claw';
         const label = isClaw
           ? `NETCLAW AS${peer.as || '?'}`
@@ -2544,6 +2873,12 @@ async function boot() {
     setLoading(82, 'Spawning particle flow');
     initParticleFlow();
     initTerminalCardPool();
+
+    setLoading(83, 'Compiling shaders');
+    state.renderer.compile(state.scene, state.camera);
+
+    setLoading(84, 'Setting quality budget');
+    setQualityMode('balanced');
 
     setLoading(86, 'Wiring command deck');
     renderSidebar(state.graph);
