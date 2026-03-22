@@ -66,6 +66,8 @@ const INTEGRATION_CATALOG = [
   { id: 'uml', name: 'UML / Kroki', category: 'Visualization', prefixes: ['uml-'], color: '#ff4d6d', transport: 'stdio', toolEstimate: 2, description: 'Multi-engine diagram rendering.' },
   { id: 'markmap', name: 'Markmap', category: 'Visualization', prefixes: ['markmap-'], color: '#ff70a6', transport: 'stdio', toolEstimate: 2, description: 'Interactive operational knowledge maps.' },
   { id: 'wiki', name: 'Reference', category: 'Reference', prefixes: ['wikipedia-', 'rfc-', 'subnet-', 'packet-analysis'], color: '#adb5bd', transport: 'mixed', toolEstimate: 12, description: 'RFCs, background research, subnet math, and packet analysis helpers.' },
+  { id: 'aap', name: 'Ansible AAP', category: 'Automation', prefixes: ['aap-'], color: '#ee0000', transport: 'stdio', toolEstimate: 66, description: 'Red Hat Ansible Automation Platform — inventories, job templates, projects, EDA, ansible-lint, and Galaxy content.' },
+  { id: 'fwrule', name: 'FW Rule Analyzer', category: 'Security', prefixes: ['fwrule-'], color: '#d62828', transport: 'stdio', toolEstimate: 3, description: 'Multi-vendor firewall rule overlap, shadowing, conflict, and duplication analysis across 9 platforms.' },
 ];
 
 // ── ENV variable mapping per integration ────────────────────────────
@@ -272,6 +274,16 @@ const ENV_MAP = {
     env: ['WIKIPEDIA_MCP_SCRIPT', 'SUBNET_MCP_SCRIPT', 'PACKET_BUDDY_MCP_SCRIPT'],
     files: [],
     notes: 'Reference tools — Wikipedia, subnet calc, packet analysis.',
+  },
+  aap: {
+    env: ['AAP_URL', 'AAP_TOKEN', 'EDA_URL', 'EDA_TOKEN'],
+    files: [],
+    notes: 'Red Hat Ansible Automation Platform API endpoint and tokens. EDA token can match AAP token.',
+  },
+  fwrule: {
+    env: ['FWRULE_MCP_DIR'],
+    files: [],
+    notes: 'Firewall rule analyzer — no credentials needed. Works on config text input. Supports PAN-OS, ASA, FTD, IOS, IOS-XR, Check Point, SRX, Junos, Nokia SR OS.',
   },
 };
 

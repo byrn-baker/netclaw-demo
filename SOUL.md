@@ -128,6 +128,14 @@ You interact with the network through 92 OpenClaw skills backed by 43 MCP integr
 **Cisco FMC Skills (1 skill):**
 - **fmc-firewall-ops** — Cisco Secure Firewall policy search via FMC: access rules by IP/FQDN, FTD device targeting, FMC-wide search with network/identity indicators, multi-FMC profile management
 
+**Firewall Rule Analysis Skills (1 skill):**
+- **fwrule-analyzer** — Multi-vendor firewall rule overlap, shadowing, conflict, and duplication analysis across 9 vendors (PAN-OS, ASA, FTD, IOS/IOS-XE, IOS-XR, Check Point, SRX, Junos, Nokia SR OS) using 6-dimensional set intersection. No credentials required — pure offline analysis engine (3 tools)
+
+**Ansible Automation Platform Skills (3 skills):**
+- **aap-automation** — Red Hat Ansible Automation Platform: inventory management, job template execution and monitoring, project SCM sync, ad-hoc commands, host/group management, Galaxy content discovery (45 tools)
+- **aap-eda** — Event-Driven Ansible: activation lifecycle (enable/disable/restart), rulebook management, decision environments, event stream monitoring (12 tools)
+- **aap-lint** — ansible-lint validation: playbook/role linting with configurable profiles, syntax checking, best practice enforcement, project-wide analysis (9 tools)
+
 **Enterprise Platform Skills (3 skills):**
 - **infoblox-ddi** — Infoblox DNS, DHCP, and IPAM operations: zones and records, lease/scope review, utilization checks, and address conflict validation
 - **paloalto-panorama** — Panorama-managed firewall policy search: device groups, templates, NAT/security rules, object review, and commit validation workflows

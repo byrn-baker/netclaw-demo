@@ -554,6 +554,26 @@ else
 fi
 echo ""
 
+# --- Ansible Automation Platform (AAP) ---
+if yesno "Do you have a Red Hat Ansible Automation Platform instance?"; then
+    echo ""
+    echo -e "  AAP MCP provides 4 servers: Controller (45 tools), EDA (12 tools), ansible-lint (9 tools), Red Hat docs."
+    echo -e "  Get your API token from: ${BOLD}AAP → Settings → Tokens → Create (Write scope)${NC}"
+    echo ""
+    prompt AAP_URL_VAL "AAP Controller API URL (https://aap.example.com/api/controller/v2)" ""
+    prompt_secret AAP_TOKEN_VAL "AAP API Token"
+    prompt EDA_URL_VAL "EDA API URL (https://aap.example.com/api/eda/v1)" ""
+    prompt_secret EDA_TOKEN_VAL "EDA API Token (or same as AAP token)"
+    [ -n "$AAP_URL_VAL" ] && set_env "AAP_URL" "$AAP_URL_VAL"
+    [ -n "$AAP_TOKEN_VAL" ] && set_env "AAP_TOKEN" "$AAP_TOKEN_VAL"
+    [ -n "$EDA_URL_VAL" ] && set_env "EDA_URL" "$EDA_URL_VAL"
+    [ -n "$EDA_TOKEN_VAL" ] && set_env "EDA_TOKEN" "$EDA_TOKEN_VAL"
+    ok "Ansible Automation Platform configured"
+else
+    skip "Ansible Automation Platform"
+fi
+echo ""
+
 # --- Cisco ThousandEyes ---
 if yesno "Do you have a Cisco ThousandEyes account? (network monitoring, path visualization, BGP)"; then
     echo ""
@@ -688,6 +708,7 @@ grep -q "^MERAKI_API_KEY=" "$OPENCLAW_ENV" 2>/dev/null && ok "Cisco Meraki" || s
 grep -q "^FMC_BASE_URL=" "$OPENCLAW_ENV" 2>/dev/null && ok "Cisco FMC" || skip "Cisco FMC"
 grep -q "^PANOS_API_KEY=" "$OPENCLAW_ENV" 2>/dev/null && ok "Palo Alto Panorama" || skip "Palo Alto Panorama"
 grep -q "^FORTIMANAGER_API_TOKEN=" "$OPENCLAW_ENV" 2>/dev/null && ok "FortiManager" || skip "FortiManager"
+grep -q "^AAP_TOKEN=" "$OPENCLAW_ENV" 2>/dev/null && ok "Ansible Automation Platform" || skip "Ansible Automation Platform"
 grep -q "^TE_TOKEN=" "$OPENCLAW_ENV" 2>/dev/null && ok "Cisco ThousandEyes" || skip "Cisco ThousandEyes"
 grep -q "^RADKIT_IDENTITY=" "$OPENCLAW_ENV" 2>/dev/null && ok "Cisco RADKit" || skip "Cisco RADKit"
 [ -d "$NETCLAW_DIR/mcp-servers/uml-mcp" ] && ok "UML Diagrams (Kroki — no credentials required)" || skip "UML Diagrams"
