@@ -38,7 +38,7 @@ clone_or_pull() {
 
 NETCLAW_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MCP_DIR="$NETCLAW_DIR/mcp-servers"
-TOTAL_STEPS=48
+TOTAL_STEPS=50
 
 echo "========================================="
 echo "  NetClaw - CCIE Network Agent"
@@ -1608,10 +1608,77 @@ command -v palo-alto-mcp &> /dev/null || PANOS_MCP_CMD_DETECTED="python3 -m palo
 FORTIMANAGER_MCP_CMD_DETECTED="python3 -m fortimanager_mcp"
 
 # ═══════════════════════════════════════════
-# Step 46: Deploy skills and set environment
+# Step 46: AAP Enterprise MCP Server (Ansible Automation Platform)
 # ═══════════════════════════════════════════
 
-log_step "46/$TOTAL_STEPS Deploying skills and configuration..."
+log_step "46/$TOTAL_STEPS Installing AAP Enterprise MCP Server..."
+echo "  Source: https://github.com/sibilleb/AAP-Enterprise-MCP-Server"
+echo "  Red Hat Ansible Automation Platform, Event-Driven Ansible, ansible-lint, Red Hat docs"
+echo "  4 MCP servers: ansible.py (45 tools), eda.py (12 tools), ansible-lint.py (9 tools), redhat_docs.py"
+
+AAP_MCP_DIR="$MCP_DIR/AAP-Enterprise-MCP-Server"
+clone_or_pull "$AAP_MCP_DIR" "https://github.com/sibilleb/AAP-Enterprise-MCP-Server.git"
+
+if [ -d "$AAP_MCP_DIR" ]; then
+    log_info "Installing AAP MCP dependencies..."
+    if command -v uv &> /dev/null; then
+        (cd "$AAP_MCP_DIR" && uv sync) 2>/dev/null || log_warn "AAP MCP uv sync failed — trying pip"
+    fi
+    if [ -f "$AAP_MCP_DIR/pyproject.toml" ]; then
+        pip3 install -e "$AAP_MCP_DIR" 2>/dev/null || \
+            pip3 install --break-system-packages -e "$AAP_MCP_DIR" 2>/dev/null || \
+            log_warn "AAP MCP editable install failed — trying requirements"
+    fi
+    if [ -f "$AAP_MCP_DIR/requirements.txt" ]; then
+        pip3 install -r "$AAP_MCP_DIR/requirements.txt" 2>/dev/null || \
+            pip3 install --break-system-packages -r "$AAP_MCP_DIR/requirements.txt" 2>/dev/null || \
+            log_warn "AAP MCP requirements install failed"
+    fi
+
+    [ -f "$AAP_MCP_DIR/ansible.py" ] && \
+        log_info "AAP MCP ready: $AAP_MCP_DIR/ansible.py" || \
+        log_error "ansible.py not found in AAP MCP"
+else
+    log_warn "AAP MCP clone failed"
+fi
+
+echo ""
+
+# ═══════════════════════════════════════════
+# Step 47: fwrule MCP Server (Firewall Rule Analyzer)
+# ═══════════════════════════════════════════
+
+log_step "47/$TOTAL_STEPS Installing fwrule MCP Server..."
+echo "  Source: https://github.com/AutomateIP/fwrule-mcp"
+echo "  Multi-vendor firewall rule overlap, shadowing, conflict, and duplication analysis"
+echo "  9 vendors: PAN-OS, ASA, FTD, IOS/IOS-XE, IOS-XR, Check Point, SRX, Junos, Nokia SR OS (3 tools)"
+
+FWRULE_MCP_DIR="$MCP_DIR/fwrule-mcp"
+clone_or_pull "$FWRULE_MCP_DIR" "https://github.com/AutomateIP/fwrule-mcp.git"
+
+if [ -d "$FWRULE_MCP_DIR" ]; then
+    log_info "Installing fwrule MCP dependencies..."
+    if command -v uv &> /dev/null; then
+        (cd "$FWRULE_MCP_DIR" && uv sync) 2>/dev/null || log_warn "fwrule MCP uv sync failed — trying pip"
+    fi
+    if [ -f "$FWRULE_MCP_DIR/pyproject.toml" ]; then
+        pip3 install -e "$FWRULE_MCP_DIR" 2>/dev/null || \
+            pip3 install --break-system-packages -e "$FWRULE_MCP_DIR" 2>/dev/null || \
+            log_warn "fwrule MCP editable install failed"
+    fi
+
+    log_info "fwrule MCP ready: $FWRULE_MCP_DIR (run via 'uv run fwrule-mcp')"
+else
+    log_warn "fwrule MCP clone failed"
+fi
+
+echo ""
+
+# ═══════════════════════════════════════════
+# Step 48: Deploy skills and set environment
+# ═══════════════════════════════════════════
+
+log_step "48/$TOTAL_STEPS Deploying skills and configuration..."
 
 PYATS_SCRIPT="$PYATS_MCP_DIR/pyats_mcp_server.py"
 TESTBED_PATH="$NETCLAW_DIR/testbed/testbed.yaml"
@@ -1699,6 +1766,12 @@ if command -v gtrace &> /dev/null; then
 fi
 
 _set_env_var "TTS_MCP_SCRIPT"            "$TTS_MCP_DIR/server.py"
+_set_env_var "FWRULE_MCP_DIR"             "$FWRULE_MCP_DIR"
+_set_env_var "AAP_MCP_DIR"               "$AAP_MCP_DIR"
+_set_env_var "AAP_MCP_ANSIBLE_SCRIPT"    "$AAP_MCP_DIR/ansible.py"
+_set_env_var "AAP_MCP_EDA_SCRIPT"        "$AAP_MCP_DIR/eda.py"
+_set_env_var "AAP_MCP_LINT_SCRIPT"       "$AAP_MCP_DIR/ansible-lint.py"
+_set_env_var "AAP_MCP_DOCS_SCRIPT"       "$AAP_MCP_DIR/redhat_docs.py"
 
 # Remind user about API key if not set
 if ! grep -q "^ANTHROPIC_API_KEY=" "$OPENCLAW_ENV" 2>/dev/null && [ -z "${ANTHROPIC_API_KEY:-}" ]; then
@@ -1730,10 +1803,10 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 47: Verify installation
+# Step 49: Verify installation
 # ═══════════════════════════════════════════
 
-log_step "47/$TOTAL_STEPS Verifying installation..."
+log_step "49/$TOTAL_STEPS Verifying installation..."
 
 SERVERS_OK=0
 SERVERS_FAIL=0
@@ -2070,10 +2143,10 @@ log_info "Verification: $SERVERS_OK OK, $SERVERS_FAIL FAILED"
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 48: Summary
+# Step 50: Summary
 # ═══════════════════════════════════════════
 
-log_step "48/$TOTAL_STEPS Installation Summary"
+log_step "50/$TOTAL_STEPS Installation Summary"
 echo ""
 echo "========================================="
 echo "  NetClaw Installation Complete"
@@ -2237,6 +2310,11 @@ echo "  │"
 echo "  │ Arista CloudVision Skills:"
 echo "  │   arista-cvp              CVP — device inventory, events, connectivity monitor, tags (4 tools)"
 echo "  │"
+echo "  │ Ansible Automation Platform Skills:"
+echo "  │   aap-automation         AAP inventories, job templates, projects, ad-hoc commands (45 tools)"
+echo "  │   aap-eda                Event-Driven Ansible activations, rulebooks, event streams (12 tools)"
+echo "  │   aap-lint               ansible-lint playbook/role validation, best practices (9 tools)"
+echo "  │"
 echo "  │ Enterprise Platform Skills:"
 echo "  │   infoblox-ddi           DNS, DHCP, IPAM operations and validation"
 echo "  │   paloalto-panorama      Panorama policy search, object review, commit validation"
@@ -2280,6 +2358,9 @@ echo "  │   nso-service-mgmt        Service types, service instances, orchestr
 echo "  │"
 echo "  │ Cisco FMC Skills:"
 echo "  │   fmc-firewall-ops        Access policy search, FTD targeting, multi-FMC audit"
+echo "  │"
+echo "  │ Firewall Rule Analysis Skills:"
+echo "  │   fwrule-analyzer         Multi-vendor rule overlap, shadowing, conflict, duplication detection (3 tools)"
 echo "  │"
 echo "  │ Cisco RADKit Skills:"
 echo "  │   radkit-remote-access    Cloud-relayed CLI, SNMP, device inventory, attributes"
