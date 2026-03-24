@@ -33,7 +33,7 @@ After setup, start NetClaw:
 
 ```bash
 openclaw gateway              # terminal 1
-openclaw chat --new           # terminal 2
+openclaw tui                  # terminal 2
 ```
 
 Reconfigure anytime:
