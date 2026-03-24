@@ -4,7 +4,7 @@
 
 # NetClaw Visual HUD
 
-A Three.js 3D network operations dashboard for [NetClaw](https://github.com/automateyournetwork/netclaw). Visualizes all 43 MCP integrations, 92 skills, your device fleet, and live BGP peering topology in a real-time interactive scene. Includes a chat terminal wired directly to the OpenClaw gateway for live tool execution from the browser.
+A Three.js 3D network operations dashboard for [NetClaw](https://github.com/automateyournetwork/netclaw). Visualizes all 44 MCP integrations, 97 skills, your device fleet, and live BGP peering topology in a real-time interactive scene. Includes a chat terminal wired directly to the OpenClaw gateway for live tool execution from the browser. Supports bidirectional Slack and WebEx channels.
 
 ---
 
@@ -45,7 +45,7 @@ The installer runs two setup phases:
 **Phase 1: `openclaw onboard`** (OpenClaw's built-in wizard)
 - Pick your AI provider (Anthropic, OpenAI, Bedrock, Vertex, 30+ options)
 - Set up the gateway (local mode, auth, port)
-- Connect channels (Slack, Discord, Telegram, etc.)
+- Connect channels (Slack, WebEx, Discord, Telegram, etc.)
 - Install the daemon service
 
 **Phase 2: `./scripts/setup.sh`** (NetClaw platform credentials)
@@ -286,8 +286,8 @@ Devices from your `testbed.yaml` appear as smaller nodes connected to the local 
 
 The chat drawer in the bottom-right corner connects directly to the OpenClaw gateway:
 
-1. Type a message like `check R1 interfaces make a github report and send a slack message`
-2. The HUD identifies which integrations are relevant (pyATS, GitHub, Slack) and lights them up in the 3D scene
+1. Type a message like `check R1 interfaces make a github report and send a slack message` or `send a WebEx alert about R2 CPU`
+2. The HUD identifies which integrations are relevant (pyATS, GitHub, Slack, WebEx) and lights them up in the 3D scene
 3. Animated beams fire from the local core to each activated integration
 4. The gateway executes the actual tools (runs pyATS commands, creates GitHub issues, sends Slack messages)
 5. The response appears in the chat with a **LIVE** badge
@@ -355,7 +355,7 @@ Browser (Three.js HUD @ localhost:3000)
     +-- OpenClaw Gateway (@ localhost:18789)
           +-- Anthropic Claude (agent model)
           +-- 43 MCP integrations (pyATS, ACI, ISE, NetBox, GitHub, Slack, ...)
-          +-- 92 skills (health checks, troubleshooting, auditing, ...)
+          +-- 97 skills (health checks, troubleshooting, auditing, ...)
 ```
 
 ---

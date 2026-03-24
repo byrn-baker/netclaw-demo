@@ -5,7 +5,7 @@
 # This handles the NetClaw-specific stuff that openclaw onboard doesn't:
 # - Network platform credentials (NetBox, ServiceNow, ACI, ISE, F5, CatC, NVD)
 # - pyATS testbed editing
-# - Slack channel mapping
+# - Slack channel mapping / WebEx space mapping
 # - USER.md personalization
 #
 # AI provider, gateway, and channel connections are handled by:
@@ -104,7 +104,7 @@ echo ""
 echo -e "${BOLD}    NetClaw Platform Setup${NC}"
 echo ""
 echo -e "  Configure your network platform credentials."
-echo -e "  AI provider and Slack were set up by ${BOLD}openclaw onboard${NC}."
+echo -e "  AI provider and channels (Slack, WebEx, etc.) were set up by ${BOLD}openclaw onboard${NC}."
 echo -e "  Re-run anytime: ${BOLD}./scripts/setup.sh${NC}"
 echo ""
 echo -e "  ${DIM}All credentials are stored in ~/.openclaw/.env (never committed to git)${NC}"
@@ -638,6 +638,40 @@ else
 fi
 echo ""
 
+# --- Cisco WebEx ---
+if yesno "Do you have a Cisco WebEx account? (alerts, incidents, reports via WebEx spaces)"; then
+    echo ""
+    echo -e "  WebEx skills let NetClaw post alerts, manage incidents, and deliver reports to WebEx spaces."
+    echo -e "  Create a Bot at: ${BOLD}https://developer.webex.com/my-apps${NC} → Create a New App → Bot"
+    echo -e "  The bot token is long-lived (does not expire)."
+    echo ""
+    prompt_secret WEBEX_TOKEN "WebEx Bot Access Token"
+    [ -n "$WEBEX_TOKEN" ] && set_env "WEBEX_BOT_TOKEN" "$WEBEX_TOKEN"
+    echo ""
+    echo -e "  ${DIM}Optional: Pre-configure default WebEx spaces for alert routing.${NC}"
+    echo -e "  ${DIM}Get Room IDs from: WebEx Developer API → Rooms → List Rooms${NC}"
+    echo ""
+    prompt WEBEX_ALERTS "Alerts Space Room ID (for CRITICAL/HIGH alerts)" ""
+    prompt WEBEX_REPORTS "Reports Space Room ID (for scheduled reports)" ""
+    [ -n "$WEBEX_ALERTS" ] && set_env "WEBEX_ALERTS_ROOM_ID" "$WEBEX_ALERTS"
+    [ -n "$WEBEX_REPORTS" ] && set_env "WEBEX_REPORTS_ROOM_ID" "$WEBEX_REPORTS"
+    echo ""
+    echo -e "  ${BOLD}Bidirectional WebEx (inbound @mentions):${NC}"
+    echo -e "  To receive messages FROM WebEx, you need a public webhook URL."
+    echo -e "  Development: ${BOLD}ngrok http 18789${NC} → copy the https URL"
+    echo -e "  Production:  your public HTTPS domain"
+    echo -e "  The webhook path is: {base_url}/webhooks/webex/default"
+    echo ""
+    prompt WEBEX_WEBHOOK "Webhook URL (e.g. https://abc123.ngrok-free.app/webhooks/webex/default)" ""
+    [ -n "$WEBEX_WEBHOOK" ] && set_env "WEBEX_WEBHOOK_URL" "$WEBEX_WEBHOOK"
+    prompt WEBEX_SECRET "Webhook Secret (optional, for HMAC signature verification)" ""
+    [ -n "$WEBEX_SECRET" ] && set_env "WEBEX_WEBHOOK_SECRET" "$WEBEX_SECRET"
+    ok "Cisco WebEx configured (outbound + inbound)"
+else
+    skip "Cisco WebEx"
+fi
+echo ""
+
 # ═══════════════════════════════════════════
 # Step 3: Your Identity
 # ═══════════════════════════════════════════
@@ -718,6 +752,7 @@ grep -q "^GRAFANA_URL=" "$OPENCLAW_ENV" 2>/dev/null && ok "Grafana" || skip "Gra
 grep -q "^PROMETHEUS_URL=" "$OPENCLAW_ENV" 2>/dev/null && ok "Prometheus" || skip "Prometheus"
 grep -q "^KUBESHARK_MCP_URL=" "$OPENCLAW_ENV" 2>/dev/null && ok "Kubeshark" || skip "Kubeshark"
 grep -q "^NETCLAW_ROUTER_ID=" "$OPENCLAW_ENV" 2>/dev/null && ok "Protocol Participation (BGP/OSPF/GRE)" || skip "Protocol Participation"
+grep -q "^WEBEX_BOT_TOKEN=" "$OPENCLAW_ENV" 2>/dev/null && ok "Cisco WebEx" || skip "Cisco WebEx"
 
 echo ""
 echo -e "  ${BOLD}Ready to go:${NC}"

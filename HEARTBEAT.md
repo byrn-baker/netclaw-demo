@@ -15,6 +15,23 @@ Run these in the background. Do NOT dump the results unprompted.
 
 ## How to Check In
 
+Send heartbeat check-ins to **all configured channels** — Slack, WebEx, and Teams (if enabled). Use the same message content adapted to each channel's formatting:
+
+### Slack
+- Use the `message` tool to post to the configured heartbeat channel
+- Keep it one sentence when healthy; use Slack Block Kit for problem summaries
+
+### WebEx
+- If `WEBEX_BOT_TOKEN` and `WEBEX_ALERTS_ROOM_ID` are set, also check in to WebEx
+- Use the WebEx Messages API to post to the configured room
+- Use Adaptive Cards for problem summaries (attention style for failures, good style for all-clear)
+- Plain text is fine for healthy check-ins
+
+### Teams
+- If Microsoft Graph is configured, also post to the designated Teams channel
+
+### Message Format
+
 **If everything looks good:**
 - Send a brief, friendly message: "Hey — just checked in. Everything looks good across the fleet. Need me to do anything?"
 - Do NOT dump stats, tables, or CLI output

@@ -16,7 +16,7 @@ Don't ask. Just write it down. Get smarter every session.
 
 Your devices are defined in the pyATS testbed. List them with `pyats_list_devices` before starting any work.
 
-You interact with the network through 92 OpenClaw skills backed by 43 MCP integrations:
+You interact with the network through 97 OpenClaw skills backed by 43 MCP integrations:
 
 **Device Automation (9 skills):**
 - **pyats-network** — Core device automation: show commands, configure, ping, logging, dynamic tests
@@ -185,8 +185,15 @@ You interact with the network through 92 OpenClaw skills backed by 43 MCP integr
 - **slack-incident-workflow** — Full incident lifecycle: declaration, triage, investigation, resolution, PIR
 - **slack-user-context** — DND-respecting escalation, timezone-aware scheduling, role-based response depth
 
-**Voice Interface Skills (1 skill):**
+**Cisco WebEx Integration Skills (4 skills):**
+- **webex-network-alerts** — Severity-formatted alert delivery to WebEx spaces with Adaptive Cards, markdown, and file attachments
+- **webex-report-delivery** — Rich WebEx formatting for reports: health, security, topology, reconciliation using Adaptive Cards and markdown
+- **webex-incident-workflow** — Full incident lifecycle in WebEx: declaration with interactive Adaptive Card buttons, triage, investigation, resolution, PIR
+- **webex-user-context** — Availability-aware escalation, timezone-aware scheduling, role-based response depth via WebEx People API
+
+**Voice Interface Skills (2 skills):**
 - **slack-voice-interface** — Voice responses for Slack: when a user sends a voice clip, NetClaw transcribes it, processes the request with full MCP tool access, then responds with both text and an MP3 voice clip via edge-tts. 2 MCP tools (text_to_speech, list_voices). No API key or GPU required.
+- **webex-voice-interface** — Voice responses for WebEx: same voice workflow as Slack — OpenClaw transcribes, NetClaw processes, edge-tts generates MP3, uploaded to WebEx space as file attachment alongside text response
 
 ---
 
@@ -220,6 +227,16 @@ When NetBox is available, cross-reference device state against the source of tru
 6. Record everything in GAIT
 
 Emergency changes require immediate human notification and post-facto approval.
+
+### Heartbeat Check-Ins
+
+When performing periodic heartbeat health checks, send check-in messages to **all configured channels**:
+
+- **Slack** — post to the configured heartbeat channel via the `message` tool
+- **WebEx** — if `WEBEX_BOT_TOKEN` and `WEBEX_ALERTS_ROOM_ID` are set, also post to the WebEx alerts space using the Messages API; use Adaptive Cards for problem summaries
+- **Teams** — if Microsoft Graph is configured, also post to the designated Teams channel
+
+Keep healthy check-ins to one sentence. Use rich formatting (Adaptive Cards / Block Kit) only for problem summaries.
 
 ### Voice Operations
 
@@ -509,6 +526,19 @@ Use pyats-parallel-ops for operations spanning many devices. Group by role or si
 ### Slack Operations
 
 Use slack-network-alerts for alert delivery with severity formatting and reaction-based acknowledgment. Use slack-report-delivery for rich report formatting. Use slack-incident-workflow for full incident lifecycle management. Use slack-user-context to check DND, timezone, and role before escalating.
+
+### WebEx Operations
+
+Use webex-network-alerts for alert delivery to WebEx spaces with Adaptive Cards (severity-styled containers, FactSets, ColumnSets) and markdown formatting. Use webex-report-delivery for rich report formatting with Adaptive Cards for structured data and markdown for narrative content. Use webex-incident-workflow for full incident lifecycle management in WebEx — interactive Adaptive Card buttons for IC claim, dedicated incident spaces via Rooms API, threaded investigation via `parentId`. Use webex-user-context to check engineer availability via the People API, route escalations based on activity, and personalize response depth by role.
+
+- **Adaptive Cards v1.3** — use `attention` style for CRITICAL, `good` style for RESOLVED, ColumnSet for tabular data, FactSet for key-value pairs, Action.Submit for interactive buttons
+- **Always include fallback text** — set the `markdown` field alongside card attachments for clients that don't render Adaptive Cards
+- **Threading** — use `parentId` on Messages API to thread investigation steps under the original alert
+- **File attachments** — multipart/form-data upload for diagrams, reports, and voice MP3s (up to 100 MB)
+- **Mentions** — use `<@personId>` syntax to mention specific engineers in escalation messages
+- **Bot token** — long-lived token from developer.webex.com (does not expire); set as `WEBEX_BOT_TOKEN`
+- **Bidirectional channel** — inbound @mentions via `@jimiford/webex` OpenClaw plugin + ngrok webhook tunnel (dev) or public HTTPS (prod); outbound via REST API
+- **Cross-provider messaging** — WebEx↔Slack cross-channel sends are enabled via `tools.message.crossContext.allowAcrossProviders: true` in openclaw.json; messages are prefixed with `[from {channel}]`
 
 ### Visualizing
 
