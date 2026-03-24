@@ -4,7 +4,7 @@
 
 # NetClaw
 
-A CCIE-level AI network engineering coworker. Built on [OpenClaw](https://github.com/openclaw/openclaw) with Anthropic Claude, 92 skills, and 43 MCP integrations for complete network automation with ITSM gating, source-of-truth reconciliation, immutable audit trails, packet capture analysis, GitHub config-as-code, Cisco CML lab simulation, ContainerLab containerized network labs, Cisco NSO orchestration, Cisco SD-WAN vManage monitoring, Grafana observability (dashboards, Prometheus, Loki, alerting, incidents), Prometheus direct PromQL monitoring, Kubeshark Kubernetes traffic analysis, Cisco Meraki Dashboard management, Cisco ThousandEyes network intelligence, AWS cloud networking, Cisco Secure Firewall policy auditing, Itential network orchestration, Juniper JunOS device automation, Arista CloudVision Portal monitoring, F5 BIG-IP pyATS iControl REST coverage, Infoblox DDI, Palo Alto Panorama, FortiManager, UML diagram generation, EVPN/VXLAN fabric workflows, live BGP/OSPF control-plane participation, nmap network scanning, gtrace path analysis and IP enrichment, Slack-native operations, and Microsoft 365 integration.
+A CCIE-level AI network engineering coworker. Built on [OpenClaw](https://github.com/openclaw/openclaw) with Anthropic Claude, 97 skills, and 43 MCP integrations for complete network automation with ITSM gating, source-of-truth reconciliation, immutable audit trails, packet capture analysis, GitHub config-as-code, Cisco CML lab simulation, ContainerLab containerized network labs, Cisco NSO orchestration, Cisco SD-WAN vManage monitoring, Grafana observability (dashboards, Prometheus, Loki, alerting, incidents), Prometheus direct PromQL monitoring, Kubeshark Kubernetes traffic analysis, Cisco Meraki Dashboard management, Cisco ThousandEyes network intelligence, AWS cloud networking, Cisco Secure Firewall policy auditing, Itential network orchestration, Juniper JunOS device automation, Arista CloudVision Portal monitoring, F5 BIG-IP pyATS iControl REST coverage, Infoblox DDI, Palo Alto Panorama, FortiManager, UML diagram generation, EVPN/VXLAN fabric workflows, live BGP/OSPF control-plane participation, nmap network scanning, gtrace path analysis and IP enrichment, Slack-native operations, Cisco WebEx-native operations, and Microsoft 365 integration.
 
 ---
 
@@ -16,7 +16,7 @@ cd netclaw
 ./scripts/install.sh          # installs everything, then launches the setup wizard
 ```
 
-That's it. The installer deploys 92 skills, installs bundled MCP dependencies, and prepares configuration for 43 MCP integrations, then launches a two-phase setup:
+That's it. The installer deploys 97 skills, installs bundled MCP dependencies, and prepares configuration for 43 MCP integrations, then launches a two-phase setup:
 
 **Phase 1: `openclaw onboard`** (OpenClaw's built-in wizard)
 - Pick your AI provider (Anthropic, OpenAI, Bedrock, Vertex, 30+ options)
@@ -48,7 +48,7 @@ Reconfigure anytime:
   <img src="ui/netclaw-visual/logos/netclawvisualhud.png" alt="NetClaw Visual HUD — 3D Network Operations Dashboard" width="800">
 </p>
 
-NetClaw includes a Three.js 3D operations dashboard that visualizes all 43 integrations, 92 skills, your device fleet, and live BGP peering topology. Chat with NetClaw directly from the browser, watch integrations light up as tools execute, and inspect every node in the graph.
+NetClaw includes a Three.js 3D operations dashboard that visualizes all 43 integrations, 97 skills, your device fleet, and live BGP peering topology. Chat with NetClaw directly from the browser, watch integrations light up as tools execute, and inspect every node in the graph.
 
 ```bash
 cd ui/netclaw-visual
@@ -96,6 +96,7 @@ NetClaw is an autonomous network engineering agent powered by Claude that can:
 - **Operate** Catalyst Center — device inventory, client monitoring, site management, and troubleshooting
 - **Calculate** IPv4 and IPv6 subnets — VLSM planning, wildcard masks, allocation standards
 - **Alert** via Slack — severity-formatted notifications, incident workflows, and user-aware routing
+- **Alert** via Cisco WebEx — Adaptive Card-formatted notifications with interactive incident management buttons, threaded investigation, user-aware escalation via People API, and voice responses
 - **Diagram** your network with Draw.io topology maps (color-coded by reconciliation status)
 - **Visualize** protocol hierarchies as interactive Markmap mind maps
 - **Generate** UML and infrastructure diagrams via Kroki — 27+ types including network topology (nwdiag), rack layouts (rackdiag), packet headers (packetdiag), protocol state machines, sequence diagrams, C4 architecture, Mermaid, D2, Graphviz, ERD — output as SVG, PNG, PDF
@@ -120,7 +121,7 @@ NetClaw is an autonomous network engineering agent powered by Claude that can:
 ## Architecture
 
 ```
-Human (Slack / WebChat) --> NetClaw (CCIE Agent on OpenClaw)
+Human (Slack / WebEx / WebChat) --> NetClaw (CCIE Agent on OpenClaw)
                                 |
                                 |-- DEVICE AUTOMATION:
                                 |     MCP: pyATS           --> IOS-XE / NX-OS / IOS-XR devices
@@ -202,6 +203,12 @@ Human (Slack / WebChat) --> NetClaw (CCIE Agent on OpenClaw)
                                 |     MCP: Markmap         --> Mind map visualizations
                                 |     MCP: Draw.io         --> Network topology diagrams
                                 |     MCP: UML MCP         --> 27+ diagram types via Kroki
+                                |
+                                |-- COLLABORATION:
+                                |     Channel: Slack         --> Bidirectional via WebSocket (OpenClaw built-in)
+                                |     Channel: Cisco WebEx   --> Bidirectional via webhooks (@jimiford/webex plugin)
+                                |     MCP: Microsoft Graph   --> Teams, SharePoint, OneDrive, Visio
+                                |
                                 '     MCP: RFC Lookup      --> IETF standards reference
 ```
 
@@ -571,11 +578,245 @@ All MCP servers communicate via stdio (JSON-RPC 2.0) through `scripts/mcp-call.p
 | **slack-incident-workflow** | Full incident lifecycle in Slack: declaration, triage, automated investigation, status updates, resolution, post-incident review |
 | **slack-user-context** | User-aware interactions: DND-respecting escalation, timezone-aware scheduling, role-based response depth, shift handoff summaries |
 
+### Cisco WebEx Integration Skills (5)
+
+| Skill | Purpose |
+|-------|---------|
+| **webex-network-alerts** | Severity-formatted alert delivery to WebEx spaces using Adaptive Cards (attention/warning/good styles), markdown fallback, fleet summary ColumnSets |
+| **webex-report-delivery** | Rich WebEx formatting for health checks, security audits, topology maps, reconciliation results — Adaptive Cards for structured data, markdown for narrative |
+| **webex-incident-workflow** | Full incident lifecycle in WebEx: Adaptive Card declaration with interactive IC claim buttons, dedicated incident spaces via Rooms API, threaded investigation, resolution cards |
+| **webex-user-context** | User-aware interactions: People API availability checks, activity-based escalation routing, timezone-aware scheduling, role-based response depth |
+| **webex-voice-interface** | Voice responses for WebEx: OpenClaw transcribes voice clips, NetClaw processes with full skill set, edge-tts generates MP3, uploaded to WebEx space alongside text |
+
+> WebEx setup is documented in the dedicated **[Cisco WebEx Integration](#cisco-webex-integration)** section below.
+
+---
+
+## Cisco WebEx Integration
+
+> **Important:** WebEx is **not** a built-in OpenClaw channel. Unlike Slack (which ships as a first-party OpenClaw provider using WebSocket), WebEx is an **add-on** that uses the community [`@jimiford/webex`](https://www.npmjs.com/package/@jimiford/webex) OpenClaw channel plugin. This plugin delivers inbound messages via **webhooks** — WebEx POSTs to a public HTTPS endpoint whenever someone @mentions your bot. That means you need a publicly reachable URL (ngrok for local development, a real domain for production).
+
+NetClaw's WebEx support is **bidirectional**:
+
+| Direction | How It Works |
+|-----------|-------------|
+| **Outbound** (NetClaw → WebEx) | Direct REST API calls to `https://webexapis.com/v1/messages` using the bot token. Supports plain text, markdown, Adaptive Cards, file attachments, threaded replies. |
+| **Inbound** (WebEx → NetClaw) | The `@jimiford/webex` plugin registers a webhook with WebEx. When a user @mentions the bot, WebEx POSTs to your webhook URL, the plugin routes it to OpenClaw, and the agent responds. |
+
+### Prerequisites
+
+- A **Cisco WebEx account** (free or paid)
+- **Node.js 18+** and **OpenClaw 2026.3.x** (already installed if you ran `install.sh`)
+- **ngrok** (free tier works) — only required for local/development setups where the gateway is not publicly reachable
+
+### Step 1: Create a WebEx Bot
+
+1. Go to [developer.webex.com/my-apps](https://developer.webex.com/my-apps)
+2. Click **Create a New App** → **Create a Bot**
+3. Fill in:
+   - **Bot Name:** `NetClaw` (or whatever you prefer)
+   - **Bot Username:** e.g. `YourOrg_NetClaw` (must be unique)
+   - **Icon:** upload one or use a default
+   - **Description:** `CCIE-level AI network engineering agent`
+4. Click **Add Bot**
+5. **Copy the Bot Access Token** — this is shown only once (you can regenerate it later)
+   - The token looks like: `ZTA2MmM2MjMt...` (long base64 string)
+   - Bot tokens are **long-lived** and do not expire
+
+### Step 2: Add the Bot to a WebEx Space
+
+1. In the WebEx app, create or open a space (e.g., "NetClaw Alerts")
+2. Click the space name → **People** → **Add people**
+3. Search for your bot by its username (e.g., `YourOrg_NetClaw@webex.bot`) and add it
+4. **Copy the Room ID** — you'll need this for environment variables. Get it from:
+   - The [WebEx API docs](https://developer.webex.com/docs/api/v1/rooms/list-rooms) → **Try It** → find your space in the results
+   - Or use: `curl -H "Authorization: Bearer YOUR_TOKEN" https://webexapis.com/v1/rooms`
+
+### Step 3: Set Environment Variables
+
+You can set these either by running `./scripts/setup.sh` (interactive wizard) or by manually editing `~/.openclaw/.env`:
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `WEBEX_BOT_TOKEN` | Yes | Bot Access Token from Step 1 |
+| `WEBEX_ALERTS_ROOM_ID` | Optional | Default space for CRITICAL/HIGH alert delivery |
+| `WEBEX_REPORTS_ROOM_ID` | Optional | Default space for scheduled report delivery |
+| `WEBEX_INCIDENTS_ROOM_ID` | Optional | Default space for incident declarations |
+| `WEBEX_WEBHOOK_URL` | For inbound | Your public webhook URL (see Step 4) |
+| `WEBEX_WEBHOOK_SECRET` | Optional | HMAC-SHA1 secret for webhook signature verification |
+
+**Option A — Run the setup wizard:**
+```bash
+./scripts/setup.sh
+```
+The wizard prompts for the bot token, room IDs, webhook URL, and webhook secret.
+
+**Option B — Edit `.env` directly:**
+```bash
+# Add to ~/.openclaw/.env
+WEBEX_BOT_TOKEN=ZTA2MmM2MjMtMTM3Ny00ZTA0LTgz...
+WEBEX_ALERTS_ROOM_ID=Y2lzY29zcGFyazovL3Vybjp...
+WEBEX_REPORTS_ROOM_ID=Y2lzY29zcGFyazovL3Vybjp...
+WEBEX_INCIDENTS_ROOM_ID=Y2lzY29zcGFyazovL3Vybjp...
+```
+
+> **Outbound-only stops here.** If you only need NetClaw to *send* alerts and reports to WebEx (not receive @mentions), you're done. The WebEx skills will use the bot token and room IDs to post messages via the REST API. Skip to Step 7 to test.
+
+### Step 4: Set Up ngrok (Required for Inbound)
+
+WebEx delivers inbound messages via webhooks — it POSTs to a URL you provide. Your OpenClaw gateway listens on `localhost:18789`, which isn't publicly reachable. [ngrok](https://ngrok.com) creates a secure tunnel from a public HTTPS URL to your local gateway.
+
+1. **Install ngrok** (if not already installed):
+   ```bash
+   # macOS
+   brew install ngrok
+   # Linux
+   curl -sSL https://ngrok-agent.s3.amazonaws.com/ngrok-v3-stable-linux-amd64.tgz | sudo tar xz -C /usr/local/bin
+   # Or visit https://ngrok.com/download
+   ```
+
+2. **Sign up** at [ngrok.com](https://ngrok.com) (free tier is sufficient) and set your auth token:
+   ```bash
+   ngrok config add-authtoken YOUR_NGROK_AUTH_TOKEN
+   ```
+
+3. **Start the tunnel:**
+   ```bash
+   ngrok http 18789
+   ```
+
+4. **Copy the HTTPS URL** from the ngrok output:
+   ```
+   Forwarding  https://a1b2-203-0-113-42.ngrok-free.app -> http://localhost:18789
+   ```
+
+5. Your webhook endpoint is:
+   ```
+   https://a1b2-203-0-113-42.ngrok-free.app/webhooks/webex/default
+   ```
+
+> **ngrok free tier caveat:** The URL changes every time you restart ngrok. After restarting, update the `webhookUrl` in `openclaw.json` and restart the gateway. For production, use a stable HTTPS domain or an ngrok paid plan with a fixed subdomain.
+
+### Step 5: Install the WebEx Channel Plugin
+
+The `@jimiford/webex` plugin adds WebEx as a bidirectional channel to OpenClaw (similar to how Slack is built in):
+
+```bash
+openclaw plugin install @jimiford/webex
+```
+
+Then configure `~/.openclaw/openclaw.json`. Add these sections (merge with your existing config):
+
+```json
+{
+  "channels": {
+    "webex": {
+      "enabled": true,
+      "token": "YOUR_BOT_TOKEN",
+      "webhookUrl": "https://a1b2-203-0-113-42.ngrok-free.app/webhooks/webex/default",
+      "dmPolicy": "allow"
+    }
+  },
+  "plugins": {
+    "allow": ["webex"],
+    "entries": {
+      "webex": {
+        "enabled": true,
+        "config": {
+          "token": "YOUR_BOT_TOKEN",
+          "webhookUrl": "https://a1b2-203-0-113-42.ngrok-free.app/webhooks/webex/default",
+          "dmPolicy": "allow"
+        }
+      }
+    }
+  }
+}
+```
+
+Replace `YOUR_BOT_TOKEN` with your actual bot token and the ngrok URL with your actual URL.
+
+### Step 6: Enable Cross-Provider Messaging (Optional)
+
+By default, OpenClaw enforces **provider isolation** — a session started from WebEx cannot send messages to Slack, and vice versa. If you want NetClaw to relay messages between channels (e.g., ask NetClaw in WebEx to post an alert to Slack), add this to `~/.openclaw/openclaw.json`:
+
+```json
+{
+  "tools": {
+    "message": {
+      "crossContext": {
+        "allowWithinProvider": true,
+        "allowAcrossProviders": true,
+        "marker": {
+          "enabled": true,
+          "prefix": "[from {channel}]"
+        }
+      }
+    }
+  }
+}
+```
+
+Cross-provider messages are tagged with a `[from webex]` or `[from slack]` prefix so recipients know the origin.
+
+### Step 7: Start and Test
+
+1. **Make sure ngrok is running** (if using inbound):
+   ```bash
+   ngrok http 18789
+   ```
+
+2. **Start the gateway:**
+   ```bash
+   openclaw gateway run
+   ```
+
+3. **Verify the WebEx provider starts.** You should see these lines in the gateway log:
+   ```
+   [webex] [default] starting Webex provider (webhook mode)
+   [webex] [default] webhooks registered
+   [webex] [default] HTTP webhook handler registered at /webhooks/webex/default
+   [webex] [default] Webex provider running (webhook mode — waiting for messages)
+   ```
+   If you see `auto-restart attempt`, something is wrong — check your token and webhook URL.
+
+4. **Test outbound** — from Slack (or the web chat), ask NetClaw to send a message to WebEx:
+   ```
+   Send a hello world message to the WebEx alerts space
+   ```
+
+5. **Test inbound** — in WebEx, @mention the bot:
+   ```
+   @NetClaw what skills and MCPs do you have?
+   ```
+   The bot should respond directly in the WebEx space.
+
+### WebEx Skills Reference
+
+WebEx skills use the [WebEx REST API](https://developer.webex.com/docs/api/getting-started) with [Adaptive Cards v1.3](https://developer.webex.com/messaging/docs/buttons-and-cards) for rich interactive formatting, the People API for user-aware routing, and threaded messages via `parentId` for investigation workflows.
+
+| API Endpoint | Used For |
+|-------------|----------|
+| `POST /v1/messages` | Send text, markdown, and Adaptive Cards to spaces |
+| `GET /v1/rooms` | List and create spaces for incidents |
+| `GET /v1/people/me` | Bot identity and display name |
+| `GET /v1/memberships` | Check who is in a space |
+| `POST /v1/webhooks` | Register webhook targets (handled automatically by the plugin) |
+
+### Troubleshooting
+
+| Problem | Cause | Fix |
+|---------|-------|-----|
+| No `[webex]` line in gateway log | Plugin not installed or not enabled | Run `openclaw plugin install @jimiford/webex` and check `openclaw.json` has `plugins.allow: ["webex"]` |
+| `auto-restart attempt` loop | Provider starts but immediately exits | Check bot token is valid; check ngrok is running and URL matches config |
+| @mention in WebEx gets no response | Webhook not reaching gateway | Verify ngrok is running, URL in `openclaw.json` ends with `/webhooks/webex/default`, and WebEx webhook is registered (check at developer.webex.com → Webhooks) |
+| `Cross-context messaging denied` | Provider isolation blocking cross-channel sends | Add `tools.message.crossContext.allowAcrossProviders: true` to `openclaw.json` |
+| `404` on webhook POST | URL path mismatch | The gateway listens at `/webhooks/webex/default` (not `/webhooks/webex`) — make sure the `/default` suffix is in your webhook URL |
+
 ---
 
 ## Cloud
 
-NetClaw extends into public cloud infrastructure. Each cloud provider gets its own set of MCP servers and skills, all driven from the same Slack/chat interface as on-prem operations.
+NetClaw extends into public cloud infrastructure. Each cloud provider gets its own set of MCP servers and skills, all driven from the same Slack/WebEx/chat interface as on-prem operations.
 
 ### AWS
 
@@ -1524,7 +1765,12 @@ netclaw/
 │       ├── slack-network-alerts/         # Slack alert delivery
 │       ├── slack-report-delivery/        # Slack report formatting
 │       ├── slack-incident-workflow/      # Slack incident lifecycle
-│       └── slack-user-context/           # Slack user-aware routing
+│       ├── slack-user-context/           # Slack user-aware routing
+│       ├── webex-network-alerts/        # WebEx alert delivery (Adaptive Cards)
+│       ├── webex-report-delivery/       # WebEx report formatting
+│       ├── webex-incident-workflow/     # WebEx incident lifecycle
+│       ├── webex-user-context/          # WebEx user-aware routing
+│       └── webex-voice-interface/       # WebEx voice responses
 ├── testbed/
 │   └── testbed.yaml                      # pyATS testbed (your network devices)
 ├── config/
