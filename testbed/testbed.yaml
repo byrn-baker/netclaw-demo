@@ -139,3 +139,22 @@ devices:
         port: 22
         arguments:
           connection_timeout: 30
+
+  NetClaw:
+    alias: "DevNet Sandbox Catalyst 9000"
+    type: "switch"
+    os: "iosxe"
+    platform: cat9k
+    credentials:
+      default:
+        username: ptcapo
+        password: "Vmq2--ZAf8A1"
+      enable:
+        password: "Vmq2--ZAf8A1"
+    connections:
+      cli:
+        protocol: ssh
+        ip: devnetsandboxiosxec9k.cisco.com
+        port: 22
+        arguments:
+          connection_timeout: 60
