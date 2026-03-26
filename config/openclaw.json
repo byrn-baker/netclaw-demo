@@ -13,6 +13,14 @@
       }
     }
   },
+  "tokenOptimization": {
+    "enabled": true,
+    "libraryPath": "src/netclaw_tokens",
+    "toonSerializationDefault": true,
+    "footerDisplay": "always",
+    "sessionTracking": true,
+    "pricingOverrideEnvVar": "NETCLAW_TOKEN_PRICING_OVERRIDE"
+  },
   "commands": {
     "native": "auto",
     "nativeSkills": "auto",

@@ -39,7 +39,20 @@ All credentials are in `~/.openclaw/.env`. Never put credentials in skill files 
 - gNMI Telemetry      → GNMI_TARGETS (JSON), GNMI_TLS_CA_CERT, GNMI_TLS_CLIENT_CERT, GNMI_TLS_CLIENT_KEY
 - Azure Network MCP   → AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, AZURE_SUBSCRIPTION_ID
 - Canvas/A2UI Viz     → No new credentials (uses existing MCP server connections)
+- Token Optimization  → ANTHROPIC_API_KEY (reused), NETCLAW_TOKEN_PRICING_OVERRIDE (optional)
 ```
+
+## Token Optimization Infrastructure
+
+The `netclaw_tokens` shared library (`src/netclaw_tokens/`) provides token counting, TOON serialization, and cost tracking:
+- **counter.py** — Token counting via Anthropic `count_tokens()` API with `len/4` fallback
+- **toon_serializer.py** — TOON format serialization for MCP responses (40-60% savings on tabular data)
+- **cost_calculator.py** — Model-aware pricing: Opus ($5/$25), Sonnet ($3/$15), Haiku ($1/$5) per 1M tokens
+- **session_ledger.py** — Thread-safe cumulative session tracking with per-tool breakdown
+- **footer.py** — Mandatory token/cost footer formatter for every interaction
+- **toon_wrapper.py** — TOON conversion wrapper for community/remote MCP servers
+- Pricing override via `NETCLAW_TOKEN_PRICING_OVERRIDE` env var (JSON format)
+- Prompt caching discount: 90% off cached input tokens
 
 ## gNMI Infrastructure
 

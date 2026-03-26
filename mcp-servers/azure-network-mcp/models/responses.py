@@ -19,10 +19,16 @@ def to_dict(obj) -> dict:
 
 
 def to_json(obj) -> str:
-    """Serialize a dataclass or list of dataclasses to JSON string."""
+    """Serialize a dataclass or list of dataclasses using TOON with JSON fallback."""
     if isinstance(obj, list):
-        return json.dumps([to_dict(item) for item in obj], indent=2)
-    return json.dumps(to_dict(obj), indent=2)
+        data = [to_dict(item) for item in obj]
+    else:
+        data = to_dict(obj)
+    try:
+        from utils.toon_helper import toon_dumps
+        return toon_dumps(data)
+    except Exception:
+        return json.dumps(data, indent=2)
 
 
 # --- VNet Models ---

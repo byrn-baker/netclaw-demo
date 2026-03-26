@@ -26,8 +26,19 @@ from typing import Any, Optional
 
 from fastmcp import FastMCP
 
-# Add current directory to path for local imports
+# Add current directory and netclaw_tokens to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "src"))
+
+
+def _toon_dumps(data, **kwargs) -> str:
+    """Serialize data using TOON format with JSON fallback."""
+    try:
+        from netclaw_tokens.toon_serializer import serialize_response
+        result = serialize_response(data)
+        return result.toon_data
+    except Exception:
+        return json.dumps(data, indent=2, default=str)
 
 from gnmi_client import (
     GnmiClientWrapper,
@@ -440,7 +451,7 @@ def gnmi_get_subscriptions() -> str:
         status, creation time, and last update time.
     """
     subs = _sub_manager.list_subscriptions()
-    return json.dumps([s.model_dump() for s in subs], indent=2, default=str)
+    return _toon_dumps([s.model_dump() for s in subs])
 
 
 # ===================================================================
@@ -470,7 +481,7 @@ def gnmi_get_subscription_updates(
             "message": str(exc),
         })
 
-    return json.dumps([u.model_dump() for u in updates], indent=2, default=str)
+    return _toon_dumps([u.model_dump() for u in updates])
 
 
 # ===================================================================
@@ -795,7 +806,7 @@ def gnmi_list_targets() -> str:
             "status": "reachable" if reachable else "unreachable",
         })
 
-    return json.dumps(targets_info, indent=2)
+    return _toon_dumps(targets_info)
 
 
 # ---------------------------------------------------------------------------

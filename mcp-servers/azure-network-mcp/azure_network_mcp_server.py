@@ -19,6 +19,16 @@ from mcp.server.fastmcp import FastMCP
 from clients.azure_client import azure_client_factory
 from utils.rate_limiter import format_error_response
 
+
+def _toon_dumps(data, **kwargs) -> str:
+    """Serialize data using TOON format with JSON fallback."""
+    try:
+        from netclaw_tokens.toon_serializer import serialize_response
+        result = serialize_response(data)
+        return result.toon_data
+    except Exception:
+        return json.dumps(data, indent=2, default=str)
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -88,7 +98,7 @@ async def azure_list_subscriptions() -> str:
             })
         gait_audit_log("azure_list_subscriptions", "all", status="success",
                        details=f"Found {len(subscriptions)} subscriptions")
-        return json.dumps(subscriptions, indent=2)
+        return _toon_dumps(subscriptions)
     except Exception as e:
         gait_audit_log("azure_list_subscriptions", "all", status="error", details=str(e))
         return format_error_response(e)

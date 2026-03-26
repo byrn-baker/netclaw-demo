@@ -28,6 +28,20 @@ from typing import Any, Dict, List, Optional
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
+# Add netclaw_tokens to path for TOON serialization
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "src"))
+
+
+def _toon_dumps(data, **kwargs) -> str:
+    """Serialize data using TOON format with JSON fallback."""
+    try:
+        from netclaw_tokens.toon_serializer import serialize_response
+        result = serialize_response(data)
+        return result.toon_data
+    except Exception:
+        return json.dumps(data, indent=2, default=str)
+
+
 # ---------------------------------------------------------------------------
 # Logging (stderr only — stdout is reserved for MCP JSON-RPC)
 # ---------------------------------------------------------------------------
@@ -289,7 +303,7 @@ def batfish_upload_snapshot(
             result_summary=f"CREATED: {len(devices)} devices",
         )
 
-        return json.dumps(result, indent=2)
+        return _toon_dumps(result)
     finally:
         shutil.rmtree(snap_dir, ignore_errors=True)
 
@@ -381,7 +395,7 @@ def batfish_validate_config(
         result_summary=f"{'PASS' if overall_pass else 'FAIL'}: {passed}/{total} devices valid",
     )
 
-    return json.dumps(result, indent=2)
+    return _toon_dumps(result)
 
 
 # ---------------------------------------------------------------------------
@@ -481,7 +495,7 @@ def batfish_test_reachability(
         result_summary=f"{overall_disposition}: {len(traces_out)} trace(s)",
     )
 
-    return json.dumps(result, indent=2)
+    return _toon_dumps(result)
 
 
 # ---------------------------------------------------------------------------
@@ -599,7 +613,7 @@ def batfish_trace_acl(
         result_summary=f"{action}: matched '{matching_line}'",
     )
 
-    return json.dumps(result, indent=2)
+    return _toon_dumps(result)
 
 
 # ---------------------------------------------------------------------------
@@ -649,7 +663,7 @@ def batfish_diff_configs(
                          "include_reachability": include_reachability},
             result_summary="IDENTICAL: No differences (same snapshot)",
         )
-        return json.dumps(result, indent=2)
+        return _toon_dumps(result)
 
     route_diffs: List[Dict[str, Any]] = []
     reachability_diffs: List[Dict[str, Any]] = []
@@ -766,7 +780,7 @@ def batfish_diff_configs(
                         f"Reachability: {len(reachability_diffs)} changes"),
     )
 
-    return json.dumps(result, indent=2)
+    return _toon_dumps(result)
 
 
 # ---------------------------------------------------------------------------
@@ -1018,7 +1032,7 @@ def batfish_check_compliance(
         result_summary=f"{overall_status}: {len(violations)} violation(s) across {checked_devices} devices",
     )
 
-    return json.dumps(result, indent=2)
+    return _toon_dumps(result)
 
 
 # ---------------------------------------------------------------------------
@@ -1050,7 +1064,7 @@ def batfish_list_snapshots(
         result_summary=f"{len(snapshots)} snapshot(s) found",
     )
 
-    return json.dumps(result, indent=2)
+    return _toon_dumps(result)
 
 
 # ---------------------------------------------------------------------------
@@ -1091,7 +1105,7 @@ def batfish_delete_snapshot(
         result_summary="DELETED",
     )
 
-    return json.dumps(result, indent=2)
+    return _toon_dumps(result)
 
 
 # ---------------------------------------------------------------------------

@@ -14,12 +14,28 @@ All operations are read-only. Credentials are read from environment variables.
 
 import json
 import logging
+import os
 import sys
 from typing import Optional
 
 from mcp.server.fastmcp import FastMCP
 
+# Add netclaw_tokens to path for TOON serialization
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "src"))
+
 from suzieq_client import ASSERT_TABLES, KNOWN_TABLES, SuzieQClient
+
+# ---------------------------------------------------------------------------
+# TOON serialization helper
+# ---------------------------------------------------------------------------
+def _toon_dumps(data: dict, **kwargs) -> str:
+    """Serialize data using TOON format with JSON fallback."""
+    try:
+        from netclaw_tokens.toon_serializer import serialize_response
+        result = serialize_response(data)
+        return result.toon_data
+    except Exception:
+        return json.dumps(data, indent=2, **kwargs)
 
 # ---------------------------------------------------------------------------
 # Logging — stderr only (stdout is reserved for MCP JSON-RPC)
@@ -92,7 +108,7 @@ def format_query_response(
             indent=2,
         )
 
-    return json.dumps(
+    return _toon_dumps(
         {
             "table": table,
             "verb": verb,
@@ -100,7 +116,6 @@ def format_query_response(
             "filters_applied": filters_applied,
             "data": data,
         },
-        indent=2,
     )
 
 
@@ -148,7 +163,7 @@ def format_assert_response(table: str, result: dict) -> str:
             else:
                 pass_count += 1
 
-    return json.dumps(
+    return _toon_dumps(
         {
             "table": table,
             "verb": "assert",
@@ -159,7 +174,6 @@ def format_assert_response(table: str, result: dict) -> str:
             "failures": failures if failures else [],
             "data": data,
         },
-        indent=2,
     )
 
 
@@ -203,7 +217,7 @@ def format_path_response(
             indent=2,
         )
 
-    return json.dumps(
+    return _toon_dumps(
         {
             "namespace": namespace,
             "source": source,
@@ -212,7 +226,6 @@ def format_path_response(
             "hop_count": hop_count,
             "hops": data,
         },
-        indent=2,
     )
 
 
