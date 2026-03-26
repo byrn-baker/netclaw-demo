@@ -118,6 +118,8 @@ NetClaw is an autonomous network engineering agent powered by Claude that can:
 - **Diagram** AWS architecture — auto-discover and render VPCs, subnets, TGWs, load balancers as visual topology diagrams (requires graphviz)
 - **Stream** gNMI telemetry from Cisco IOS-XR, Juniper, Arista, and Nokia SR OS devices — structured YANG model queries, SAMPLE/ON_CHANGE subscriptions, ITSM-gated configuration changes, YANG capability browsing, and gNMI-vs-CLI state comparison
 - **Audit** every action in an immutable Git-based trail (GAIT) — there is always an answer to "what did the AI do and why"
+- **Track** token consumption and cost in real-time — every interaction displays input/output tokens, USD cost, and TOON savings. Session-level tracking with per-tool breakdown. Powered by Anthropic's `count_tokens()` API with local estimation fallback
+- **Optimize** token usage with TOON serialization — all MCP server responses use TOON format (Tabular Object Oriented Notation) for 40-60% token savings on tabular network data (route tables, interface lists, BGP peers). Automatic JSON fallback on errors
 
 ---
 

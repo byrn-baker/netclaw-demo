@@ -38,7 +38,7 @@ clone_or_pull() {
 
 NETCLAW_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MCP_DIR="$NETCLAW_DIR/mcp-servers"
-TOTAL_STEPS=53
+TOTAL_STEPS=54
 
 echo "========================================="
 echo "  NetClaw - CCIE Network Agent"
@@ -1803,6 +1803,29 @@ echo ""
 # ═══════════════════════════════════════════
 # Step 51: Deploy skills and set environment
 # ═══════════════════════════════════════════
+
+# ═══════════════════════════════════════════
+# Step 50c: Install Token Optimization Library (netclaw_tokens)
+# ═══════════════════════════════════════════
+
+log_step "50c/$TOTAL_STEPS Installing Token Optimization Library (netclaw_tokens)..."
+
+TOKEN_LIB_DIR="$NETCLAW_DIR/src/netclaw_tokens"
+if [ -d "$TOKEN_LIB_DIR" ]; then
+    log_info "Installing netclaw_tokens dependencies..."
+    pip3 install -r "$TOKEN_LIB_DIR/requirements.txt" 2>/dev/null || \
+        pip3 install --break-system-packages -r "$TOKEN_LIB_DIR/requirements.txt" 2>/dev/null || {
+            log_warn "netclaw_tokens pip install failed — trying individual packages"
+            pip3 install anthropic toon-format 2>/dev/null || \
+                pip3 install --break-system-packages anthropic toon-format 2>/dev/null || \
+                    log_warn "Token optimization deps failed. Install manually: pip3 install anthropic toon-format"
+        }
+    log_info "netclaw_tokens library ready at $TOKEN_LIB_DIR"
+else
+    log_warn "Token optimization library not found at $TOKEN_LIB_DIR"
+fi
+
+echo ""
 
 log_step "51/$TOTAL_STEPS Deploying skills and configuration..."
 

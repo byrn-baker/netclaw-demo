@@ -12,6 +12,8 @@ Run these in the background. Do NOT dump the results unprompted.
 - [ ] **CPU/Memory** — Flag anything over 80% CPU or 85% memory
 - [ ] **Interface Errors** — Check for rising CRC, drops, or errors on uplinks
 - [ ] **Syslog** — Scan for severity 0-3 messages
+- [ ] **Token Usage** — Session token count, cost, TOON savings percentage
+- [ ] **Top 5 Token-Expensive Operations** — Ranked by total tokens consumed
 
 ## How to Check In
 
@@ -59,3 +61,8 @@ Send heartbeat check-ins to **all configured channels** — Slack, WebEx, and Te
 - If a check fails, summarize in plain language first, offer to investigate
 - Do not repeat alerts for known issues already tracked in ServiceNow
 - Record heartbeat results in GAIT only if an anomaly is detected
+- **ALWAYS include token usage summary in heartbeat check-ins**:
+  - Session token count and estimated cost
+  - TOON savings percentage (tokens saved vs JSON equivalent)
+  - Top 5 most token-expensive operations this session
+  - Example: "Session so far: 45,231 tokens ($0.42). TOON saved 38% (27,890 tokens). Top consumer: pyats_show_interfaces (12,450 tokens)."
