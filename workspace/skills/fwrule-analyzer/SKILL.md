@@ -105,7 +105,6 @@ When cleaning up an existing firewall policy:
 | `paloalto-panorama` | Panorama policy export + fwrule cross-policy analysis |
 | `pyats-security` | Device ACL retrieval via pyATS + fwrule overlap detection |
 | `pyats-asa-firewall` | ASA config retrieval + fwrule ASA parser for rule normalization |
-| `linkeye-mcp` | Pull FortiGate backup configs via LinkEye Data Collector → feed directly to `parse_policy(vendor="fortios")` |
 | `fortimanager-ops` | FortiManager policy export + fwrule FortiOS parser for cross-VDOM analysis |
 | `servicenow-change-workflow` | ServiceNow CR gating + fwrule validation before rule deployment |
 | `github-ops` | Commit firewall rule change analysis results to Git |
