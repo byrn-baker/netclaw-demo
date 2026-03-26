@@ -38,7 +38,7 @@ clone_or_pull() {
 
 NETCLAW_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MCP_DIR="$NETCLAW_DIR/mcp-servers"
-TOTAL_STEPS=50
+TOTAL_STEPS=53
 
 echo "========================================="
 echo "  NetClaw - CCIE Network Agent"
@@ -1675,10 +1675,136 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 48: Deploy skills and set environment
+# Step 48: SuzieQ MCP Server (Network Observability)
 # ═══════════════════════════════════════════
 
-log_step "48/$TOTAL_STEPS Deploying skills and configuration..."
+log_step "48/$TOTAL_STEPS Installing SuzieQ MCP Server..."
+echo "  Built-in MCP server: mcp-servers/suzieq-mcp/"
+echo "  SuzieQ network observability — show, summarize, assert, unique, path (5 read-only tools)"
+
+SUZIEQ_MCP_DIR="$MCP_DIR/suzieq-mcp"
+if [ -d "$NETCLAW_DIR/mcp-servers/suzieq-mcp" ]; then
+    SUZIEQ_MCP_DIR="$NETCLAW_DIR/mcp-servers/suzieq-mcp"
+fi
+
+if [ -f "$SUZIEQ_MCP_DIR/requirements.txt" ]; then
+    log_info "Installing SuzieQ MCP dependencies..."
+    pip3 install -r "$SUZIEQ_MCP_DIR/requirements.txt" 2>/dev/null || \
+        pip3 install --break-system-packages -r "$SUZIEQ_MCP_DIR/requirements.txt" 2>/dev/null || {
+            log_warn "SuzieQ MCP pip install failed — dependencies may need manual installation"
+        }
+    log_info "SuzieQ MCP ready: $SUZIEQ_MCP_DIR"
+else
+    log_warn "SuzieQ MCP requirements.txt not found at $SUZIEQ_MCP_DIR"
+fi
+
+echo ""
+
+# ═══════════════════════════════════════════
+# Step 49: Batfish MCP Server
+# ═══════════════════════════════════════════
+
+log_step "49/$TOTAL_STEPS Installing Batfish MCP Server..."
+echo "  Built-in MCP server: mcp-servers/batfish-mcp/"
+echo "  Batfish offline config analysis — upload, validate, reachability, ACL trace, diff, compliance (8 tools)"
+
+BATFISH_MCP_DIR="$MCP_DIR/batfish-mcp"
+if [ -d "$NETCLAW_DIR/mcp-servers/batfish-mcp" ]; then
+    BATFISH_MCP_DIR="$NETCLAW_DIR/mcp-servers/batfish-mcp"
+fi
+
+if [ -f "$BATFISH_MCP_DIR/requirements.txt" ]; then
+    log_info "Installing Batfish MCP dependencies..."
+    pip3 install -r "$BATFISH_MCP_DIR/requirements.txt" 2>/dev/null || \
+        pip3 install --break-system-packages -r "$BATFISH_MCP_DIR/requirements.txt" 2>/dev/null || {
+            log_warn "Batfish MCP pip install failed — dependencies may need manual installation"
+        }
+    log_info "Batfish MCP ready: $BATFISH_MCP_DIR"
+else
+    log_warn "Batfish MCP requirements.txt not found at $BATFISH_MCP_DIR"
+fi
+
+# Check if Batfish Docker image is available
+if command -v docker &> /dev/null; then
+    if docker image inspect batfish/batfish &> /dev/null 2>&1; then
+        log_info "Batfish Docker image already available"
+    else
+        log_info "Pulling Batfish Docker image (batfish/batfish)..."
+        docker pull batfish/batfish 2>/dev/null || \
+            log_warn "Could not pull batfish/batfish — pull manually: docker pull batfish/batfish"
+    fi
+else
+    log_warn "Docker not found — Batfish requires Docker. Install Docker and run: docker pull batfish/batfish"
+fi
+
+echo ""
+
+# ═══════════════════════════════════════════
+# Step 50: Azure Network MCP Server
+# ═══════════════════════════════════════════
+
+log_step "50/$TOTAL_STEPS Installing Azure Network MCP Server..."
+echo "  Built-in MCP server: mcp-servers/azure-network-mcp/"
+echo "  Azure networking — VNets, NSGs, ExpressRoute, VPN, Firewall, LB, DNS (19 tools)"
+
+AZURE_NET_MCP_DIR="$MCP_DIR/azure-network-mcp"
+if [ -d "$NETCLAW_DIR/mcp-servers/azure-network-mcp" ]; then
+    AZURE_NET_MCP_DIR="$NETCLAW_DIR/mcp-servers/azure-network-mcp"
+fi
+
+if [ -f "$AZURE_NET_MCP_DIR/requirements.txt" ]; then
+    log_info "Installing Azure Network MCP dependencies..."
+    pip3 install -r "$AZURE_NET_MCP_DIR/requirements.txt" 2>/dev/null || \
+        pip3 install --break-system-packages -r "$AZURE_NET_MCP_DIR/requirements.txt" 2>/dev/null || {
+            log_warn "Azure Network MCP pip install failed — dependencies may need manual installation"
+        }
+
+    # Copy .env.example if .env does not exist
+    if [ -f "$AZURE_NET_MCP_DIR/.env.example" ] && [ ! -f "$AZURE_NET_MCP_DIR/.env" ]; then
+        log_info "Azure Network MCP .env.example available — copy and configure:"
+        echo "    cp $AZURE_NET_MCP_DIR/.env.example $AZURE_NET_MCP_DIR/.env"
+    fi
+
+    log_info "Azure Network MCP ready: $AZURE_NET_MCP_DIR"
+else
+    log_warn "Azure Network MCP requirements.txt not found at $AZURE_NET_MCP_DIR"
+fi
+
+echo ""
+
+# ═══════════════════════════════════════════
+# Step 50b: gNMI Streaming Telemetry MCP Server
+# ═══════════════════════════════════════════
+
+log_step "50b/$TOTAL_STEPS Installing gNMI Streaming Telemetry MCP Server..."
+echo "  Built-in MCP server: mcp-servers/gnmi-mcp/"
+echo "  gNMI telemetry — Get, Set (ITSM-gated), Subscribe, Capabilities, YANG browsing (10 tools)"
+echo "  Vendors: Cisco IOS-XR, Juniper, Arista, Nokia SR OS via pygnmi/gRPC"
+
+GNMI_MCP_DIR="$MCP_DIR/gnmi-mcp"
+if [ -d "$NETCLAW_DIR/mcp-servers/gnmi-mcp" ]; then
+    GNMI_MCP_DIR="$NETCLAW_DIR/mcp-servers/gnmi-mcp"
+fi
+
+if [ -f "$GNMI_MCP_DIR/requirements.txt" ]; then
+    log_info "Installing gNMI MCP dependencies (grpcio, pygnmi, protobuf, cryptography)..."
+    pip3 install -r "$GNMI_MCP_DIR/requirements.txt" 2>/dev/null || \
+        pip3 install --break-system-packages -r "$GNMI_MCP_DIR/requirements.txt" 2>/dev/null || {
+            log_warn "gNMI MCP pip install failed — dependencies may need manual installation"
+            log_info "Try: pip3 install fastmcp grpcio pygnmi protobuf cryptography pydantic"
+        }
+    log_info "gNMI MCP ready: $GNMI_MCP_DIR/gnmi_mcp_server.py"
+else
+    log_warn "gNMI MCP requirements.txt not found at $GNMI_MCP_DIR"
+fi
+
+echo ""
+
+# ═══════════════════════════════════════════
+# Step 51: Deploy skills and set environment
+# ═══════════════════════════════════════════
+
+log_step "51/$TOTAL_STEPS Deploying skills and configuration..."
 
 PYATS_SCRIPT="$PYATS_MCP_DIR/pyats_mcp_server.py"
 TESTBED_PATH="$NETCLAW_DIR/testbed/testbed.yaml"
@@ -1803,10 +1929,10 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 49: Verify installation
+# Step 50: Verify installation
 # ═══════════════════════════════════════════
 
-log_step "49/$TOTAL_STEPS Verifying installation..."
+log_step "52/$TOTAL_STEPS Verifying installation..."
 
 SERVERS_OK=0
 SERVERS_FAIL=0
@@ -2143,10 +2269,10 @@ log_info "Verification: $SERVERS_OK OK, $SERVERS_FAIL FAILED"
 echo ""
 
 # ═══════════════════════════════════════════
-# Step 50: Summary
+# Step 51: Summary
 # ═══════════════════════════════════════════
 
-log_step "50/$TOTAL_STEPS Installation Summary"
+log_step "53/$TOTAL_STEPS Installation Summary"
 echo ""
 echo "========================================="
 echo "  NetClaw Installation Complete"
@@ -2237,6 +2363,9 @@ echo "  │   Compute Engine        VMs, disks, templates, instance groups (28 t
 echo "  │   Cloud Monitoring      Metrics, alerts, time series (6 tools)"
 echo "  │   Cloud Logging         Log search, VPC flow logs, audit logs (6 tools)"
 echo "  │   Resource Manager      Project discovery (1 tool)"
+echo "  │"
+echo "  │ AZURE CLOUD (1 server via pip):"
+echo "  │   Azure Network         VNets, NSGs, ExpressRoute, VPN, Firewall, LB, DNS (19 tools)"
 echo "  │"
 echo "  │ UTILITIES:"
 echo "  │   Subnet Calculator   IPv4 + IPv6 CIDR calculator"

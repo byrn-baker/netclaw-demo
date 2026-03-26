@@ -19,6 +19,12 @@ Devices are defined in `testbed/testbed.yaml`. Update that file with your SSH-ac
 All credentials are in `~/.openclaw/.env`. Never put credentials in skill files or this document.
 
 ```
+### Batfish Configuration Analysis (reference only — actual values in .env)
+- Batfish Host        → BATFISH_HOST (default: localhost)
+- Batfish Port        → BATFISH_PORT (default: 9997)
+- Batfish Network     → BATFISH_NETWORK (default: netclaw)
+- Docker Container    → batfish/batfish (ports 9997, 9996)
+
 ### Connection Details (reference only — actual values in .env)
 - pyATS Testbed       → PYATS_TESTBED_PATH
 - NetBox              → NETBOX_URL, NETBOX_TOKEN
@@ -29,7 +35,19 @@ All credentials are in `~/.openclaw/.env`. Never put credentials in skill files 
 - F5 BIG-IP           → F5_IP_ADDRESS, F5_AUTH_STRING
 - Catalyst Center     → CCC_HOST, CCC_USER, CCC_PWD
 - Microsoft Graph     → AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET
+- SuzieQ              → SUZIEQ_API_URL, SUZIEQ_API_KEY
+- gNMI Telemetry      → GNMI_TARGETS (JSON), GNMI_TLS_CA_CERT, GNMI_TLS_CLIENT_CERT, GNMI_TLS_CLIENT_KEY
+- Azure Network MCP   → AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, AZURE_SUBSCRIPTION_ID
+- Canvas/A2UI Viz     → No new credentials (uses existing MCP server connections)
 ```
+
+## gNMI Infrastructure
+
+The gNMI MCP server provides 10 tools for streaming telemetry and model-driven configuration:
+- **gnmi_get** / **gnmi_set** / **gnmi_subscribe** / **gnmi_unsubscribe** / **gnmi_get_subscriptions** / **gnmi_get_subscription_updates** / **gnmi_capabilities** / **gnmi_browse_yang_paths** / **gnmi_compare_with_cli** / **gnmi_list_targets**
+- Supported vendors: Cisco IOS-XR (port 57400), Juniper (32767), Arista (6030), Nokia SR OS (57400)
+- YANG models: OpenConfig and vendor-native
+- TLS mandatory, mTLS supported, max 50 concurrent subscriptions
 
 ## Slack Integration
 

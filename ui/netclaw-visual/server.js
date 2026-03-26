@@ -42,7 +42,7 @@ const INTEGRATION_CATALOG = [
   { id: 'nso', name: 'Cisco NSO', category: 'Network Platforms', prefixes: ['nso-'], color: '#4361ee', transport: 'stdio', toolEstimate: 18, description: 'Service and device orchestration.' },
   { id: 'itential', name: 'Itential', category: 'Network Platforms', prefixes: ['itential-'], color: '#4895ef', transport: 'stdio', toolEstimate: 65, description: 'Automation platform workflows and orchestration hooks.' },
   { id: 'evpn', name: 'EVPN/VXLAN', category: 'Network Platforms', prefixes: ['evpn-'], color: '#3a86ff', transport: 'stdio', toolEstimate: 14, description: 'Overlay-underlay correlation and fabric troubleshooting.' },
-  { id: 'protocol', name: 'Protocol Ops', category: 'Network Platforms', prefixes: ['protocol-', 'batfish-'], color: '#577590', transport: 'stdio', toolEstimate: 18, description: 'Intent validation and active protocol participation.' },
+  { id: 'protocol', name: 'Protocol Ops', category: 'Network Platforms', prefixes: ['protocol-'], color: '#577590', transport: 'stdio', toolEstimate: 10, description: 'Intent validation and active protocol participation.' },
   { id: 'catc', name: 'Catalyst Center', category: 'Controller Platforms', prefixes: ['catc-'], color: '#118ab2', transport: 'stdio', toolEstimate: 24, description: 'Controller inventory, client ops, and troubleshooting.' },
   { id: 'arista', name: 'Arista CVP', category: 'Controller Platforms', prefixes: ['arista-'], color: '#06b6d4', transport: 'stdio', toolEstimate: 8, description: 'CloudVision-backed workflow surface.' },
   { id: 'fortimanager', name: 'FortiManager', category: 'Security', prefixes: ['fortimanager-'], color: '#d00000', transport: 'stdio', toolEstimate: 10, description: 'Firewall governance and package review.' },
@@ -55,8 +55,10 @@ const INTEGRATION_CATALOG = [
   { id: 'thousandeyes', name: 'ThousandEyes', category: 'Observability', prefixes: ['te-'], color: '#ffb703', transport: 'http', toolEstimate: 29, description: 'Synthetic and path-aware external monitoring.' },
   { id: 'kubeshark', name: 'Kubeshark', category: 'Observability', prefixes: ['kubeshark-'], color: '#ffcb77', transport: 'http', toolEstimate: 6, description: 'Kubernetes packet and flow visibility.' },
   { id: 'gtrace', name: 'gtrace', category: 'Observability', prefixes: ['gtrace-'], color: '#bde0fe', transport: 'stdio', toolEstimate: 6, description: 'Path tracing and IP enrichment.' },
+  { id: 'suzieq', name: 'SuzieQ', category: 'Observability', prefixes: ['suzieq-'], color: '#a8dadc', transport: 'stdio', toolEstimate: 5, description: 'Network state queries, assertions, summaries, and path tracing.' },
   { id: 'aws', name: 'AWS', category: 'Cloud', prefixes: ['aws-'], color: '#f77f00', transport: 'http', toolEstimate: 55, description: 'Networking, monitoring, security, cost, and diagram generation in AWS.' },
   { id: 'gcp', name: 'GCP', category: 'Cloud', prefixes: ['gcp-'], color: '#f3722c', transport: 'http', toolEstimate: 40, description: 'Compute, monitoring, and logging coverage for GCP.' },
+  { id: 'azure-network', name: 'Azure Network', category: 'Cloud', prefixes: ['azure-'], color: '#0078d4', transport: 'stdio', toolEstimate: 19, description: 'Azure networking: VNets, NSGs, ExpressRoute, VPN, Firewall, LB, DNS.' },
   { id: 'cml', name: 'Cisco CML', category: 'Labs', prefixes: ['cml-'], color: '#90be6d', transport: 'stdio', toolEstimate: 24, description: 'Lab lifecycle, node operations, and packet capture.' },
   { id: 'clab', name: 'Containerlab', category: 'Labs', prefixes: ['clab-'], color: '#52b788', transport: 'stdio', toolEstimate: 10, description: 'Containerized lab operations.' },
   { id: 'radkit', name: 'RADKit', category: 'Remote Access', prefixes: ['radkit-'], color: '#48cae4', transport: 'stdio', toolEstimate: 10, description: 'Cloud-relayed remote reach into on-prem devices.' },
@@ -69,6 +71,9 @@ const INTEGRATION_CATALOG = [
   { id: 'wiki', name: 'Reference', category: 'Reference', prefixes: ['wikipedia-', 'rfc-', 'subnet-', 'packet-analysis'], color: '#adb5bd', transport: 'mixed', toolEstimate: 12, description: 'RFCs, background research, subnet math, and packet analysis helpers.' },
   { id: 'aap', name: 'Ansible AAP', category: 'Automation', prefixes: ['aap-'], color: '#ee0000', transport: 'stdio', toolEstimate: 66, description: 'Red Hat Ansible Automation Platform — inventories, job templates, projects, EDA, ansible-lint, and Galaxy content.' },
   { id: 'fwrule', name: 'FW Rule Analyzer', category: 'Security', prefixes: ['fwrule-'], color: '#d62828', transport: 'stdio', toolEstimate: 3, description: 'Multi-vendor firewall rule overlap, shadowing, conflict, and duplication analysis across 9 platforms.' },
+  { id: 'batfish', name: 'Batfish', category: 'Analysis', prefixes: ['batfish-'], color: '#2ec4b6', transport: 'stdio', toolEstimate: 8, description: 'Offline network configuration analysis — validation, reachability, ACL trace, differential analysis, compliance.' },
+  { id: 'gnmi', name: 'gNMI Telemetry', category: 'Device Automation', prefixes: ['gnmi-', 'gnmi_'], color: '#00c49a', transport: 'stdio', toolEstimate: 10, description: 'gNMI streaming telemetry — Get, Set (ITSM-gated), Subscribe, Capabilities, YANG browsing. Cisco IOS-XR, Juniper, Arista, Nokia SR OS.' },
+  { id: 'canvas-viz', name: 'Canvas A2UI', category: 'Visualization', prefixes: ['canvas-network-viz', 'canvas-'], color: '#7c3aed', transport: 'none', toolEstimate: 0, description: 'Inline Canvas/A2UI network visualizations — topology maps, dashboards, alerts, change timelines, diffs, path traces, and health scorecards rendered in chat.' },
 ];
 
 // ── ENV variable mapping per integration ────────────────────────────
@@ -225,6 +230,11 @@ const ENV_MAP = {
     files: [],
     notes: 'gtrace Go binary path.',
   },
+  suzieq: {
+    env: ['SUZIEQ_API_URL', 'SUZIEQ_API_KEY', 'SUZIEQ_VERIFY_SSL', 'SUZIEQ_TIMEOUT'],
+    files: [],
+    notes: 'SuzieQ REST API URL and access token.',
+  },
   aws: {
     env: ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_REGION', 'AWS_PROFILE'],
     files: [],
@@ -254,6 +264,11 @@ const ENV_MAP = {
     env: ['AZURE_TENANT_ID', 'AZURE_CLIENT_ID', 'AZURE_CLIENT_SECRET'],
     files: [],
     notes: 'Azure AD app registration for Microsoft Graph API.',
+  },
+  'azure-network': {
+    env: ['AZURE_TENANT_ID', 'AZURE_CLIENT_ID', 'AZURE_CLIENT_SECRET', 'AZURE_SUBSCRIPTION_ID'],
+    files: [],
+    notes: 'Azure service principal with Reader role on target subscriptions.',
   },
   slack: {
     env: ['SLACK_BOT_TOKEN', 'SLACK_APP_TOKEN'],
@@ -290,6 +305,16 @@ const ENV_MAP = {
     env: ['FWRULE_MCP_DIR'],
     files: [],
     notes: 'Firewall rule analyzer — no credentials needed. Works on config text input. Supports PAN-OS, ASA, FTD, IOS, IOS-XR, Check Point, SRX, Junos, Nokia SR OS.',
+  },
+  batfish: {
+    env: ['BATFISH_HOST', 'BATFISH_PORT', 'BATFISH_NETWORK'],
+    files: ['mcp-servers/batfish-mcp/batfish_mcp_server.py'],
+    notes: 'Batfish offline config analysis via Docker container. Requires: docker run -d -p 9997:9997 -p 9996:9996 batfish/batfish',
+  },
+  gnmi: {
+    env: ['GNMI_TARGETS', 'GNMI_TLS_CA_CERT', 'GNMI_TLS_CLIENT_CERT', 'GNMI_TLS_CLIENT_KEY', 'GNMI_TLS_SKIP_VERIFY', 'GNMI_DEFAULT_PORT', 'GNMI_MAX_RESPONSE_SIZE', 'GNMI_MAX_SUBSCRIPTIONS'],
+    files: ['mcp-servers/gnmi-mcp/gnmi_mcp_server.py'],
+    notes: 'gNMI streaming telemetry for multi-vendor devices. GNMI_TARGETS is a JSON array of target devices. TLS is mandatory.',
   },
 };
 

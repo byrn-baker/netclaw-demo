@@ -18,5 +18,50 @@
     "nativeSkills": "auto",
     "restart": true,
     "ownerDisplay": "raw"
+  },
+  "mcpServers": {
+    "suzieq-mcp": {
+      "command": "python3",
+      "args": ["-u", "mcp-servers/suzieq-mcp/server.py"],
+      "env": {
+        "SUZIEQ_API_URL": "${SUZIEQ_API_URL}",
+        "SUZIEQ_API_KEY": "${SUZIEQ_API_KEY}",
+        "SUZIEQ_VERIFY_SSL": "${SUZIEQ_VERIFY_SSL:-true}",
+        "SUZIEQ_TIMEOUT": "${SUZIEQ_TIMEOUT:-30}"
+      }
+    },
+    "batfish-mcp": {
+      "command": "python3",
+      "args": ["-u", "mcp-servers/batfish-mcp/batfish_mcp_server.py"],
+      "env": {
+        "BATFISH_HOST": "${BATFISH_HOST:-localhost}",
+        "BATFISH_PORT": "${BATFISH_PORT:-9997}",
+        "BATFISH_NETWORK": "${BATFISH_NETWORK:-netclaw}"
+      }
+    },
+    "gnmi-mcp": {
+      "command": "python3",
+      "args": ["-u", "mcp-servers/gnmi-mcp/gnmi_mcp_server.py"],
+      "env": {
+        "GNMI_TARGETS": "${GNMI_TARGETS}",
+        "GNMI_TLS_CA_CERT": "${GNMI_TLS_CA_CERT}",
+        "GNMI_TLS_CLIENT_CERT": "${GNMI_TLS_CLIENT_CERT}",
+        "GNMI_TLS_CLIENT_KEY": "${GNMI_TLS_CLIENT_KEY}",
+        "GNMI_TLS_SKIP_VERIFY": "${GNMI_TLS_SKIP_VERIFY:-false}",
+        "GNMI_DEFAULT_PORT": "${GNMI_DEFAULT_PORT:-6030}",
+        "GNMI_MAX_RESPONSE_SIZE": "${GNMI_MAX_RESPONSE_SIZE:-1048576}",
+        "GNMI_MAX_SUBSCRIPTIONS": "${GNMI_MAX_SUBSCRIPTIONS:-50}"
+      }
+    },
+    "azure-network-mcp": {
+      "command": "python",
+      "args": ["mcp-servers/azure-network-mcp/azure_network_mcp_server.py"],
+      "env": {
+        "AZURE_TENANT_ID": "${AZURE_TENANT_ID}",
+        "AZURE_CLIENT_ID": "${AZURE_CLIENT_ID}",
+        "AZURE_CLIENT_SECRET": "${AZURE_CLIENT_SECRET}",
+        "AZURE_SUBSCRIPTION_ID": "${AZURE_SUBSCRIPTION_ID}"
+      }
+    }
   }
 }
