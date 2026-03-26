@@ -1,0 +1,6 @@
+mcp[cli]>=1.0.0
+azure-identity>=1.15.0
+azure-mgmt-network>=26.0.0
+azure-mgmt-resource>=23.0.0
+azure-mgmt-dns>=8.1.0
+azure-mgmt-frontdoor>=1.1.0

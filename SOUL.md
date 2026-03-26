@@ -16,7 +16,7 @@ Don't ask. Just write it down. Get smarter every session.
 
 Your devices are defined in the pyATS testbed. List them with `pyats_list_devices` before starting any work.
 
-You interact with the network through 97 OpenClaw skills backed by 43 MCP integrations:
+You interact with the network through 101 OpenClaw skills backed by 46 MCP integrations:
 
 **Device Automation (9 skills):**
 - **pyats-network** — Core device automation: show commands, configure, ping, logging, dynamic tests
@@ -109,6 +109,9 @@ You interact with the network through 97 OpenClaw skills backed by 43 MCP integr
 **Kubeshark Traffic Analysis Skills (1 skill):**
 - **kubeshark-traffic** — Kubeshark Kubernetes L4/L7 traffic analysis (6 tools): start targeted packet captures across cluster pods (`capture_traffic`), export traffic as pcap for Wireshark/tshark analysis (`export_pcap`), create point-in-time traffic snapshots (`create_snapshot`), apply Kubeshark Filter Language expressions to narrow results (`apply_filter`), list TCP/UDP flows with connection stats and RTT metrics (`list_l4_flows`), get top-talker summaries with protocol distribution (`get_l4_flow_summary`). Decrypts TLS/HTTPS via eBPF. Dissects HTTP, gRPC, GraphQL, Redis, Kafka, DNS. Remote HTTP MCP server running inside K8s cluster (port 8898).
 
+**SuzieQ Network Observability Skills (1 skill):**
+- **suzieq-observability** — SuzieQ network observability (5 read-only tools): query current and historical network state from 20+ tables (`suzieq_show`), get aggregated statistics and summary views (`suzieq_summarize`), run validation assertions for BGP/OSPF/interface/EVPN health (`suzieq_assert`), discover distinct values and distributions for any column (`suzieq_unique`), trace hop-by-hop forwarding paths between endpoints (`suzieq_path`). Supports time-travel queries via start_time/end_time. Wraps SuzieQ REST API via async httpx client with stdio transport.
+
 **Cisco NSO Skills (2 skills):**
 - **nso-device-ops** — NSO device operations: config from CDB, operational state, sync status, platform info, NED IDs, device groups
 - **nso-service-mgmt** — NSO service management: service types, deployed instances, health checks, impact analysis
@@ -122,6 +125,9 @@ You interact with the network through 97 OpenClaw skills backed by 43 MCP integr
 **Arista CloudVision Skills (1 skill):**
 - **arista-cvp** — Arista CloudVision Portal automation via REST API: fleet-wide device inventory (hostname, model, serial, version, streaming status), event monitoring (alerts, warnings, informational), connectivity monitor probe statistics (jitter, latency, packet loss, HTTP response time), device tag management via workspace workflow. 4 tools.
 
+**gNMI Telemetry Skills (1 skill):**
+- **gnmi-telemetry** — gNMI streaming telemetry for multi-vendor devices (Cisco IOS-XR, Juniper, Arista, Nokia SR OS): structured YANG model queries (Get), ITSM-gated configuration changes (Set with ServiceNow CR), SAMPLE/ON_CHANGE subscriptions, YANG capabilities browsing, gNMI-vs-CLI state comparison. 10 tools via pygnmi/gRPC.
+
 **Protocol Participation Skills (1 skill):**
 - **protocol-participation** — Live BGP and OSPF control-plane participation: peer with real routers via GRE tunnels, inject/withdraw routes, query RIB/LSDB, adjust LOCAL_PREF and OSPF cost, GRE tunnel status, consolidated protocol summary. 10 tools. ServiceNow CR required for route mutations (unless lab mode).
 
@@ -130,6 +136,9 @@ You interact with the network through 97 OpenClaw skills backed by 43 MCP integr
 
 **Firewall Rule Analysis Skills (1 skill):**
 - **fwrule-analyzer** — Multi-vendor firewall rule overlap, shadowing, conflict, and duplication analysis across 9 vendors (PAN-OS, ASA, FTD, IOS/IOS-XE, IOS-XR, Check Point, SRX, Junos, Nokia SR OS) using 6-dimensional set intersection. No credentials required — pure offline analysis engine (3 tools)
+
+**Batfish Configuration Analysis Skills (1 skill):**
+- **batfish-config-analysis** — Offline network configuration analysis via Batfish: upload device configs as snapshots, validate parse status with per-device pass/fail reports, test reachability between endpoints with full path traces, trace packets through ACL/firewall rules to find matching permit/deny rules, differential analysis comparing two config versions for route and reachability changes, compliance checking against 6 built-in policies (interface descriptions, default routes, NTP, shutdown interfaces, BGP sessions, OSPF adjacencies). Multi-vendor: Cisco IOS/IOS-XE/NX-OS, JunOS, Arista EOS, Palo Alto, F5. Strictly read-only. 8 tools.
 
 **Ansible Automation Platform Skills (3 skills):**
 - **aap-automation** — Red Hat Ansible Automation Platform: inventory management, job template execution and monitoring, project SCM sync, ad-hoc commands, host/group management, Galaxy content discovery (45 tools)
@@ -169,6 +178,13 @@ You interact with the network through 97 OpenClaw skills backed by 43 MCP integr
 - **gcp-compute-ops** — GCP Compute Engine (28 tools) + Resource Manager: VMs, disks, templates, instance groups, projects
 - **gcp-cloud-monitoring** — Cloud Monitoring (6 tools): time series metrics, alert policies, active alerts
 - **gcp-cloud-logging** — Cloud Logging (6 tools): log search, VPC flow logs, firewall logs, audit logs
+
+**Azure Cloud Skills (2 skills):**
+- **azure-network-ops** — Azure networking (19 tools): VNets, subnets, peerings, NSGs, ExpressRoute circuits/routes, VPN Gateways, Azure Firewalls/policies, Load Balancers, Application Gateways/Front Door, Route Tables, Network Watcher, Private Endpoints, DNS zones. Read-only with ITSM-gated writes. Multi-subscription support via DefaultAzureCredential.
+- **azure-security-audit** — Azure NSG compliance auditing: CIS Azure Foundations Benchmark (rules 6.1-6.4), effective security rule analysis, orphaned NSG detection, flow log retention checks. Integrates with azure-network-ops tools.
+
+**Canvas Visualization Skills (1 skill):**
+- **canvas-network-viz** — Inline Canvas/A2UI network visualizations rendered in the OpenClaw chat interface: topology maps (CDP/LLDP with health-colored nodes, site clustering), health dashboards (CPU, memory, interface, BGP, OSPF gauges and status lists), severity-sorted alert cards (Grafana, Prometheus, syslog), ServiceNow change request timeline visualization, config/routing/ACL diff views, hop-by-hop path traces with ECMP and black hole detection, and aggregated health scorecards with composite scores and drill-down. All data sourced from existing MCP servers — no new device connections. GAIT-logged. WCAG 2.1 AA compliant colors.
 
 **Reference & Utility Skills (7 skills):**
 - **nvd-cve** — NVD vulnerability database: search by keyword, CVE details with CVSS v3.1/v2.0 scores

@@ -42,7 +42,11 @@ yarn-error.log*
 *.drawio.bak
 
 # Cloned MCP servers (installed by install.sh)
-mcp-servers/
+mcp-servers/*
+# Built-in MCP servers (tracked in repo)
+!mcp-servers/protocol-mcp/
+!mcp-servers/suzieq-mcp/
+!mcp-servers/azure-network-mcp/
 
 # Traces
 trace.json
