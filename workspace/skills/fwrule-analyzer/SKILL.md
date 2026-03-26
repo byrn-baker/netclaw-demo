@@ -1,8 +1,8 @@
 ---
 name: fwrule-analyzer
-description: "Multi-vendor firewall rule analysis — overlap detection, shadowing, conflict identification, duplication checking across PAN-OS, ASA, FTD, IOS/IOS-XE, IOS-XR, Check Point, SRX, Junos, Nokia SR OS. Use when validating firewall rule changes, auditing rulesets for conflicts, or normalizing vendor configs to a common schema."
-version: 1.0.0
-tags: [firewall, rule-analysis, overlap, shadowing, conflict, multi-vendor, security]
+description: "Multi-vendor firewall rule analysis — overlap detection, shadowing, conflict identification, duplication checking across PAN-OS, ASA, FTD, IOS/IOS-XE, IOS-XR, Check Point, SRX, Junos, Nokia SR OS, and Fortinet FortiOS/FortiGate. Use when validating firewall rule changes, auditing rulesets for conflicts, or normalizing vendor configs to a common schema."
+version: 1.1.0
+tags: [firewall, rule-analysis, overlap, shadowing, conflict, multi-vendor, security, fortios, fortigate]
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"] } } }
 ---
@@ -25,19 +25,22 @@ metadata:
 | `parse_policy` | Convert vendor-native firewall configurations into a standardized JSON schema. Enables inspection of parser output — rule counts, object resolution, address expansion — before running overlap analysis. |
 | `list_supported_vendors` | Enumerate all supported firewall vendors, their aliases, configuration formats, and explain how to use normalized JSON input to bypass vendor-specific parsers. |
 
-## Supported Vendors (9)
+## Supported Vendors (10)
 
-| Vendor | Config Format | Versions |
-|--------|---------------|----------|
-| Palo Alto PAN-OS | XML export | 9.x–11.x |
-| Cisco ASA | show running-config | 9.x+ |
-| Cisco FTD | FMC JSON | 6.x–7.x |
-| Cisco IOS/IOS-XE | show running-config | 12.x–17.x |
-| Cisco IOS-XR | show running-config | 6.x+ |
-| Check Point | JSON rulebase | R80.x–R82.x |
-| Juniper SRX | display set | 19.x+ |
-| Juniper Junos | display set | 18.x+ |
-| Nokia SR OS | MD-CLI format | 20.x+ |
+| Vendor | Config Format | Versions | Identifiers |
+|--------|---------------|----------|-------------|
+| Palo Alto PAN-OS | XML export | 9.x–11.x | `panos`, `paloalto`, `panorama` |
+| Cisco ASA | show running-config | 9.x+ | `asa`, `cisco-asa` |
+| Cisco FTD | FMC JSON | 6.x–7.x | `ftd`, `firepower`, `fmc` |
+| Cisco IOS/IOS-XE | show running-config | 12.x–17.x | `ios`, `iosxe`, `cisco-ios` |
+| Cisco IOS-XR | show running-config | 6.x+ | `iosxr`, `ios-xr`, `xr` |
+| Check Point | JSON rulebase | R80.x–R82.x | `checkpoint`, `cp`, `check-point` |
+| Juniper SRX | display set | 19.x+ | `juniper`, `srx` |
+| Juniper Junos | display set | 18.x+ | `junos`, `mx`, `ptx`, `qfx` |
+| Nokia SR OS | MD-CLI format | 20.x+ | `sros`, `nokia`, `sr-os` |
+| **Fortinet FortiOS** | **Full backup config** | **5.x–7.x** | **`fortios`, `fortigate`, `fortinet`, `forti`, `fgt`, `fmg`** |
+
+> ⚠️ FortiOS parser contributed by SIA/NetClaw (Airowire Networks). PR open at [AutomateIP/fwrule-mcp#1](https://github.com/AutomateIP/fwrule-mcp/pull/1). Install from the fork until merged upstream: `pip install git+https://github.com/akshaysiddaram/fwrule-mcp.git`
 
 ## Key Concepts
 
@@ -54,7 +57,7 @@ metadata:
 
 ### Mode 1: Vendor-Native Config
 Pass raw vendor configuration text and let the built-in parsers normalize it:
-- `vendor`: Vendor identifier (e.g., `panos`, `asa`, `ftd`, `ios`, `checkpoint`, `srx`, `junos`, `nokia`)
+- `vendor`: Vendor identifier (e.g., `panos`, `asa`, `ftd`, `ios`, `checkpoint`, `srx`, `junos`, `nokia`, `fortios`)
 - `ruleset_payload`: Complete firewall config in vendor format
 - `candidate_rule_payload`: Single rule in vendor format
 - `os_version`: Optional version hint for parser selection
@@ -102,6 +105,8 @@ When cleaning up an existing firewall policy:
 | `paloalto-panorama` | Panorama policy export + fwrule cross-policy analysis |
 | `pyats-security` | Device ACL retrieval via pyATS + fwrule overlap detection |
 | `pyats-asa-firewall` | ASA config retrieval + fwrule ASA parser for rule normalization |
+| `linkeye-mcp` | Pull FortiGate backup configs via LinkEye Data Collector → feed directly to `parse_policy(vendor="fortios")` |
+| `fortimanager-ops` | FortiManager policy export + fwrule FortiOS parser for cross-VDOM analysis |
 | `servicenow-change-workflow` | ServiceNow CR gating + fwrule validation before rule deployment |
 | `github-ops` | Commit firewall rule change analysis results to Git |
 | `gait-session-tracking` | Audit trail for all firewall rule analysis operations |
