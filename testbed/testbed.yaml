@@ -140,7 +140,7 @@ devices:
         arguments:
           connection_timeout: 30
 
-  NetClaw:
+  DevNetSandbox:
     alias: "DevNet Sandbox Catalyst 9000"
     type: "switch"
     os: "iosxe"
@@ -148,9 +148,9 @@ devices:
     credentials:
       default:
         username: ptcapo
-        password: "Vmq2--ZAf8A1"
+        password: "UG2uC_6u65PvE_jE"
       enable:
-        password: "Vmq2--ZAf8A1"
+        password: "UG2uC_6u65PvE_jE"
     connections:
       cli:
         protocol: ssh

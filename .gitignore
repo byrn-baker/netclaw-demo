@@ -49,6 +49,10 @@ mcp-servers/*
 !mcp-servers/azure-network-mcp/
 !mcp-servers/gitlab-mcp/
 !mcp-servers/jenkins-mcp/
+!mcp-servers/gnmi-mcp/
+!mcp-servers/syslog-mcp/
+!mcp-servers/snmptrap-mcp/
+!mcp-servers/ipfix-mcp/
 
 # Traces
 trace.json
