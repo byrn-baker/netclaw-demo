@@ -70,6 +70,36 @@
         "AZURE_CLIENT_SECRET": "${AZURE_CLIENT_SECRET}",
         "AZURE_SUBSCRIPTION_ID": "${AZURE_SUBSCRIPTION_ID}"
       }
+    },
+    "gitlab-mcp": {
+      "command": "npx",
+      "args": ["-y", "@zereight/mcp-gitlab"],
+      "env": {
+        "GITLAB_PERSONAL_ACCESS_TOKEN": "${GITLAB_PERSONAL_ACCESS_TOKEN}",
+        "GITLAB_API_URL": "${GITLAB_API_URL:-https://gitlab.com}"
+      }
+    },
+    "jenkins-mcp": {
+      "url": "${JENKINS_URL}/mcp-server/mcp",
+      "headers": {
+        "Authorization": "Basic ${JENKINS_AUTH_BASE64}"
+      },
+      "env": {
+        "JENKINS_URL": "${JENKINS_URL}",
+        "JENKINS_AUTH_BASE64": "${JENKINS_AUTH_BASE64}"
+      }
+    },
+    "atlassian-mcp": {
+      "command": "uvx",
+      "args": ["mcp-atlassian"],
+      "env": {
+        "JIRA_URL": "${JIRA_URL}",
+        "JIRA_USERNAME": "${JIRA_USERNAME}",
+        "JIRA_API_TOKEN": "${JIRA_API_TOKEN}",
+        "CONFLUENCE_URL": "${CONFLUENCE_URL}",
+        "CONFLUENCE_USERNAME": "${CONFLUENCE_USERNAME}",
+        "CONFLUENCE_API_TOKEN": "${CONFLUENCE_API_TOKEN}"
+      }
     }
   }
 }

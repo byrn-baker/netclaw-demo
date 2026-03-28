@@ -40,7 +40,50 @@ All credentials are in `~/.openclaw/.env`. Never put credentials in skill files 
 - Azure Network MCP   → AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, AZURE_SUBSCRIPTION_ID
 - Canvas/A2UI Viz     → No new credentials (uses existing MCP server connections)
 - Token Optimization  → ANTHROPIC_API_KEY (reused), NETCLAW_TOKEN_PRICING_OVERRIDE (optional)
+- GitLab MCP          → GITLAB_PERSONAL_ACCESS_TOKEN, GITLAB_API_URL (default: gitlab.com)
+- Jenkins MCP         → JENKINS_URL, JENKINS_AUTH_BASE64 (remote HTTP, Basic Auth)
 ```
+
+## GitLab MCP Server
+
+The GitLab MCP server (`@zereight/mcp-gitlab`) provides 98+ tools for GitLab operations via stdio transport:
+- **Issues**: list_issues, get_issue, create_issue, update_issue, add_issue_comment, list_issue_comments
+- **Merge Requests**: list_merge_requests, get_merge_request, create_merge_request, update_merge_request, merge_merge_request, add_merge_request_comment
+- **Pipelines**: list_pipelines, get_pipeline, get_pipeline_jobs, get_pipeline_job_log, create_pipeline, retry_pipeline, cancel_pipeline
+- **Repository**: list_repository_tree, get_file_content, list_commits, get_commit, compare_branches
+- **Projects**: list_projects, get_project, search_projects
+- **Labels**: list_labels, create_label, update_label, delete_label
+- **Milestones**: list_milestones, create_milestone, update_milestone
+- **Releases**: list_releases, get_release, create_release
+- **Wiki**: list_wiki_pages, get_wiki_page, create_wiki_page, update_wiki_page, delete_wiki_page
+- Supports gitlab.com and self-hosted instances via `GITLAB_API_URL`
+- Read-only mode available via `GITLAB_READ_ONLY_MODE=true`
+
+## Jenkins MCP Server
+
+The Jenkins MCP server (official Jenkins plugin) provides 16 tools via Streamable HTTP transport:
+- **Job Management**: getJob, getJobs, triggerBuild, getQueueItem
+- **Build Operations**: getBuild, updateBuild, getBuildLog, searchBuildLog
+- **SCM Integration**: getJobScm, getBuildScm, getBuildChangeSets, findJobsWithScmUrl
+- **System**: whoAmI, getStatus
+- **Pipeline**: getPipelineRuns, getPipelineRunLog
+- Remote HTTP server running inside Jenkins (Streamable HTTP at `/mcp-server/mcp`)
+- Auth: HTTP Basic with Jenkins API token (Base64-encoded username:token)
+- Requires Jenkins 2.533+ with MCP Server plugin v0.158+
+
+## Atlassian MCP Server
+
+The Atlassian MCP server (community mcp-atlassian by sooperset) provides 72 tools via stdio transport:
+- **Jira Issues**: jira_search, jira_get_issue, jira_create_issue, jira_update_issue, jira_delete_issue, jira_add_comment, jira_batch_create_issues
+- **Jira Transitions**: jira_get_transitions, jira_transition_issue
+- **Jira Projects/Fields**: jira_get_projects, jira_get_project, jira_get_fields, jira_get_issue_types
+- **Jira Links**: jira_link_issues, jira_get_issue_links, jira_get_link_types
+- **Confluence Pages**: confluence_search, confluence_get_page, confluence_create_page, confluence_update_page, confluence_delete_page
+- **Confluence Comments**: confluence_get_page_comments, confluence_add_comment
+- **Confluence Spaces**: confluence_get_spaces, confluence_get_space
+- Supports Atlassian Cloud and Server/Data Center deployments
+- Auth: API token (Cloud) or Personal Access Token (Server/DC)
+- Runs via `uvx mcp-atlassian`
 
 ## Token Optimization Infrastructure
 

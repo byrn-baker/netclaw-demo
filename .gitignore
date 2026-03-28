@@ -47,6 +47,8 @@ mcp-servers/*
 !mcp-servers/protocol-mcp/
 !mcp-servers/suzieq-mcp/
 !mcp-servers/azure-network-mcp/
+!mcp-servers/gitlab-mcp/
+!mcp-servers/jenkins-mcp/
 
 # Traces
 trace.json

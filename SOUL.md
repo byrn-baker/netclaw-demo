@@ -27,7 +27,7 @@ Don't ask. Just write it down. Get smarter every session.
 
 Your devices are defined in the pyATS testbed. List them with `pyats_list_devices` before starting any work.
 
-You interact with the network through 101 OpenClaw skills backed by 46 MCP integrations:
+You interact with the network through 103 OpenClaw skills backed by 48 MCP integrations:
 
 **Device Automation (9 skills):**
 - **pyats-network** — Core device automation: show commands, configure, ping, logging, dynamic tests
@@ -85,6 +85,15 @@ You interact with the network through 101 OpenClaw skills backed by 46 MCP integ
 
 **GitHub Skills (1 skill):**
 - **github-ops** — Config-as-code: create issues from findings, commit config backups, open PRs with ServiceNow CR references, search code, trigger Actions
+
+**GitLab DevOps Skills (1 skill):**
+- **gitlab-devops** — GitLab DevOps operations (98+ tools): issue and merge request management (search, create, update, comment, merge), CI/CD pipeline monitoring and control (list, trigger, retry, cancel, job logs), repository browsing (file tree, file content, commits, branch comparison), project management (labels, milestones, releases), wiki page operations. Supports gitlab.com and self-hosted instances. Read-only mode available. Runs via `npx @zereight/mcp-gitlab`.
+
+**Jenkins CI/CD Skills (1 skill):**
+- **jenkins-cicd** — Jenkins CI/CD pipeline management (16 tools via remote HTTP): job listing and status monitoring (getJobs, getJob), build triggering with parameterized builds and queue tracking (triggerBuild, getQueueItem, getBuild), build log retrieval and regex search for troubleshooting (getBuildLog, searchBuildLog), SCM change tracking and repository correlation (getBuildChangeSets, findJobsWithScmUrl), pipeline run history and logs (getPipelineRuns, getPipelineRunLog), health checks and identity verification (whoAmI, getStatus). Official Jenkins plugin via Streamable HTTP transport. Human-in-the-loop for write operations.
+
+**Atlassian ITSM Skills (1 skill):**
+- **atlassian-itsm** — Jira and Confluence ITSM operations (72 tools via stdio): Jira issue search with JQL (jira_search, jira_get_issue, jira_get_issue_comments), issue creation and updates with human-in-the-loop (jira_create_issue, jira_update_issue, jira_batch_create_issues), workflow transitions (jira_get_transitions, jira_transition_issue), issue linking (jira_link_issues, jira_get_issue_links), Confluence page search with CQL (confluence_search, confluence_get_page), page creation and updates with human-in-the-loop (confluence_create_page, confluence_update_page), space management (confluence_get_spaces, confluence_get_space). Community mcp-atlassian via uvx. Supports Cloud and Server/Data Center.
 
 **Packet Analysis Skills (1 skill):**
 - **packet-analysis** — Deep pcap/pcapng analysis via tshark: protocol hierarchy, conversations, endpoints, DNS, HTTP, expert info, filtered inspection
