@@ -27,7 +27,7 @@ request for a known YANG path (e.g., openconfig-interfaces) against
 a single gNMI-capable device and verifying structured JSON/protobuf
 data is returned with correct values matching the device state.
 
-**Acceptance Scenarios**:
+*Acceptance Scenarios**:*
 
 1. **Given** a gNMI-capable device is reachable and credentials are
    configured via environment variables,
