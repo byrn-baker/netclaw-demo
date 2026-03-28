@@ -1,29 +1,28 @@
 <!--
   Sync Impact Report
   ==================
-  Version change: 0.0.0 (template) → 1.0.0 (initial ratification)
+  Version change: 1.0.0 → 1.1.0 (MINOR — principle addition)
 
-  Modified principles: N/A (first ratification)
+  Modified principles: None
 
   Added sections:
-    - 16 Core Principles (I through XVI)
-    - Operational Constraints section
-    - Artifact Coherence Checklist section
-    - Development Workflow section
-    - Governance section
+    - Principle XVII: Milestone Documentation via WordPress
 
-  Removed sections: All template placeholders replaced
+  Removed sections: None
 
   Templates requiring updates:
-    - .specify/templates/plan-template.md — ✅ Compatible (Constitution Check
-      section will be populated per-feature from these principles)
-    - .specify/templates/spec-template.md — ✅ Compatible (spec requirements
-      align with safety-first, verify-after-change, and documentation principles)
+    - .specify/templates/plan-template.md — ✅ Compatible (no changes needed)
+    - .specify/templates/spec-template.md — ✅ Compatible (no changes needed)
     - .specify/templates/tasks-template.md — ✅ Compatible (Phase N Polish
-      section aligns with artifact coherence checklist; task phases support
-      observe → baseline → change → verify workflow)
+      section should include WordPress blog task for feature completions)
 
-  Follow-up TODOs: None
+  Follow-up TODOs:
+    - Ensure WordPress MCP server is registered in openclaw.json
+    - Create workspace/skills/wordpress-blogging/SKILL.md when WordPress MCP
+      is integrated
+
+  Previous version history:
+    - 1.0.0 (2026-03-26): Initial ratification with 16 core principles
 -->
 
 # NetClaw Constitution
@@ -211,6 +210,26 @@
 - Ad-hoc or undocumented feature additions ("cowboy coding") are
   not permitted.
 
+### XVII. Milestone Documentation via WordPress
+
+- At the completion of significant development milestones, Claude
+  MUST draft a blog post for publication via the WordPress MCP server.
+- Significant milestones include:
+  - Completion of a feature implementation (after `/speckit.implement`)
+  - Merge of a pull request into `main`
+  - Completion of substantial "vibe coding" sessions (multi-hour
+    collaborative development efforts)
+  - Major architectural decisions or capability additions
+- Blog posts are authored on behalf of John and Claude collaboratively.
+- The post MUST summarize: what was built, why it matters, key
+  technical decisions, and lessons learned.
+- Claude MUST present the draft to John for review before publishing.
+- Blog posts serve as public documentation of the NetClaw project's
+  evolution and demonstrate human-AI collaborative development.
+- If the WordPress MCP server is not configured or unavailable, Claude
+  MUST note the milestone in the session log and remind John to publish
+  manually.
+
 ## Operational Constraints
 
 ### Technology Stack
@@ -262,6 +281,7 @@ completeness. Every item MUST be checked before merge:
 [ ] mcp-servers/<name>/README.md created (if new MCP server)
 [ ] GAIT session log recorded
 [ ] Existing skills verified unbroken
+[ ] WordPress blog post drafted (for significant milestones)
 ```
 
 ## Development Workflow
@@ -284,6 +304,8 @@ Every new capability follows this sequence:
    verifying each checkpoint.
 7. **Coherence** — Run the Artifact Coherence Checklist above.
 8. **Review** — PR review with constitution compliance verification.
+9. **Blog** — Draft and publish WordPress blog post documenting the
+   milestone (per Principle XVII).
 
 ### Constitution Compliance in Reviews
 
@@ -296,6 +318,7 @@ MUST verify:
 - Documentation (XII) is current and accurate
 - Credentials (XIII) are handled safely
 - Spec exists (XVI) for any new capability
+- Milestone blog post drafted (XVII) for significant features
 
 ## Governance
 
@@ -312,4 +335,4 @@ MUST verify:
 - Use `.specify/` templates and workflows for all runtime
   development guidance.
 
-**Version**: 1.0.0 | **Ratified**: 2026-03-26 | **Last Amended**: 2026-03-26
+**Version**: 1.1.0 | **Ratified**: 2026-03-26 | **Last Amended**: 2026-03-28

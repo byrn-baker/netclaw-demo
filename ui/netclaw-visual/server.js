@@ -37,6 +37,9 @@ const INTEGRATION_CATALOG = [
   { id: 'servicenow', name: 'ServiceNow', category: 'Governance', prefixes: ['servicenow-'], color: '#ffd166', transport: 'stdio', toolEstimate: 12, description: 'Change gating and ITSM workflow integration.' },
   { id: 'gait', name: 'GAIT', category: 'Governance', prefixes: ['gait-'], color: '#f4a261', transport: 'stdio', toolEstimate: 9, description: 'Git-backed audit history and turn tracking.' },
   { id: 'github', name: 'GitHub', category: 'Governance', prefixes: ['github-'], color: '#cdb4db', transport: 'docker', toolEstimate: 12, description: 'Code search, issues, and PR-aware ops.' },
+  { id: 'gitlab', name: 'GitLab', category: 'Governance', prefixes: ['gitlab-'], color: '#e24329', transport: 'npx', toolEstimate: 98, description: 'GitLab DevOps: issues, merge requests, pipelines, repos, wikis, labels, milestones, releases.' },
+  { id: 'jenkins', name: 'Jenkins', category: 'Governance', prefixes: ['jenkins-'], color: '#d33833', transport: 'http', toolEstimate: 16, description: 'Jenkins CI/CD: job monitoring, build triggering, log analysis, SCM tracking, pipeline runs.' },
+  { id: 'atlassian', name: 'Atlassian', category: 'Governance', prefixes: ['atlassian-'], color: '#0052cc', transport: 'uvx', toolEstimate: 72, description: 'Atlassian ITSM: Jira issues, transitions, comments, projects, links; Confluence pages, comments, spaces.' },
   { id: 'meraki', name: 'Meraki', category: 'Network Platforms', prefixes: ['meraki-'], color: '#9b5de5', transport: 'stdio', toolEstimate: 804, description: 'Dashboard inventory, wireless, switching, and security appliance control.' },
   { id: 'sdwan', name: 'SD-WAN', category: 'Network Platforms', prefixes: ['sdwan-'], color: '#8d99ae', transport: 'stdio', toolEstimate: 12, description: 'vManage monitoring and WAN-state workflows.' },
   { id: 'nso', name: 'Cisco NSO', category: 'Network Platforms', prefixes: ['nso-'], color: '#4361ee', transport: 'stdio', toolEstimate: 18, description: 'Service and device orchestration.' },
@@ -144,6 +147,21 @@ const ENV_MAP = {
     env: ['GITHUB_PERSONAL_ACCESS_TOKEN'],
     files: [],
     notes: 'GitHub PAT for issues, PRs, code search, and Actions.',
+  },
+  gitlab: {
+    env: ['GITLAB_PERSONAL_ACCESS_TOKEN', 'GITLAB_API_URL', 'GITLAB_READ_ONLY_MODE'],
+    files: [],
+    notes: 'GitLab PAT (api or read_api scope). GITLAB_API_URL defaults to gitlab.com; override for self-hosted.',
+  },
+  jenkins: {
+    env: ['JENKINS_URL', 'JENKINS_USERNAME', 'JENKINS_API_TOKEN', 'JENKINS_AUTH_BASE64'],
+    files: [],
+    notes: 'Jenkins API token via HTTP Basic Auth. Remote HTTP transport at /mcp-server/mcp. Requires Jenkins 2.533+ with MCP Server plugin.',
+  },
+  atlassian: {
+    env: ['JIRA_URL', 'JIRA_USERNAME', 'JIRA_API_TOKEN', 'CONFLUENCE_URL', 'CONFLUENCE_USERNAME', 'CONFLUENCE_API_TOKEN'],
+    files: [],
+    notes: 'Atlassian Cloud: API token from id.atlassian.com. Server/DC: Personal Access Token. At least one product (Jira or Confluence) required.',
   },
   meraki: {
     env: ['MERAKI_API_KEY', 'MERAKI_ORG_ID', 'ENABLE_CACHING', 'CACHE_TTL_SECONDS', 'READ_ONLY_MODE'],

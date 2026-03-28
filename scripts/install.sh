@@ -639,6 +639,65 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════
+# Step 24b: GitLab MCP Server
+# ═══════════════════════════════════════════
+
+log_step "24b/$TOTAL_STEPS Configuring GitLab MCP Server..."
+echo "  Source: https://github.com/zereight/mcp-gitlab"
+echo "  Auth: GitLab Personal Access Token (PAT)"
+echo "  Transport: stdio via npx @zereight/mcp-gitlab"
+
+# GitLab MCP runs via npx — requires Node.js 18+
+if command -v npx &> /dev/null; then
+    log_info "npx found — GitLab MCP server will auto-install on first use via: npx -y @zereight/mcp-gitlab"
+else
+    log_warn "npx not found — GitLab MCP server requires Node.js 18+ with npx"
+    log_info "Install Node.js 18+: https://nodejs.org/"
+fi
+
+echo ""
+
+# ═══════════════════════════════════════════
+# Step 24c: Jenkins MCP Server
+# ═══════════════════════════════════════════
+
+log_step "24c/$TOTAL_STEPS Configuring Jenkins MCP Server..."
+echo "  Source: https://plugins.jenkins.io/mcp-server/"
+echo "  Auth: HTTP Basic Auth (Jenkins API Token)"
+echo "  Transport: Remote HTTP (Streamable HTTP at /mcp-server/mcp)"
+
+# Jenkins MCP runs natively inside Jenkins — no local dependencies to install
+# Requires: Jenkins 2.533+ with MCP Server plugin v0.158+
+log_info "Jenkins MCP server is a remote HTTP service — runs natively inside Jenkins"
+log_info "Prerequisites: Jenkins 2.533+ with MCP Server plugin v0.158+ installed"
+log_info "Generate JENKINS_AUTH_BASE64: echo -n 'username:api_token' | base64"
+
+echo ""
+
+# ═══════════════════════════════════════════
+# Step 24d: Atlassian MCP Server
+# ═══════════════════════════════════════════
+
+log_step "24d/$TOTAL_STEPS Configuring Atlassian MCP Server..."
+echo "  Source: https://github.com/sooperset/mcp-atlassian"
+echo "  Auth: API Token (Cloud) or Personal Access Token (Server/DC)"
+echo "  Transport: stdio (via uvx mcp-atlassian)"
+
+# Atlassian MCP runs via uvx — requires uv installed
+if command -v uv &> /dev/null; then
+    log_info "uv found: $(uv --version 2>/dev/null || echo 'version unknown')"
+else
+    log_warn "uv not found — install via: curl -LsSf https://astral.sh/uv/install.sh | sh"
+fi
+
+log_info "Atlassian MCP server runs via 'uvx mcp-atlassian'"
+log_info "Supports both Jira and Confluence (Cloud + Server/DC)"
+log_info "Configure: JIRA_URL, JIRA_USERNAME, JIRA_API_TOKEN"
+log_info "Configure: CONFLUENCE_URL, CONFLUENCE_USERNAME, CONFLUENCE_API_TOKEN"
+
+echo ""
+
+# ═══════════════════════════════════════════
 # Step 25: Packet Buddy MCP Server (pcap analysis)
 # ═══════════════════════════════════════════
 
