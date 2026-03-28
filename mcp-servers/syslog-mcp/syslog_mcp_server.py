@@ -20,6 +20,7 @@ from .models import (
 from .syslog_parser import parse_syslog
 from .message_store import MessageStore
 from .udp_receiver import UDPReceiver
+from .tcp_receiver import TCPReceiver
 from .rate_limiter import RateLimiter
 from .gait_logger import GAITLogger
 
@@ -40,12 +41,14 @@ app = Server("syslog-mcp")
 # Global state
 message_store: Optional[MessageStore[SyslogMessage]] = None
 udp_receiver: Optional[UDPReceiver] = None
+tcp_receiver: Optional[TCPReceiver] = None
 rate_limiter: Optional[RateLimiter] = None
 gait_logger: Optional[GAITLogger] = None
 receiver_status: ReceiverStatus = ReceiverStatus(
     port=SYSLOG_PORT,
     bind_address=SYSLOG_BIND_ADDRESS
 )
+receiver_protocol: str = "udp"  # Track which protocol is active
 
 
 async def handle_syslog_message(data: bytes, addr: Tuple[str, int]) -> None:
@@ -99,19 +102,25 @@ async def list_tools() -> List[Tool]:
     return [
         Tool(
             name="syslog_start_receiver",
-            description="Start the syslog receiver to listen for UDP messages",
+            description="Start the syslog receiver to listen for messages (UDP or TCP)",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "port": {
                         "type": "integer",
-                        "description": "UDP port to listen on",
+                        "description": "Port to listen on",
                         "default": 514
                     },
                     "bind_address": {
                         "type": "string",
                         "description": "Address to bind to",
                         "default": "0.0.0.0"
+                    },
+                    "protocol": {
+                        "type": "string",
+                        "enum": ["udp", "tcp"],
+                        "description": "Transport protocol (udp or tcp). Use tcp with ngrok tunnels.",
+                        "default": "udp"
                     }
                 }
             }
@@ -196,14 +205,19 @@ async def call_tool(name: str, arguments: Dict[str, Any]) -> List[TextContent]:
 
 
 async def handle_start_receiver(arguments: Dict[str, Any]) -> List[TextContent]:
-    """Start the syslog UDP receiver."""
-    global udp_receiver, message_store, rate_limiter, gait_logger, receiver_status
+    """Start the syslog receiver (UDP or TCP)."""
+    global udp_receiver, tcp_receiver, message_store, rate_limiter, gait_logger, receiver_status, receiver_protocol
 
-    if udp_receiver and udp_receiver.is_running:
+    # Check if already running
+    if (udp_receiver and udp_receiver.is_running) or (tcp_receiver and tcp_receiver.is_running):
         return [TextContent(type="text", text="Syslog receiver is already running")]
 
     port = arguments.get('port', SYSLOG_PORT)
     bind_address = arguments.get('bind_address', SYSLOG_BIND_ADDRESS)
+    protocol = arguments.get('protocol', 'udp').lower()
+
+    if protocol not in ('udp', 'tcp'):
+        return [TextContent(type="text", text=f"Invalid protocol: {protocol}. Use 'udp' or 'tcp'")]
 
     # Initialize components
     message_store = MessageStore[SyslogMessage](
@@ -213,13 +227,23 @@ async def handle_start_receiver(arguments: Dict[str, Any]) -> List[TextContent]:
     rate_limiter = RateLimiter(rate=SYSLOG_RATE_LIMIT, burst=int(SYSLOG_RATE_LIMIT * 5))
     gait_logger = GAITLogger(service_name='syslog-mcp')
 
-    # Create and start receiver
-    udp_receiver = UDPReceiver(
-        message_handler=handle_syslog_message,
-        host=bind_address,
-        port=port
-    )
-    await udp_receiver.start()
+    # Create and start receiver based on protocol
+    if protocol == 'udp':
+        udp_receiver = UDPReceiver(
+            message_handler=handle_syslog_message,
+            host=bind_address,
+            port=port
+        )
+        await udp_receiver.start()
+    else:  # tcp
+        tcp_receiver = TCPReceiver(
+            message_handler=handle_syslog_message,
+            host=bind_address,
+            port=port
+        )
+        await tcp_receiver.start()
+
+    receiver_protocol = protocol
 
     # Update status
     receiver_status = ReceiverStatus(
@@ -234,18 +258,26 @@ async def handle_start_receiver(arguments: Dict[str, Any]) -> List[TextContent]:
 
     return [TextContent(
         type="text",
-        text=f"Syslog receiver started on {bind_address}:{port}"
+        text=f"Syslog receiver started on {bind_address}:{port} ({protocol.upper()})"
     )]
 
 
 async def handle_stop_receiver() -> List[TextContent]:
-    """Stop the syslog UDP receiver."""
-    global udp_receiver, receiver_status
+    """Stop the syslog receiver (UDP or TCP)."""
+    global udp_receiver, tcp_receiver, receiver_status, receiver_protocol
 
-    if not udp_receiver or not udp_receiver.is_running:
+    # Check which receiver is running
+    is_udp_running = udp_receiver and udp_receiver.is_running
+    is_tcp_running = tcp_receiver and tcp_receiver.is_running
+
+    if not is_udp_running and not is_tcp_running:
         return [TextContent(type="text", text="Syslog receiver is not running")]
 
-    await udp_receiver.stop()
+    # Stop the appropriate receiver
+    if is_udp_running:
+        await udp_receiver.stop()
+    if is_tcp_running:
+        await tcp_receiver.stop()
 
     # Log to GAIT
     if gait_logger:
@@ -253,7 +285,7 @@ async def handle_stop_receiver() -> List[TextContent]:
 
     receiver_status.is_running = False
 
-    return [TextContent(type="text", text="Syslog receiver stopped")]
+    return [TextContent(type="text", text=f"Syslog receiver stopped ({receiver_protocol.upper()})")]
 
 
 async def handle_get_status() -> List[TextContent]:
