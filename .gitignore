@@ -53,6 +53,7 @@ mcp-servers/*
 !mcp-servers/syslog-mcp/
 !mcp-servers/snmptrap-mcp/
 !mcp-servers/ipfix-mcp/
+!mcp-servers/gns3-mcp-server/
 
 # Traces
 trace.json
