@@ -100,6 +100,17 @@
         "CONFLUENCE_USERNAME": "${CONFLUENCE_USERNAME}",
         "CONFLUENCE_API_TOKEN": "${CONFLUENCE_API_TOKEN}"
       }
+    },
+    "gns3-mcp": {
+      "command": "python3",
+      "args": ["-u", "mcp-servers/gns3-mcp-server/gns3_mcp_server.py"],
+      "env": {
+        "GNS3_URL": "${GNS3_URL}",
+        "GNS3_USER": "${GNS3_USER}",
+        "GNS3_PASSWORD": "${GNS3_PASSWORD}",
+        "GNS3_VERIFY_SSL": "${GNS3_VERIFY_SSL:-true}",
+        "GNS3_TOKEN_TTL": "${GNS3_TOKEN_TTL:-3000}"
+      }
     }
   }
 }
