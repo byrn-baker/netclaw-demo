@@ -114,7 +114,7 @@
     },
     "prisma-sdwan-mcp": {
       "command": "python3",
-      "args": ["-u", "mcp-servers/prisma-sdwan-mcp/src/prisma_sdwan_mcp/server.py"],
+      "args": ["-u", "mcp-servers/prisma-sdwan-mcp/prisma_sdwan_mcp_server.py"],
       "env": {
         "PAN_CLIENT_ID": "${PAN_CLIENT_ID}",
         "PAN_CLIENT_SECRET": "${PAN_CLIENT_SECRET}",
