@@ -78,6 +78,10 @@ const INTEGRATION_CATALOG = [
   { id: 'gnmi', name: 'gNMI Telemetry', category: 'Device Automation', prefixes: ['gnmi-', 'gnmi_'], color: '#00c49a', transport: 'stdio', toolEstimate: 10, description: 'gNMI streaming telemetry — Get, Set (ITSM-gated), Subscribe, Capabilities, YANG browsing. Cisco IOS-XR, Juniper, Arista, Nokia SR OS.' },
   { id: 'canvas-viz', name: 'Canvas A2UI', category: 'Visualization', prefixes: ['canvas-network-viz', 'canvas-'], color: '#7c3aed', transport: 'none', toolEstimate: 0, description: 'Inline Canvas/A2UI network visualizations — topology maps, dashboards, alerts, change timelines, diffs, path traces, and health scorecards rendered in chat.' },
   { id: 'token-tracker', name: 'Token Tracker', category: 'Observability', prefixes: ['token-'], color: '#10b981', transport: 'none', toolEstimate: 0, description: 'Real-time token counting, cost tracking, TOON serialization savings, and per-tool usage breakdown. Every interaction shows its cost.' },
+  { id: 'gns3', name: 'GNS3', category: 'Labs', prefixes: ['gns3-'], color: '#2ecc71', transport: 'stdio', toolEstimate: 23, description: 'GNS3 network simulation — projects, nodes, links, templates, computes, snapshots, and packet capture for lab environments.' },
+  { id: 'prisma-sdwan', name: 'Prisma SD-WAN', category: 'Network Platforms', prefixes: ['prisma-sdwan-'], color: '#fa582d', transport: 'stdio', toolEstimate: 16, description: 'Palo Alto Networks Prisma SD-WAN — sites, elements, topology, health, alarms, interfaces, routing, policies, and applications.' },
+  { id: 'telemetry-receivers', name: 'Telemetry Receivers', category: 'Observability', prefixes: ['syslog-', 'snmptrap-', 'ipfix-', 'telemetry-'], color: '#9b59b6', transport: 'stdio', toolEstimate: 12, description: 'Real-time telemetry ingestion — syslog, SNMP traps, and IPFIX/NetFlow receivers for event correlation and alerting.' },
+  { id: 'config-archive', name: 'Config Archive', category: 'Governance', prefixes: ['config-archive-'], color: '#34495e', transport: 'stdio', toolEstimate: 4, description: 'Configuration archive compliance — backup verification, drift detection, and config restore workflows.' },
 ];
 
 // ── ENV variable mapping per integration ────────────────────────────
@@ -334,6 +338,26 @@ const ENV_MAP = {
     env: ['GNMI_TARGETS', 'GNMI_TLS_CA_CERT', 'GNMI_TLS_CLIENT_CERT', 'GNMI_TLS_CLIENT_KEY', 'GNMI_TLS_SKIP_VERIFY', 'GNMI_DEFAULT_PORT', 'GNMI_MAX_RESPONSE_SIZE', 'GNMI_MAX_SUBSCRIPTIONS'],
     files: ['mcp-servers/gnmi-mcp/gnmi_mcp_server.py'],
     notes: 'gNMI streaming telemetry for multi-vendor devices. GNMI_TARGETS is a JSON array of target devices. TLS is mandatory.',
+  },
+  gns3: {
+    env: ['GNS3_URL', 'GNS3_USER', 'GNS3_PASSWORD', 'GNS3_VERIFY_SSL', 'GNS3_TOKEN_TTL'],
+    files: ['mcp-servers/gns3-mcp-server/gns3_mcp_server.py'],
+    notes: 'GNS3 network simulation server. URL is the GNS3 server address (e.g., http://localhost:3080). User/Password for authentication.',
+  },
+  'prisma-sdwan': {
+    env: ['PAN_CLIENT_ID', 'PAN_CLIENT_SECRET', 'PAN_TSG_ID', 'PAN_REGION'],
+    files: ['mcp-servers/prisma-sdwan-mcp/prisma_sdwan_mcp_server.py'],
+    notes: 'Palo Alto Networks Prisma SD-WAN via OAuth2. Region is americas or europe. TSG_ID is the Tenant Service Group ID.',
+  },
+  'telemetry-receivers': {
+    env: ['SYSLOG_UDP_PORT', 'SNMP_TRAP_PORT', 'IPFIX_PORT', 'TELEMETRY_BUFFER_SIZE'],
+    files: ['mcp-servers/telemetry-mcp/telemetry_mcp_server.py'],
+    notes: 'Real-time telemetry receivers. Ports default to 514 (syslog), 162 (SNMP traps), 4739 (IPFIX). Buffer size controls in-memory retention.',
+  },
+  'config-archive': {
+    env: ['CONFIG_ARCHIVE_PATH', 'CONFIG_ARCHIVE_RETENTION_DAYS'],
+    files: [],
+    notes: 'Configuration archive storage path and retention policy. Used for backup verification and drift detection.',
   },
 };
 
