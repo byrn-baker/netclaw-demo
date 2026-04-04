@@ -105,11 +105,17 @@ Integrate the official Datadog MCP server to provide observability capabilities 
 - **SuzieQ**: Network state correlation with Datadog metrics
 - **Syslog Receiver**: Forward network logs to Datadog
 
+## Clarifications
+
+### Session 2026-04-04
+- Q: Optional toolsets enablement? → A: Enable ALL optional toolsets (APM, Error Tracking, Feature Flags, DBM, Security, LLM Observability)
+
 ## Security Considerations
 
 - API keys stored in .env, never logged
 - Read-only operations by default
 - Incident creation requires explicit user confirmation
+- All optional toolsets enabled for maximum observability coverage
 
 ## Success Criteria
 
