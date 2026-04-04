@@ -82,6 +82,7 @@ const INTEGRATION_CATALOG = [
   { id: 'prisma-sdwan', name: 'Prisma SD-WAN', category: 'Network Platforms', prefixes: ['prisma-sdwan-'], color: '#fa582d', transport: 'stdio', toolEstimate: 16, description: 'Palo Alto Networks Prisma SD-WAN — sites, elements, topology, health, alarms, interfaces, routing, policies, and applications.' },
   { id: 'telemetry-receivers', name: 'Telemetry Receivers', category: 'Observability', prefixes: ['syslog-', 'snmptrap-', 'ipfix-', 'telemetry-'], color: '#9b59b6', transport: 'stdio', toolEstimate: 12, description: 'Real-time telemetry ingestion — syslog, SNMP traps, and IPFIX/NetFlow receivers for event correlation and alerting.' },
   { id: 'config-archive', name: 'Config Archive', category: 'Governance', prefixes: ['config-archive-'], color: '#34495e', transport: 'stdio', toolEstimate: 4, description: 'Configuration archive compliance — backup verification, drift detection, and config restore workflows.' },
+  { id: 'datadog', name: 'Datadog', category: 'Observability', prefixes: ['datadog-'], color: '#632ca6', transport: 'http', toolEstimate: 16, description: 'Full observability stack — logs, metrics, incidents, APM, dashboards with error_tracking, feature_flags, dbm, security, llm_observability toolsets.' },
 ];
 
 // ── ENV variable mapping per integration ────────────────────────────
@@ -358,6 +359,11 @@ const ENV_MAP = {
     env: ['CONFIG_ARCHIVE_PATH', 'CONFIG_ARCHIVE_RETENTION_DAYS'],
     files: [],
     notes: 'Configuration archive storage path and retention policy. Used for backup verification and drift detection.',
+  },
+  datadog: {
+    env: ['DD_API_KEY', 'DD_APP_KEY', 'DD_SITE'],
+    files: [],
+    notes: 'Datadog MCP Server via remote HTTP. API/App keys from Datadog organization settings. Site defaults to datadoghq.com (use datadoghq.eu for EU).',
   },
 };
 

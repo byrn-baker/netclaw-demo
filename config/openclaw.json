@@ -121,6 +121,14 @@
         "PAN_TSG_ID": "${PAN_TSG_ID}",
         "PAN_REGION": "${PAN_REGION:-americas}"
       }
+    },
+    "datadog-mcp": {
+      "url": "mcp://datadog.com/mcp",
+      "env": {
+        "DD_API_KEY": "${DD_API_KEY}",
+        "DD_APP_KEY": "${DD_APP_KEY}",
+        "DD_SITE": "${DD_SITE:-datadoghq.com}"
+      }
     }
   }
 }
