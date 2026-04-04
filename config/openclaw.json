@@ -111,6 +111,16 @@
         "GNS3_VERIFY_SSL": "${GNS3_VERIFY_SSL:-true}",
         "GNS3_TOKEN_TTL": "${GNS3_TOKEN_TTL:-3000}"
       }
+    },
+    "prisma-sdwan-mcp": {
+      "command": "python3",
+      "args": ["-u", "mcp-servers/prisma-sdwan-mcp/src/prisma_sdwan_mcp/server.py"],
+      "env": {
+        "PAN_CLIENT_ID": "${PAN_CLIENT_ID}",
+        "PAN_CLIENT_SECRET": "${PAN_CLIENT_SECRET}",
+        "PAN_TSG_ID": "${PAN_TSG_ID}",
+        "PAN_REGION": "${PAN_REGION:-americas}"
+      }
     }
   }
 }
