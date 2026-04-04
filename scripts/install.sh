@@ -1667,6 +1667,41 @@ command -v palo-alto-mcp &> /dev/null || PANOS_MCP_CMD_DETECTED="python3 -m palo
 FORTIMANAGER_MCP_CMD_DETECTED="python3 -m fortimanager_mcp"
 
 # ═══════════════════════════════════════════
+# Step 45.5: Prisma SD-WAN MCP Server (Palo Alto Networks)
+# ═══════════════════════════════════════════
+
+log_step "45.5/$TOTAL_STEPS Installing Prisma SD-WAN MCP Server..."
+echo "  Source: https://github.com/iamdheerajdubey/prisma-sdwan-mcp"
+echo "  Palo Alto Networks Prisma SD-WAN read-only visibility: sites, elements, topology, status, alarms"
+echo "  15+ tools: get_sites, get_elements, get_topology, get_alarms, get_events, get_interfaces, etc."
+
+PRISMA_SDWAN_MCP_DIR="$MCP_DIR/prisma-sdwan-mcp"
+if [ -d "$PRISMA_SDWAN_MCP_DIR" ]; then
+    log_info "Prisma SD-WAN MCP already cloned, pulling latest..."
+    git -C "$PRISMA_SDWAN_MCP_DIR" pull --quiet 2>/dev/null || true
+else
+    git clone https://github.com/iamdheerajdubey/prisma-sdwan-mcp.git "$PRISMA_SDWAN_MCP_DIR" 2>/dev/null || true
+fi
+
+if [ -d "$PRISMA_SDWAN_MCP_DIR" ]; then
+    if command -v uv &> /dev/null; then
+        (cd "$PRISMA_SDWAN_MCP_DIR" && uv sync) 2>/dev/null || log_warn "Prisma SD-WAN MCP uv sync failed — trying pip"
+    fi
+    if [ -f "$PRISMA_SDWAN_MCP_DIR/pyproject.toml" ]; then
+        pip3 install -e "$PRISMA_SDWAN_MCP_DIR" 2>/dev/null || \
+            pip3 install --break-system-packages -e "$PRISMA_SDWAN_MCP_DIR" 2>/dev/null || \
+            log_warn "Prisma SD-WAN MCP editable install failed"
+    elif [ -f "$PRISMA_SDWAN_MCP_DIR/requirements.txt" ]; then
+        pip3 install -r "$PRISMA_SDWAN_MCP_DIR/requirements.txt" 2>/dev/null || \
+            pip3 install --break-system-packages -r "$PRISMA_SDWAN_MCP_DIR/requirements.txt" 2>/dev/null || \
+            log_warn "Prisma SD-WAN MCP requirements install failed"
+    fi
+    log_info "Prisma SD-WAN MCP prepared: $PRISMA_SDWAN_MCP_DIR"
+else
+    log_warn "Prisma SD-WAN MCP clone failed"
+fi
+
+# ═══════════════════════════════════════════
 # Step 46: AAP Enterprise MCP Server (Ansible Automation Platform)
 # ═══════════════════════════════════════════
 
