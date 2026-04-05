@@ -129,6 +129,86 @@
         "DD_APP_KEY": "${DD_APP_KEY}",
         "DD_SITE": "${DD_SITE:-datadoghq.com}"
       }
+    },
+    "pagerduty-mcp": {
+      "command": "uvx",
+      "args": ["pagerduty-mcp", "--enable-write-tools"],
+      "env": {
+        "PAGERDUTY_USER_API_KEY": "${PAGERDUTY_USER_API_KEY}",
+        "PAGERDUTY_API_HOST": "${PAGERDUTY_API_HOST:-https://api.pagerduty.com}"
+      }
+    },
+    "splunk-mcp": {
+      "command": "uvx",
+      "args": ["splunk-mcp"],
+      "env": {
+        "SPLUNK_HOST": "${SPLUNK_HOST}",
+        "SPLUNK_TOKEN": "${SPLUNK_TOKEN}",
+        "SPLUNK_VERIFY_SSL": "${SPLUNK_VERIFY_SSL:-true}"
+      }
+    },
+    "terraform-mcp": {
+      "url": "mcp://terraform.io/mcp",
+      "env": {
+        "TFC_TOKEN": "${TFC_TOKEN}",
+        "TFC_ORG": "${TFC_ORG}",
+        "TFC_HOST": "${TFC_HOST:-app.terraform.io}"
+      }
+    },
+    "vault-mcp": {
+      "url": "mcp://vault.hashicorp.com/mcp",
+      "env": {
+        "VAULT_ADDR": "${VAULT_ADDR}",
+        "VAULT_TOKEN": "${VAULT_TOKEN}",
+        "VAULT_NAMESPACE": "${VAULT_NAMESPACE}"
+      }
+    },
+    "zscaler-mcp": {
+      "url": "mcp://zscaler.com/mcp",
+      "env": {
+        "ZSCALER_ZIA_API_KEY": "${ZSCALER_ZIA_API_KEY}",
+        "ZSCALER_ZIA_USERNAME": "${ZSCALER_ZIA_USERNAME}",
+        "ZSCALER_ZIA_PASSWORD": "${ZSCALER_ZIA_PASSWORD}",
+        "ZSCALER_ZIA_CLOUD": "${ZSCALER_ZIA_CLOUD:-zscaler.net}",
+        "ZSCALER_ZPA_CLIENT_ID": "${ZSCALER_ZPA_CLIENT_ID}",
+        "ZSCALER_ZPA_CLIENT_SECRET": "${ZSCALER_ZPA_CLIENT_SECRET}",
+        "ZSCALER_ZPA_CUSTOMER_ID": "${ZSCALER_ZPA_CUSTOMER_ID}"
+      }
+    },
+    "cloudflare-dns-analytics": {
+      "url": "mcp://cloudflare.com/dns-analytics",
+      "env": {
+        "CLOUDFLARE_API_TOKEN": "${CLOUDFLARE_API_TOKEN}",
+        "CLOUDFLARE_ACCOUNT_ID": "${CLOUDFLARE_ACCOUNT_ID}"
+      }
+    },
+    "cloudflare-security": {
+      "url": "mcp://cloudflare.com/security",
+      "env": {
+        "CLOUDFLARE_API_TOKEN": "${CLOUDFLARE_API_TOKEN}",
+        "CLOUDFLARE_ACCOUNT_ID": "${CLOUDFLARE_ACCOUNT_ID}"
+      }
+    },
+    "cloudflare-zerotrust": {
+      "url": "mcp://cloudflare.com/zero-trust",
+      "env": {
+        "CLOUDFLARE_API_TOKEN": "${CLOUDFLARE_API_TOKEN}",
+        "CLOUDFLARE_ACCOUNT_ID": "${CLOUDFLARE_ACCOUNT_ID}"
+      }
+    },
+    "cloudflare-analytics": {
+      "url": "mcp://cloudflare.com/analytics",
+      "env": {
+        "CLOUDFLARE_API_TOKEN": "${CLOUDFLARE_API_TOKEN}",
+        "CLOUDFLARE_ACCOUNT_ID": "${CLOUDFLARE_ACCOUNT_ID}"
+      }
+    },
+    "cloudflare-workers": {
+      "url": "mcp://cloudflare.com/workers",
+      "env": {
+        "CLOUDFLARE_API_TOKEN": "${CLOUDFLARE_API_TOKEN}",
+        "CLOUDFLARE_ACCOUNT_ID": "${CLOUDFLARE_ACCOUNT_ID}"
+      }
     }
   }
 }
