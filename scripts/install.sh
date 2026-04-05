@@ -1781,6 +1781,24 @@ log_info "Cloudflare MCPs use remote transport — no local installation require
 log_info "Configure CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID in .env"
 
 # ═══════════════════════════════════════════
+# Step 45.13: Blender MCP Server (3D Visualization)
+# ═══════════════════════════════════════════
+
+log_step "45.13/$TOTAL_STEPS Configuring Blender MCP Server..."
+echo "  Source: https://github.com/ahujasid/blender-mcp"
+echo "  3D network topology visualization via Blender"
+echo "  Draw CDP/LLDP topologies, color by device type, export PNG/video"
+log_info "Blender MCP runs via uvx blender-mcp — no local clone required"
+log_info "Prerequisites:"
+log_info "  1. Install Blender on Windows: winget install BlenderFoundation.Blender"
+log_info "  2. Install addon: Download addon.py from GitHub, install via Edit > Preferences > Add-ons"
+log_info "  3. Connect addon: Press 'N' in Blender, find BlenderMCP tab, click 'Connect to Claude'"
+log_info "  4. Get Windows IP from WSL: cat /etc/resolv.conf | grep nameserver"
+log_info "  5. Set BLENDER_HOST and BLENDER_PORT in .env"
+
+echo ""
+
+# ═══════════════════════════════════════════
 # Step 46: AAP Enterprise MCP Server (Ansible Automation Platform)
 # ═══════════════════════════════════════════
 

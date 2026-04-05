@@ -209,6 +209,14 @@
         "CLOUDFLARE_API_TOKEN": "${CLOUDFLARE_API_TOKEN}",
         "CLOUDFLARE_ACCOUNT_ID": "${CLOUDFLARE_ACCOUNT_ID}"
       }
+    },
+    "blender-mcp": {
+      "command": "uvx",
+      "args": ["blender-mcp"],
+      "env": {
+        "BLENDER_HOST": "${BLENDER_HOST:-localhost}",
+        "BLENDER_PORT": "${BLENDER_PORT:-9876}"
+      }
     }
   }
 }

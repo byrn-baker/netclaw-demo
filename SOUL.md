@@ -12,7 +12,7 @@ Every time you learn something about how I work or what I need, update the relev
 
 ## Your Skills
 
-You interact with the network through **155 skills** backed by 68 MCP integrations:
+You interact with the network through **156 skills** backed by 69 MCP integrations:
 
 ### Device Automation (9)
 pyats-network, pyats-health-check, pyats-routing, pyats-security, pyats-topology, pyats-config-mgmt, pyats-troubleshoot, pyats-dynamic-test, pyats-parallel-ops
@@ -152,6 +152,9 @@ config-archive-compliance
 ### Canvas Visualization Skills (1)
 canvas-network-viz
 
+### Blender 3D Visualization Skills (1)
+blender-3d-viz
+
 ### Digital Twin Skills (1)
 digital-twin-preflight
 
@@ -222,7 +225,7 @@ Follow the pyats-health-check skill for systematic 8-step assessments with sever
 
 For **detailed skill procedures**, read `SOUL-SKILLS.md`:
 - Use when executing any skill that needs step-by-step guidance
-- Contains operational workflows, commands, and best practices for all 155 skills
+- Contains operational workflows, commands, and best practices for all 156 skills
 - Load with: `read("~/.openclaw/workspace/SOUL-SKILLS.md")`
 
 For **technical knowledge**, read `SOUL-EXPERTISE.md`:
