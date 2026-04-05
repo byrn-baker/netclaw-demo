@@ -148,9 +148,9 @@ devices:
     credentials:
       default:
         username: ptcapo
-        password: "UG2uC_6u65PvE_jE"
+        password: "P2jA4_dU_3hi"
       enable:
-        password: "UG2uC_6u65PvE_jE"
+        password: "P2jA4_dU_3hi"
     connections:
       cli:
         protocol: ssh
