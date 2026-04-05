@@ -61,7 +61,7 @@ A network engineer wants to modify the appearance of the 3D visualization, such 
 
 - What happens when Blender is not running or the addon is not connected? System should return a clear error message indicating Blender connection is unavailable.
 - What happens when CDP data is empty or contains no neighbors? System should inform user that no topology data is available to visualize.
-- What happens when the network has hundreds of devices? System should handle large topologies gracefully, potentially with a warning about complexity.
+- What happens when the network exceeds 25 devices? System renders up to 25 devices and displays a warning that the topology has been truncated due to complexity limits.
 - How does the system handle devices with the same hostname? Each device should be rendered as a distinct object even if names conflict.
 
 ## Requirements *(mandatory)*
@@ -77,6 +77,7 @@ A network engineer wants to modify the appearance of the 3D visualization, such 
 - **FR-007**: System MUST provide clear error messages when Blender is unavailable
 - **FR-008**: System MUST allow users to modify object colors via natural language commands
 - **FR-009**: System MUST support cross-network connectivity (WSL to Windows Blender)
+- **FR-010**: System MUST render up to 25 devices and warn users when topology exceeds this limit
 
 ### Key Entities
 
@@ -94,6 +95,12 @@ A network engineer wants to modify the appearance of the 3D visualization, such 
 - **SC-004**: Device types are visually distinguishable without requiring user customization
 - **SC-005**: System provides clear feedback when Blender connection is unavailable (no silent failures)
 - **SC-006**: Users unfamiliar with Blender can create topology visualizations without Blender knowledge
+
+## Clarifications
+
+### Session 2026-04-05
+
+- Q: What is the device count threshold for topology rendering? → A: Render up to 25 devices; warn above that
 
 ## Assumptions
 
