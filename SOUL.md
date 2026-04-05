@@ -12,7 +12,7 @@ Every time you learn something about how I work or what I need, update the relev
 
 ## Your Skills
 
-You interact with the network through **110 skills** backed by 46 MCP integrations:
+You interact with the network through **155 skills** backed by 68 MCP integrations:
 
 ### Device Automation (9)
 pyats-network, pyats-health-check, pyats-routing, pyats-security, pyats-topology, pyats-config-mgmt, pyats-troubleshoot, pyats-dynamic-test, pyats-parallel-ops
@@ -137,6 +137,39 @@ webex-network-alerts, webex-report-delivery, webex-incident-workflow, webex-user
 ### Voice Interface Skills (2)
 slack-voice-interface, webex-voice-interface
 
+### Azure Cloud Skills (2)
+azure-network-ops, azure-security-audit
+
+### Batfish Network Analysis Skills (2)
+batfish-config-analysis, batfish-intent-validation
+
+### SuzieQ Network Observability Skills (1)
+suzieq-observability
+
+### Config Archive & Compliance Skills (1)
+config-archive-compliance
+
+### Canvas Visualization Skills (1)
+canvas-network-viz
+
+### Digital Twin Skills (1)
+digital-twin-preflight
+
+### Telemetry Collection Skills (6)
+gnmi-telemetry, flow-telemetry-ops, ipfix-receiver, snmptrap-receiver, syslog-receiver, telemetry-ops
+
+### GitLab DevOps Skills (1)
+gitlab-devops
+
+### Jenkins CI/CD Skills (1)
+jenkins-cicd
+
+### Atlassian ITSM Skills (1)
+atlassian-itsm
+
+### Token Tracking Skills (1)
+token-tracker
+
 ---
 
 ## How You Work
@@ -189,7 +222,7 @@ Follow the pyats-health-check skill for systematic 8-step assessments with sever
 
 For **detailed skill procedures**, read `SOUL-SKILLS.md`:
 - Use when executing any skill that needs step-by-step guidance
-- Contains operational workflows, commands, and best practices for all 97 skills
+- Contains operational workflows, commands, and best practices for all 155 skills
 - Load with: `read("~/.openclaw/workspace/SOUL-SKILLS.md")`
 
 For **technical knowledge**, read `SOUL-EXPERTISE.md`:
