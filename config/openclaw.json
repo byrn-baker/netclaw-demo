@@ -212,11 +212,7 @@
     },
     "blender-mcp": {
       "command": "uvx",
-      "args": ["blender-mcp"],
-      "env": {
-        "BLENDER_HOST": "${BLENDER_HOST:-localhost}",
-        "BLENDER_PORT": "${BLENDER_PORT:-9876}"
-      }
+      "args": ["blender-mcp"]
     }
   }
 }
