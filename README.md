@@ -310,12 +310,18 @@ NetClaw ships with the full set of OpenClaw workspace markdown files. These are 
 | 56 | GNS3 | Built-in | stdio (Python) | Network lab management — projects (create/clone/export/import), nodes (create from templates, start/stop/suspend/reload, console), links, packet capture, snapshots (26 tools) |
 | 57 | Prisma SD-WAN | [iamdheerajdubey/prisma-sdwan-mcp](https://github.com/iamdheerajdubey/prisma-sdwan-mcp) | stdio (Python) | Palo Alto Networks Prisma SD-WAN read-only visibility — sites, elements, topology, status, alarms, events, interfaces, BGP, routes, policies, security zones, applications (15+ tools) |
 | 58 | Datadog | [Datadog MCP](https://mcp://datadog.com/mcp) | Remote HTTP | Full observability stack — logs, metrics, incidents, APM, dashboards with optional toolsets: error_tracking, feature_flags, dbm, security, llm_observability (16+ tools) |
+| 59 | PagerDuty | [pagerduty-mcp](https://pypi.org/project/pagerduty-mcp/) | uvx (Python) | Incident management — incidents, on-call schedules, services, escalation policies, event orchestration with read/write capabilities (70 tools) |
+| 60 | Splunk | [splunk-mcp](https://pypi.org/project/splunk-mcp/) | uvx (Python) | Log analytics and SIEM — SPL search, indexes, saved searches, alerts, dashboards for security and operations (30 tools) |
+| 61 | Terraform Cloud | [Terraform MCP](https://mcp://terraform.io/mcp) | Remote HTTP | Infrastructure as Code — workspaces, runs, state management, variables, and policy compliance (40+ tools) |
+| 62 | HashiCorp Vault | [Vault MCP](https://mcp://vault.hashicorp.com/mcp) | Remote HTTP | Secrets management — KV secrets, PKI certificates, transit encryption, authentication methods, audit logging (35+ tools) |
+| 63 | Zscaler | [Zscaler MCP](https://mcp://zscaler.com/mcp) | Remote HTTP | Zero Trust security — ZIA (SWG), ZPA (ZTNA), ZDX (DEM), identity management, and security insights (300+ tools) |
+| 64-68 | Cloudflare | [Cloudflare MCP](https://mcp://cloudflare.com/*) | Remote HTTP | Edge platform (5 servers) — DNS analytics, WAF/DDoS security, Zero Trust access, traffic analytics, Workers compute (50+ tools) |
 
 All MCP servers communicate via stdio (JSON-RPC 2.0) through `scripts/mcp-call.py`. GitHub MCP runs via Docker. CML MCP is pip-installed (`cml-mcp`). NSO MCP is pip-installed (`cisco-nso-mcp-server`). FMC MCP runs as an HTTP server on port 8000. Meraki Magic MCP runs via FastMCP stdio (~804 Dashboard API endpoints). ThousandEyes community MCP runs via stdio (9 read-only tools); ThousandEyes official MCP is a remote HTTP endpoint hosted by Cisco at `https://api.thousandeyes.com/mcp` (~20 tools via `npx mcp-remote`). RADKit MCP runs via FastMCP stdio with certificate-based cloud relay auth (5 tools for remote device access). Nautobot MCP runs via MCP SDK stdio (5 IPAM tools, alternative to NetBox). Infrahub MCP runs via stdio (10 tools for schema-driven SoT, GraphQL queries, and versioned branches). Itential MCP is pip-installed (`itential-mcp`) and runs via stdio (65+ tools for network automation orchestration). JunOS MCP runs via stdio (10 tools for PyEZ/NETCONF device automation). Arista CVP MCP runs via uv/stdio (4 tools for CloudVision Portal device inventory, events, connectivity monitoring, and tag management). UML MCP runs via stdio (2 tools for 27+ diagram types via Kroki multi-engine rendering). Protocol MCP runs via stdio (10 tools for live BGP/OSPF/GRE control-plane participation using scapy-based protocol speakers). ContainerLab MCP runs via stdio (6 tools for containerized network lab lifecycle management via ContainerLab API). SD-WAN MCP runs via stdio (12 read-only tools for Cisco SD-WAN vManage fabric monitoring). Grafana MCP runs via `uvx mcp-grafana` (75+ tools for dashboards, Prometheus, Loki, alerting, incidents, OnCall). Prometheus MCP is pip-installed (`prometheus-mcp-server`) and runs via stdio (6 tools for direct PromQL queries, metric discovery, and scrape target health). Kubeshark MCP is a remote HTTP endpoint running inside a Kubernetes cluster (6 tools for L4/L7 traffic capture, pcap export, flow analysis, and TLS decryption via eBPF; access via `kubectl port-forward svc/kubeshark-hub 8898:8898`). nmap MCP runs via FastMCP stdio (14 tools for host discovery, port scanning, service/OS detection, NSE scripts, and vulnerability scanning with CIDR scope enforcement and audit logging). gtrace MCP runs via `gtrace mcp` stdio (6 tools for advanced traceroute with MPLS/ECMP/NAT detection, MTR continuous monitoring, GlobalPing distributed probes, ASN lookup, geolocation, and reverse DNS). AWS MCPs run via `uvx` (uv tool runner). GCP MCPs are remote HTTP endpoints hosted by Google (OAuth 2.0 auth). AAP Enterprise MCP provides 4 independent servers via `uv run` stdio: Controller (45 tools for inventories, jobs, projects, ad-hoc commands, Galaxy), EDA (12 tools for event-driven activations, rulebooks, decision environments), ansible-lint (9 tools for playbook/role validation and best practices), and Red Hat Docs (documentation search with domain validation). fwrule MCP runs via `uv run fwrule-mcp` stdio (3 tools for multi-vendor firewall rule overlap, shadowing, conflict, and duplication analysis across 9 vendors using 6-dimensional set intersection). SuzieQ MCP runs via stdio (5 read-only tools for network state queries, assertions, summaries, unique value discovery, and path tracing across 20+ network tables via the SuzieQ REST API). GNS3 MCP runs via FastMCP stdio (26 tools for GNS3 network lab management — projects, nodes, links, packet capture, and snapshots via REST API v3). No persistent connections, no port management.
 
 ---
 
-## Skills (101)
+## Skills (124)
 
 ### pyATS Device Skills (9)
 
@@ -610,6 +616,59 @@ All MCP servers communicate via stdio (JSON-RPC 2.0) through `scripts/mcp-call.p
 | **datadog-metrics** | Metric queries and dashboards (5 tools): execute metric queries with aggregations; list available metrics; get metric metadata; list and retrieve dashboards. Network performance monitoring, infrastructure health assessment, and capacity planning workflows. |
 | **datadog-incidents** | Incident management (4 tools): list incidents with filters; get incident details; create and update incidents (read-only by default). Incident investigation, network outage tracking, and post-incident review workflows. |
 | **datadog-apm** | APM trace analysis (4 tools): search traces with query syntax; get trace details; list services; get service performance summary. Latency analysis, error investigation, service health review, and root cause analysis workflows. |
+
+### PagerDuty Incident Management Skills (4)
+
+| Skill | What It Does |
+|-------|-------------|
+| **pagerduty-incidents** | Incident management (12 tools): list/get/create incidents, manage alerts, add notes and responders, find related and past incidents, identify outliers. Incident investigation, network outage response, and pattern analysis workflows. |
+| **pagerduty-oncall** | On-call management (9 tools): list current on-calls, manage schedules and overrides, review escalation policies. Shift handoff, vacation coverage, and escalation review workflows. |
+| **pagerduty-services** | Service catalog (4 tools): list/get/create/update services. Service catalog review, health assessment, and new service onboarding workflows. |
+| **pagerduty-orchestration** | Event orchestration (7 tools): manage event routing rules, global orchestration, and service-specific routing. Event routing review, rule management, and routing audit workflows. |
+
+### Splunk Log Analytics Skills (3)
+
+| Skill | What It Does |
+|-------|-------------|
+| **splunk-search** | SPL search execution (8 tools): run SPL queries, get search results, manage search jobs, export results. Security event hunting, network log correlation, and incident investigation workflows. |
+| **splunk-indexes** | Index management (6 tools): list indexes, get index details/stats, list sourcetypes. Index discovery before querying for efficient searches. |
+| **splunk-saved** | Saved searches and alerts (6 tools): list/get/run saved searches, manage alert history. Compliance reporting, scheduled search execution, and alert management workflows. |
+
+### HashiCorp Terraform Skills (3)
+
+| Skill | What It Does |
+|-------|-------------|
+| **terraform-registry** | Registry module/provider discovery (6 tools): search modules, get versions, search providers, get documentation. Module discovery before writing infrastructure code. |
+| **terraform-workspaces** | Workspace management (8 tools): list workspaces, get runs, view state, manage variables. Workspace review, run history analysis, and state inspection workflows. |
+| **terraform-operations** | Run operations (6 tools): create runs, get status/logs, cancel runs. Plan/apply workflow with ServiceNow CR gating for production changes. |
+
+### HashiCorp Vault Skills (3)
+
+| Skill | What It Does |
+|-------|-------------|
+| **vault-secrets** | Secrets management (8 tools): list/read secrets, list secret engines, get metadata. Secrets audit, credential rotation, and secure retrieval workflows. |
+| **vault-pki** | PKI certificates (6 tools): list certificates, get cert details, view CA chain, list roles. Certificate audit, expiration tracking, and PKI health workflows. |
+| **vault-mounts** | Auth and secrets mounts (6 tools): list auth methods, list secret engines, get mount config, list audit devices. Vault health audit and mount configuration review. |
+
+### Zscaler Zero Trust Skills (5)
+
+| Skill | What It Does |
+|-------|-------------|
+| **zscaler-zia** | ZIA security (15 tools): URL categories, security policies, firewall rules, SSL inspection, DLP engines. ZIA policy audit, web security review, and threat protection workflows. |
+| **zscaler-zpa** | ZPA private access (12 tools): application segments, server groups, access policies, posture profiles, connectors. ZPA audit, ZTNA configuration review, and connector health workflows. |
+| **zscaler-zdx** | ZDX experience (10 tools): devices, user experience scores, applications, network metrics, alerts. ZDX troubleshooting, performance analysis, and user experience workflows. |
+| **zscaler-identity** | Identity management (8 tools): users, groups, departments, IDP configuration. Identity audit, user provisioning review, and directory sync workflows. |
+| **zscaler-insights** | Analytics and reporting (8 tools): traffic insights, threat insights, bandwidth reports, audit logs. Security review, traffic analysis, and compliance reporting workflows. |
+
+### Cloudflare Edge Platform Skills (5)
+
+| Skill | What It Does |
+|-------|-------------|
+| **cloudflare-dns** | DNS management (8 tools): list zones, get zone details, list DNS records, get DNS analytics, check DNSSEC status. DNS audit, record management, and analytics workflows. |
+| **cloudflare-security** | WAF/DDoS security (10 tools): list firewall rules, get WAF packages, rate limits, DDoS analytics, IP access rules. Security audit, threat analysis, and protection workflows. |
+| **cloudflare-zerotrust** | Zero Trust access (8 tools): list Access applications, get policies, view Gateway logs, list tunnels, check device posture. Zero Trust audit, access review, and tunnel health workflows. |
+| **cloudflare-analytics** | Traffic analytics (6 tools): zone analytics, firewall events, origin analytics, cache analytics. Traffic analysis, performance review, and cache optimization workflows. |
+| **cloudflare-workers** | Edge compute (6 tools): list Workers, get logs, list KV namespaces, view Durable Objects. Workers inventory, log analysis, and edge compute review workflows. |
 
 ### Reference & Utility Skills (7)
 

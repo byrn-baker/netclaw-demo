@@ -421,506 +421,1059 @@ Template engine for configuration generation. Variables, loops, conditionals, fi
 
 ---
 
+## Cloud Platforms
+
+### AWS Networking
+
+**VPC (Virtual Private Cloud):**
+- Logically isolated network section
+- CIDR blocks: /16 to /28
+- Subnets: public (IGW route) vs private (NAT/no internet)
+- Route tables: main vs custom, longest-prefix match
+
+**Connectivity:**
+- **Internet Gateway (IGW)** — public internet access
+- **NAT Gateway** — outbound-only for private subnets
+- **VPC Peering** — non-transitive, same/cross-region
+- **Transit Gateway (TGW)** — hub-and-spoke, transitive routing
+- **VPN** — Site-to-Site (IPsec), Client VPN
+- **Direct Connect** — dedicated 1/10/100 Gbps links
+
+**Security:**
+- **Security Groups** — stateful, instance-level firewall
+- **NACLs** — stateless, subnet-level ACLs
+- **AWS Network Firewall** — managed IDS/IPS, domain filtering
+
+**Load Balancing:**
+- **ALB** — Layer 7 (HTTP/HTTPS), path/host routing
+- **NLB** — Layer 4 (TCP/UDP), static IP, low latency
+- **GWLB** — Gateway Load Balancer for appliances
+
+**DNS:** Route 53 — authoritative DNS, health checks, routing policies (weighted, latency, geolocation, failover).
+
+### Azure Networking
+
+**Virtual Network (VNet):**
+- Regional scope, non-overlapping CIDR
+- Subnets share VNet address space
+- NSGs (Network Security Groups) — stateful L4 filtering
+
+**Connectivity:**
+- **VNet Peering** — global, non-transitive
+- **Virtual WAN** — managed hub-and-spoke
+- **ExpressRoute** — private connectivity (50 Mbps to 100 Gbps)
+- **VPN Gateway** — S2S (IPsec), P2S (OpenVPN/IKEv2)
+
+**Security:**
+- **Azure Firewall** — managed L3-L7 firewall
+- **DDoS Protection** — Basic (free) vs Standard (adaptive)
+- **Private Link** — private endpoints for Azure services
+
+**Load Balancing:**
+- **Azure Load Balancer** — L4, internal/public
+- **Application Gateway** — L7, WAF, SSL termination
+- **Front Door** — global L7, CDN, WAF
+
+**DNS:** Azure DNS — zones, private DNS, alias records.
+
+### GCP Networking
+
+**VPC:**
+- Global scope (spans all regions)
+- Subnets are regional
+- Auto-mode vs custom-mode
+
+**Connectivity:**
+- **Cloud VPN** — HA VPN (99.99% SLA), Classic VPN
+- **Cloud Interconnect** — Dedicated (10/100 Gbps), Partner
+- **VPC Peering** — global, non-transitive
+- **Shared VPC** — centralized networking across projects
+
+**Security:**
+- **Firewall Rules** — stateful, priority-based
+- **Cloud Armor** — WAF, DDoS protection
+- **Private Google Access** — reach Google APIs privately
+
+**Load Balancing:**
+- **Global** — HTTP(S), SSL Proxy, TCP Proxy
+- **Regional** — Internal TCP/UDP, External TCP/UDP
+
+---
+
+## Observability
+
+### Grafana
+
+**Data Sources:** Prometheus, Loki, Elasticsearch, InfluxDB, MySQL, PostgreSQL, Datadog, CloudWatch, Azure Monitor.
+
+**Dashboards:**
+- Panels: time series, stat, gauge, table, logs, heatmap
+- Variables: template queries for dynamic filtering
+- Annotations: overlay events on graphs
+
+**Alerting:**
+- Alert rules: PromQL/LogQL conditions
+- Notification channels: email, Slack, PagerDuty, webhooks
+- Silences and muting
+
+**Loki (Log Aggregation):**
+- LogQL query language
+- Labels for indexing (not full-text)
+- Promtail for log collection
+
+### Prometheus
+
+**Data Model:**
+- Time series: metric name + labels + timestamp + value
+- Label cardinality: keep low for performance
+
+**Metric Types:**
+- **Counter** — cumulative, only increases (requests_total)
+- **Gauge** — can increase/decrease (temperature, queue_size)
+- **Histogram** — bucketed observations (request_duration)
+- **Summary** — quantiles (p50, p90, p99)
+
+**PromQL:**
+- Instant vectors: `http_requests_total{job="api"}`
+- Range vectors: `http_requests_total[5m]`
+- Functions: rate(), increase(), histogram_quantile()
+- Aggregations: sum(), avg(), max(), min(), count()
+
+**Service Discovery:** Kubernetes, Consul, EC2, file-based, DNS.
+
+**Federation:** Hierarchical Prometheus for scaling.
+
+### SuzieQ
+
+**Network Observability:**
+- Agentless polling via SSH/REST
+- Multi-vendor: Cisco, Arista, Juniper, Cumulus, SONIC
+- Data collection: interfaces, routes, MACs, ARP, LLDP, BGP, OSPF, EVPN, MLAG
+
+**Analysis Commands:**
+- `show` — tabular data display
+- `summarize` — aggregated statistics
+- `assert` — validation checks (MTU consistency, OSPF state)
+- `unique` — distinct values
+- `top` — highest/lowest values
+
+**Use Cases:**
+- Network-wide MTU audit
+- BGP session state validation
+- Interface error trending
+- Path analysis
+
+### Kubeshark
+
+**Kubernetes Traffic Analysis:**
+- eBPF-based capture (no sidecars)
+- L4/L7 protocol decoding
+- TLS decryption (automatic via eBPF)
+
+**KFL (Kubeshark Filter Language):**
+- Filter by pod, namespace, IP, port
+- HTTP: `http.request.method == "POST"`
+- Status codes: `http.response.status >= 500`
+- Latency: `http.latency > 100`
+
+**Capabilities:**
+- Real-time traffic inspection
+- PCAP export
+- Service map generation
+- Anomaly detection
+
+---
+
+## DevOps & CI/CD
+
+### GitHub
+
+**Repository Model:**
+- Branches: main/master, feature branches
+- Pull Requests: code review, CI checks
+- Protected branches: require reviews, status checks
+
+**GitHub Actions:**
+- Workflows: YAML in `.github/workflows/`
+- Triggers: push, pull_request, schedule, workflow_dispatch
+- Jobs: runs-on (ubuntu, windows, macos), steps
+- Secrets: repository/organization/environment secrets
+
+**GitHub API:**
+- REST API: `/repos/{owner}/{repo}/issues`
+- GraphQL API: flexible queries
+
+### GitLab
+
+**Project Structure:**
+- Groups: organize projects hierarchically
+- Repositories: Git hosting
+- Issues, MRs (Merge Requests), Boards
+
+**GitLab CI/CD:**
+- `.gitlab-ci.yml` pipeline definition
+- Stages: build, test, deploy
+- Jobs: script, artifacts, dependencies
+- Runners: shared, group, project-specific
+
+**Features:**
+- Container Registry
+- Package Registry
+- Wiki, Snippets
+- Security scanning (SAST, DAST, dependency scanning)
+
+### Jenkins
+
+**Architecture:**
+- Controller: orchestration, UI, configuration
+- Agents: execute builds (SSH, JNLP)
+- Executors: concurrent build slots
+
+**Pipeline:**
+- Declarative: `pipeline { agent, stages, steps }`
+- Scripted: Groovy DSL, more flexible
+- Jenkinsfile: pipeline-as-code in repo
+
+**Concepts:**
+- Jobs/Projects: build configurations
+- Builds: execution instances
+- Artifacts: build outputs
+- Credentials: secrets management
+
+**Plugins:** 1800+ plugins for SCM, build tools, notifications, deployment.
+
+### Atlassian (Jira & Confluence)
+
+**Jira:**
+- Projects: containers for issues
+- Issue types: Epic, Story, Task, Bug, Sub-task
+- Workflows: statuses and transitions
+- Boards: Scrum (sprints) or Kanban
+- JQL: `project = NET AND status = Open`
+
+**Confluence:**
+- Spaces: organized content areas
+- Pages: wiki-style documentation
+- Templates: standardized content
+- Macros: dynamic content (Jira issues, code blocks)
+
+**Integration:** Jira ↔ Confluence links, smart links, automation rules.
+
+---
+
+## Security Platforms
+
+### Zscaler
+
+**Zscaler Internet Access (ZIA):**
+- Secure Web Gateway (SWG)
+- URL filtering (80+ categories)
+- SSL inspection (forward proxy)
+- Cloud firewall, bandwidth control
+- DLP, CASB (inline)
+
+**Zscaler Private Access (ZPA):**
+- Zero Trust Network Access (ZTNA)
+- Application-level access
+- App Connectors, Service Edges
+- Browser Access (clientless)
+
+**Zscaler Digital Experience (ZDX):**
+- End-to-end monitoring
+- ZDX score (0-100)
+- Network path analysis
+- Device health metrics
+
+### Palo Alto Networks
+
+**Panorama:**
+- Centralized firewall management
+- Device groups: shared policies
+- Templates: device settings
+- Log forwarding, reporting
+
+**Firewall Concepts:**
+- Zones: trust, untrust, DMZ
+- Security policies: source/dest zone, app, user, action
+- NAT policies: source NAT, destination NAT
+- App-ID: application identification
+- User-ID: user-to-IP mapping
+
+**Prisma Access:** Cloud-delivered security (SASE).
+
+**Prisma SD-WAN:** Application-aware SD-WAN with integrated security.
+
+### Cisco Secure Firewall (FMC/FTD)
+
+**Firewall Management Center (FMC):**
+- Centralized policy management
+- Device registration
+- Access control policies
+- Intrusion policies, malware detection
+
+**Firewall Threat Defense (FTD):**
+- NGFW functionality
+- Snort IPS engine
+- AMP (Advanced Malware Protection)
+- URL filtering, SSL decryption
+
+**Policy Types:**
+- Access Control: allow/block/monitor
+- Prefilter: fast-path trusted traffic
+- Intrusion: Snort rules
+- File/Malware: AMP inspection
+
+### FortiManager
+
+**Centralized Management:**
+- ADOMs: Administrative Domains (multi-tenancy)
+- Packages: policy containers
+- Objects: addresses, services, profiles
+
+**Policy Types:**
+- Firewall policies
+- VPN configurations
+- SD-WAN rules
+- Security profiles (AV, IPS, web filter)
+
+**Workflow:**
+- Create/modify in FortiManager
+- Install to managed devices
+- Revision history, rollback
+
+### nmap
+
+**Scan Types:**
+- `-sn` — Ping scan (host discovery)
+- `-sS` — SYN scan (stealth, default)
+- `-sT` — TCP connect scan
+- `-sU` — UDP scan
+- `-sV` — Version detection
+- `-O` — OS detection
+- `-A` — Aggressive (OS, version, scripts, traceroute)
+
+**Port States:** open, closed, filtered, unfiltered, open|filtered, closed|filtered.
+
+**NSE (Nmap Scripting Engine):**
+- Categories: auth, broadcast, default, discovery, exploit, vuln
+- Usage: `--script=vuln`, `--script=http-*`
+
+**Output Formats:** Normal (-oN), XML (-oX), Grepable (-oG), All (-oA).
+
+---
+
+## Infrastructure as Code
+
+### HashiCorp Terraform
+
+**Core Workflow:** init → plan → apply → destroy.
+
+**State Management:**
+- State file: JSON, tracks managed resources
+- Remote backends: S3, GCS, Azure Blob, Terraform Cloud
+- State locking: prevent concurrent modifications
+
+**Language (HCL):**
+- Resources: `resource "aws_instance" "web" {}`
+- Data sources: read-only queries
+- Variables: input parameterization
+- Outputs: expose values
+- Modules: reusable components
+- Providers: cloud/service plugins
+
+**Terraform Cloud:**
+- Workspaces: isolated environments
+- Remote runs: plan/apply in cloud
+- Sentinel: policy as code
+- Private registry: internal modules
+
+### HashiCorp Vault
+
+**Secrets Engines:**
+- KV: static secrets (v1/v2)
+- Database: dynamic credentials
+- PKI: certificate authority
+- Transit: encryption as a service
+- AWS/Azure/GCP: cloud credentials
+
+**Authentication:**
+- Human: LDAP, OIDC, GitHub, Userpass
+- Machine: AppRole, Kubernetes, AWS IAM, Azure MSI
+
+**Policies:** HCL-based, path permissions (CRUD + list, sudo).
+
+**HA:** Integrated Storage (Raft), auto-unseal (cloud KMS).
+
+### Ansible / AAP
+
+**Core Concepts:**
+- Inventory: hosts and groups
+- Playbooks: YAML task definitions
+- Roles: reusable task collections
+- Modules: 3000+ built-in actions
+- Facts: discovered host information
+
+**Ansible Automation Platform (AAP):**
+- Controller: web UI, API, RBAC
+- Execution environments: containerized runtime
+- Automation mesh: distributed execution
+- Collections: Galaxy content packaging
+
+**Network Modules:**
+- `ios_*`, `nxos_*`, `eos_*`, `junos_*`
+- `cli_command`, `cli_config`
+- `netconf_*`, `restconf_*`
+
+**Event-Driven Ansible (EDA):**
+- Rulebooks: event → condition → action
+- Sources: webhooks, Kafka, file changes
+- Actions: run_playbook, run_module, debug
+
+---
+
+## Cisco Network Platforms
+
+### Cisco NSO
+
+**Architecture:**
+- CDB (Configuration Database): single source of truth
+- NEDs (Network Element Drivers): device abstraction
+- Services: YANG models for intent
+
+**Sync Modes:**
+- `sync-from`: device → CDB
+- `sync-to`: CDB → device
+- `check-sync`: compare without action
+
+**Transaction Model:** ACID transactions across multiple devices.
+
+**Service Design:** YANG model → Python/Java logic → device templates.
+
+### Cisco Meraki
+
+**Dashboard:**
+- Organizations: top-level container
+- Networks: logical groupings
+- Devices: MR (wireless), MS (switch), MX (security), MV (camera)
+
+**Management Model:**
+- Cloud-managed: no on-prem controller
+- Templates: shared configurations
+- Tags: device/network organization
+
+**Key Features:**
+- Auto VPN: one-click site-to-site
+- Group policies: user/device-based
+- Location analytics: presence, engagement
+- API: ~800 endpoints
+
+### Cisco RADKit
+
+**Cloud-Relayed Access:**
+- No VPN required
+- NAT traversal via cloud relay
+- Certificate-based authentication
+
+**Capabilities:**
+- CLI command execution
+- SNMP polling
+- Multi-vendor support
+- Audit logging
+
+**Use Cases:**
+- Remote TAC access
+- Partner device management
+- Temporary access grants
+
+---
+
+## Juniper Networks
+
+### JunOS
+
+**Architecture:**
+- Separation of control and forwarding planes
+- Modular software (daemons per function)
+- Single configuration database
+
+**Configuration:**
+- Hierarchical structure
+- `show | compare` before commit
+- `commit confirmed` with rollback timer
+- Configuration groups for inheritance
+
+**CLI Modes:**
+- Operational: `show`, `ping`, `traceroute`
+- Configuration: `set`, `delete`, `edit`
+
+**Routing:**
+- Routing instances: VRFs
+- Routing policies: match → action
+- Policy chains: import/export
+- Communities, AS-path prepend
+
+**Security (SRX):**
+- Zones and policies
+- UTM: AV, web filtering, content filtering
+- IDP: intrusion detection/prevention
+- AppSecure: application identification
+
+### Arista CloudVision
+
+**Architecture:**
+- CVP: on-prem or CVaaS (cloud)
+- Streaming telemetry via gNMI
+- State streaming: real-time device state
+
+**Features:**
+- Network-wide visibility
+- Change control: staged rollouts
+- Compliance: config drift detection
+- Topology: auto-discovered maps
+
+**Studios:** No-code automation workflows.
+
+**Tags:** Metadata for device organization.
+
+---
+
+## SD-WAN
+
+### Cisco SD-WAN (Viptela)
+
+**Components:**
+- **vManage** — management plane, GUI/API
+- **vSmart** — control plane, policy distribution
+- **vBond** — orchestration, device authentication
+- **vEdge/cEdge** — data plane, branch routers
+
+**Overlay:**
+- OMP (Overlay Management Protocol): control plane
+- IPsec tunnels: data plane encryption
+- BFD: sub-second failover
+
+**Policies:**
+- Centralized: vSmart-applied
+- Localized: device-applied
+- Application-aware routing
+- Traffic engineering
+
+### Prisma SD-WAN (Palo Alto)
+
+**Components:**
+- ION devices: branch appliances
+- Prisma SD-WAN Controller: cloud management
+- Prisma Access integration: SASE
+
+**Features:**
+- Application-aware routing
+- Path quality monitoring (latency, jitter, loss)
+- SLA classes: app-to-path mapping
+- Security integration: NGFW via Prisma Access
+
+---
+
+## Lab & Simulation
+
+### GNS3
+
+**Emulation:** Run real OS images (IOS, JunOS, etc.).
+
+**Node Types:**
+- Dynamips: Cisco IOS routers
+- QEMU/KVM: any x86 OS
+- Docker: lightweight containers
+- VPCS: simple PC simulator
+
+**Topology Building:**
+- Links: Ethernet connections
+- Link conditioning: latency, loss, jitter
+- Packet capture: Wireshark integration
+
+### Cisco CML (Modeling Labs)
+
+**Node Types:**
+- IOSv, IOSvL2: router/switch
+- CSR1000v, Cat8000v: cloud routers
+- NX-OSv: Nexus
+- ASAv: firewall
+- External connector: bridge to physical
+
+**Features:**
+- Breakout tool: console access
+- PCAP: packet capture
+- REST API: programmatic control
+- OVA export: portable labs
+
+### ContainerLab
+
+**Container-Based Labs:**
+- SR Linux, cEOS, FRR, Open vSwitch
+- Docker/Podman runtime
+- YAML topology definition
+
+**Advantages:**
+- Fast startup (<30 seconds)
+- Low resource usage
+- Native Linux networking
+- CI/CD integration
+
+---
+
+## IPAM / DCIM
+
+### NetBox
+
+**Data Model:**
+- Sites, Locations, Racks
+- Devices, Interfaces, Cables
+- IP Addresses, Prefixes, VRFs
+- VLANs, VLAN Groups
+- Tenants, Contacts
+
+**Source of Truth:** Intended state for network infrastructure.
+
+**Integrations:**
+- REST API: full CRUD
+- GraphQL API: flexible queries
+- Webhooks: event notifications
+- Custom scripts: Python automation
+
+### Nautobot
+
+**NetBox Fork:** Additional features:
+- Jobs: background task execution
+- Plugins: extensibility framework
+- Git integration: config contexts from repos
+- GraphQL: native support
+
+**Apps:** Golden config, ChatOps, SSoT, Firewall models.
+
+### Infoblox
+
+**DDI (DNS, DHCP, IPAM):**
+- Authoritative DNS
+- DHCP management
+- IP address management
+
+**Grid Architecture:**
+- Grid Master: central management
+- Members: distributed services
+- Grid replication
+
+**NIOS API:** WAPI (Web API) for automation.
+
+### Infrahub
+
+**Schema-Driven:**
+- Flexible data model
+- Relationships as first-class citizens
+- Branches for change management
+- Diff and merge workflows
+
+**GraphQL API:** Query and mutate with filters.
+
+---
+
+## Collaboration
+
+### Slack
+
+**Workspace Model:**
+- Channels: public/private
+- Direct messages
+- Threads: organized replies
+
+**Integration:**
+- Incoming webhooks: post messages
+- Slash commands: trigger actions
+- Bot users: interactive apps
+- Block Kit: rich message formatting
+
+**API:** Web API, Events API, RTM (deprecated).
+
+### Cisco WebEx
+
+**Spaces:** Group messaging and collaboration.
+
+**Messaging:**
+- Markdown formatting
+- Adaptive Cards: interactive content
+- File attachments
+- Threaded replies (parentId)
+
+**Bots:**
+- Bot access token (long-lived)
+- Webhooks for @mentions
+- Rooms API for space management
+
+### Microsoft Graph (Teams)
+
+**Teams Structure:**
+- Teams: collaboration groups
+- Channels: topic-based conversations
+- Tabs: embedded content
+
+**API Operations:**
+- Send messages: `/teams/{id}/channels/{id}/messages`
+- Upload files: OneDrive/SharePoint integration
+- Adaptive Cards: rich content
+
+**Authentication:** OAuth 2.0, app registrations, delegated vs application permissions.
+
+---
+
+## Packet & Traffic Analysis
+
+### Wireshark/tshark
+
+**Capture Filters (BPF):**
+- `host 10.1.1.1`
+- `port 443`
+- `tcp and port 80`
+- `not broadcast`
+
+**Display Filters:**
+- `ip.addr == 10.1.1.1`
+- `tcp.port == 443`
+- `http.request.method == "GET"`
+- `frame.time_delta > 1`
+
+**Analysis Features:**
+- Protocol hierarchy
+- Conversations
+- Endpoints
+- Expert info
+- Follow TCP stream
+
+### Batfish
+
+**Configuration Analysis:**
+- Offline analysis (no device access)
+- Multi-vendor parsing
+- Reachability queries
+- ACL/firewall analysis
+
+**Question Types:**
+- `traceroute`: path analysis
+- `reachability`: can A reach B?
+- `filterLineReachability`: ACL line hits
+- `compareFilters`: ACL diff
+
+**Network Snapshots:** Point-in-time config sets.
+
+### ThousandEyes
+
+**Test Types:**
+- Network: loss, latency, jitter, path
+- HTTP: availability, response time
+- Page load: browser metrics
+- DNS: resolution time, server response
+
+**Agents:**
+- Cloud agents: global vantage points
+- Enterprise agents: internal visibility
+- Endpoint agents: user devices
+
+**Path Visualization:** Hop-by-hop analysis with ISP identification.
+
+---
+
+## Incident Management
+
+### PagerDuty
+
+**Incident Lifecycle:** Triggered → Acknowledged → Resolved.
+
+**Core Concepts:**
+- Services: components being monitored
+- Escalation policies: who gets notified
+- Schedules: on-call rotations
+- Integrations: event sources
+
+**Event Orchestration:**
+- Global orchestration: pre-service routing
+- Service orchestration: per-service rules
+- Actions: route, suppress, severity, annotate
+
+### ServiceNow
+
+**ITSM Modules:**
+- Incident Management
+- Change Management
+- Problem Management
+- CMDB (Configuration Management Database)
+
+**Change Management:**
+- Change Request (CR): proposed change
+- Change types: Standard, Normal, Emergency
+- Approvals: CAB (Change Advisory Board)
+- States: New → Assess → Authorize → Implement → Review → Closed
+
+**CMDB:**
+- Configuration Items (CIs)
+- Relationships: runs on, depends on
+- Discovery: auto-populate
+
+---
+
+## Streaming Telemetry
+
+### gNMI (gRPC Network Management Interface)
+
+**Operations:**
+- `Capabilities`: discover supported models
+- `Get`: retrieve config/state
+- `Set`: modify configuration
+- `Subscribe`: streaming updates
+
+**Subscription Modes:**
+- `SAMPLE`: periodic polling
+- `ON_CHANGE`: event-driven
+- `TARGET_DEFINED`: device chooses
+
+**Path Encoding:** YANG paths with origin (openconfig, native).
+
+### SNMP
+
+**Versions:**
+- v1: community string, no encryption
+- v2c: community string, bulk operations
+- v3: authentication + encryption (recommended)
+
+**Operations:**
+- GET: single OID
+- GETNEXT: walk MIB tree
+- GETBULK: efficient retrieval
+- SET: modify values
+- TRAP/INFORM: asynchronous notifications
+
+**MIBs:** IF-MIB (interfaces), ENTITY-MIB (inventory), vendor MIBs.
+
+### Syslog
+
+**Severity Levels:**
+- 0: Emergency
+- 1: Alert
+- 2: Critical
+- 3: Error
+- 4: Warning
+- 5: Notice
+- 6: Informational
+- 7: Debug
+
+**Formats:**
+- RFC 3164: BSD syslog (legacy)
+- RFC 5424: structured syslog (recommended)
+
+**Transport:** UDP/514 (traditional), TCP/514, TLS/6514.
+
+### IPFIX/NetFlow
+
+**Flow Records:**
+- Source/destination IP
+- Source/destination port
+- Protocol
+- Bytes, packets
+- Timestamps
+
+**Versions:**
+- NetFlow v5: fixed format
+- NetFlow v9: template-based
+- IPFIX: IETF standard (RFC 7011)
+
+**Components:**
+- Exporter: network device
+- Collector: aggregation server
+- Analyzer: reporting/visualization
+
+---
+
+## Diagrams & Visualization
+
+### UML / Kroki
+
+**Diagram Types:**
+- `nwdiag`: network topology
+- `rackdiag`: rack layouts
+- `packetdiag`: protocol headers
+- `sequence`: message flows
+- `state`: state machines
+- `c4plantuml`: architecture
+- `mermaid`: flowcharts, ER diagrams
+
+**Kroki Service:** Unified API for 25+ diagram types.
+
+### Draw.io
+
+**Network Diagrams:**
+- Cisco, AWS, Azure, GCP stencils
+- Layers: separate concerns
+- Links: connection lines
+- Export: PNG, SVG, PDF
+
+**Automation:**
+- CLI export: `drawio --export`
+- CSV import: generate from data
+
+### Markmap
+
+**Mind Maps:**
+- Markdown input
+- Hierarchical visualization
+- Interactive (collapse/expand)
+- HTML export
+
+**Use Cases:**
+- OSPF area structure
+- BGP peer relationships
+- Troubleshooting trees
+
+---
+
+## Reference Tools
+
+### NVD CVE Database
+
+**CVE (Common Vulnerabilities and Exposures):**
+- Unique identifier: CVE-YYYY-NNNNN
+- Description, affected products
+- CVSS scores
+
+**CVSS (Common Vulnerability Scoring System):**
+- v3.1: 0.0-10.0 scale
+- Critical: 9.0-10.0
+- High: 7.0-8.9
+- Medium: 4.0-6.9
+- Low: 0.1-3.9
+
+### RFC Documents
+
+**IETF Standards:**
+- Informational, Proposed Standard, Internet Standard
+- BCP (Best Current Practice)
+- Obsoleted/Updated references
+
+**Key Network RFCs:**
+- RFC 791: IPv4
+- RFC 8200: IPv6
+- RFC 4271: BGP-4
+- RFC 2328: OSPFv2
+- RFC 7348: VXLAN
+- RFC 8040: RESTCONF
+
+### Subnet Calculator
+
+**IPv4:**
+- CIDR to range conversion
+- VLSM planning
+- Summarization
+- Wildcard masks
+
+**IPv6:**
+- /64 subnet planning
+- /127 point-to-point (RFC 6164)
+- EUI-64 calculation
+
+---
+
 ## Cloudflare
 
 ### CDN & Edge Network
 
-**Anycast:** Cloudflare's network uses anycast routing — same IP announced from 300+ data centers worldwide. Traffic routed to nearest PoP automatically.
+**Anycast:** Same IP from 300+ global PoPs, nearest location serves request.
 
-**Caching Tiers:**
-- **Edge Cache** — content cached at PoP closest to user
-- **Tiered Cache** — upper-tier PoPs reduce origin requests
-- **Cache Reserve** — persistent storage for long-tail content
+**Caching:**
+- Edge Cache, Tiered Cache, Cache Reserve
+- `cf-cache-status`: HIT, MISS, DYNAMIC, BYPASS
 
-**Cache Control:**
-- `Cache-Control` headers from origin respected
-- Page Rules and Cache Rules override behavior
-- `cf-cache-status`: HIT, MISS, EXPIRED, BYPASS, DYNAMIC
-
-**Purge Types:** Single URL, prefix, tag-based, everything.
+**Purge:** Single URL, prefix, tag, everything.
 
 ### DNS
 
-**DNS Resolution:** Authoritative DNS with <10ms global response times.
-
-**Record Types:** A, AAAA, CNAME (flattening at apex), MX, TXT, SRV, CAA, DNSKEY, DS.
-
 **Proxy Status:**
-- **Proxied (orange cloud)** — traffic flows through Cloudflare (CDN, WAF, DDoS protection)
-- **DNS-only (gray cloud)** — Cloudflare only resolves DNS, no proxy features
+- Orange cloud (proxied): CDN + security
+- Gray cloud (DNS-only): resolution only
 
-**DNSSEC:** Signs zones with ECDSA P-256, DS record published to registrar.
-
-**DNS Analytics:** Query volume, response codes, geography, latency percentiles.
+**DNSSEC:** Zone signing, DS record at registrar.
 
 ### Security
 
-**WAF (Web Application Firewall):**
-- **Managed Rulesets** — OWASP Core Rule Set, Cloudflare Managed, exposed credentials check
-- **Custom Rules** — expression-based rules using wirefilter syntax
-- **Rate Limiting** — threshold-based blocking (requests per period)
-- **Actions:** Block, Challenge (JS/Managed), Log, Skip
+**WAF:** Managed rulesets (OWASP), custom rules, rate limiting.
 
-**DDoS Protection:**
-- **L3/L4** — volumetric attack mitigation (SYN floods, UDP amplification)
-- **L7** — application-layer protection (HTTP floods, slowloris)
-- **Always-on** — no scrubbing center redirect, inline mitigation
+**DDoS:** L3/L4 volumetric, L7 application-layer, always-on.
 
-**Bot Management:**
-- **Bot Score** — 1-99 (1 = definitely bot, 99 = definitely human)
-- **JS Challenge** — browser integrity check
-- **Managed Challenge** — adaptive challenge (Turnstile)
+**Bot Management:** Bot score (1-99), JS challenge, managed challenge.
 
-**SSL/TLS Modes:**
-- **Off** — no encryption
-- **Flexible** — HTTPS to Cloudflare, HTTP to origin (insecure)
-- **Full** — HTTPS to origin, any certificate
-- **Full (Strict)** — HTTPS to origin, valid CA-signed certificate
+**SSL/TLS Modes:** Off, Flexible, Full, Full (Strict).
 
 ### Zero Trust (Cloudflare One)
 
-**Access:** Identity-aware proxy for applications.
-- **Access Policies** — allow/deny based on identity, device, location
-- **Identity Providers** — SAML, OIDC, social (Google, GitHub, etc.)
-- **Service Tokens** — machine-to-machine authentication
+**Access:** Identity-aware proxy, IdP integration, service tokens.
 
-**Gateway:** Secure Web Gateway (SWG) for DNS/HTTP filtering.
-- **DNS Policies** — block categories, domains, security threats
-- **HTTP Policies** — inspect/block based on URL, headers, file types
-- **Network Policies** — L4 firewall rules
+**Gateway:** DNS/HTTP filtering, SWG functionality.
 
-**Tunnel (cloudflared):** Outbound-only connection from origin to Cloudflare edge.
-- Replaces VPN for application access
-- No inbound firewall rules required
-- High availability via replica tunnels
+**Tunnel:** Outbound-only origin connectivity.
 
-**WARP Client:** Device agent for Zero Trust enrollment.
-- DNS-over-HTTPS/TLS
-- Split tunneling
-- Device posture checks
+**WARP:** Device client for Zero Trust enrollment.
 
-### Workers (Edge Compute)
+### Workers
 
-**Runtime:** V8 isolates, JavaScript/TypeScript/WASM execution at edge.
+**Edge Compute:** V8 isolates, JS/TS/WASM.
 
-**Limits:**
-- **Free** — 100K requests/day, 10ms CPU time
-- **Paid** — unlimited requests, 50ms CPU time (bundled), 30s (unbound)
-
-**KV (Key-Value):** Eventually consistent edge storage, read-heavy workloads.
-
-**Durable Objects:** Strongly consistent, stateful edge compute (single-threaded).
-
-**R2:** S3-compatible object storage, zero egress fees.
-
-**D1:** SQLite at the edge (serverless relational database).
-
----
-
-## Zscaler
-
-### Zero Trust Architecture
-
-**Zero Trust Exchange (ZTE):** Cloud-native security platform, all traffic inspected inline.
-
-**Principles:**
-- Never trust, always verify
-- Assume breach
-- Least privilege access
-- Microsegmentation
-
-### Zscaler Internet Access (ZIA)
-
-**Secure Web Gateway (SWG):**
-- URL filtering (80+ categories)
-- SSL/TLS inspection (forward proxy)
-- Cloud firewall (L4 rules)
-- Bandwidth control
-
-**Threat Protection:**
-- Advanced Threat Protection (ATP) — sandboxing, inline AV
-- Cloud IPS — signature and behavioral detection
-- DNS Security — block malicious domains
-
-**Data Protection:**
-- DLP — 100+ predefined dictionaries, custom patterns
-- CASB (inline) — shadow IT discovery, app controls
-- Browser Isolation — pixel-streaming for risky sites
-
-**Traffic Forwarding:**
-- **Z-Tunnel 1.0** — GRE/IPsec from branch routers
-- **Z-Tunnel 2.0** — Zscaler Client Connector (ZCC) per-user tunnels
-- **PAC Files** — browser-based forwarding
-
-### Zscaler Private Access (ZPA)
-
-**Zero Trust Network Access (ZTNA):**
-- Application-level access (not network-level)
-- Inside-out connectivity (no inbound firewall rules)
-- Microsegmentation by application
-
-**Components:**
-- **App Connectors** — lightweight VMs in data center/cloud
-- **Service Edges** — ZPA PoPs for broker connections
-- **Client Connector** — user device agent
-
-**Access Policies:**
-- Application Segments — group applications by risk/function
-- Server Groups — target infrastructure groups
-- Access Policy — identity + posture + context → allow/deny
-
-**Browser Access:** Clientless access via ZPA portal (RDP, SSH, web apps).
-
-### Zscaler Digital Experience (ZDX)
-
-**Digital Experience Monitoring (DEM):**
-- End-to-end path analysis (user → app)
-- Application performance scoring
-- Network hop-by-hop latency
-
-**Metrics:**
-- **ZDX Score** — 0-100 composite health score
-- **Page Fetch Time** — web application load time
-- **DNS Time** — resolution latency
-- **Network Path** — traceroute with loss/latency per hop
-
-**Root Cause Analysis:** Isolate problems to endpoint, network, or application.
-
-### Zscaler Workload Communications
-
-**Workload Segmentation:** East-west traffic protection in cloud/data center.
-
-**Cloud Connectors:** Zscaler security for cloud workloads (AWS, Azure, GCP).
-
----
-
-## HashiCorp Vault
-
-### Secrets Management
-
-**Secret Engines:**
-- **KV (Key-Value)** — versioned static secrets (v1: no versioning, v2: versioned)
-- **Database** — dynamic credentials for MySQL, PostgreSQL, MongoDB, etc.
-- **AWS** — dynamic IAM credentials, STS tokens
-- **Azure** — dynamic service principal credentials
-- **SSH** — signed SSH certificates or OTP
-- **PKI** — X.509 certificate authority
-- **Transit** — encryption-as-a-service (encrypt/decrypt without exposing keys)
-- **TOTP** — time-based one-time passwords
-
-**Dynamic Secrets:** Generated on-demand, automatically revoked after TTL.
-
-**Leases:** All secrets have TTL, renewable up to max TTL, revocable.
-
-### Authentication Methods
-
-**Human Auth:**
-- **LDAP** — Active Directory / LDAP bind
-- **OIDC** — OpenID Connect (Okta, Azure AD, etc.)
-- **GitHub** — GitHub personal/org tokens
-- **Userpass** — username/password (avoid in production)
-
-**Machine Auth:**
-- **AppRole** — role_id + secret_id for applications
-- **Kubernetes** — service account JWT validation
-- **AWS IAM** — IAM role/user authentication
-- **Azure MSI** — Managed Service Identity
-- **TLS Certificates** — client certificate authentication
-
-**Tokens:** Bearer tokens with policies attached, renewable, orphan vs child.
-
-### Authorization (Policies)
-
-**Policy Language:** HCL or JSON, path-based permissions.
-
-**Capabilities:** create, read, update, delete, list, sudo, deny.
-
-**Policy Precedence:** Most specific path wins, deny overrides allow.
-
-**Templating:** Use identity attributes in policies ({{identity.entity.name}}).
-
-### PKI Secrets Engine
-
-**Certificate Authority:**
-- Root CA — offline, long-lived (10+ years)
-- Intermediate CA — online, shorter-lived (1-5 years)
-- Issuing CA — issues end-entity certificates
-
-**Roles:** Define certificate parameters (TTL, key usage, allowed domains).
-
-**Certificate Issuance:** API-driven, automated renewal, short-lived certs (hours/days).
-
-**CRL/OCSP:** Certificate revocation via CRL or OCSP responder.
-
-### High Availability
-
-**Storage Backends:**
-- **Integrated Storage (Raft)** — built-in HA, recommended
-- **Consul** — external HA coordination
-- **Cloud storage** — S3, GCS, Azure Blob (no HA without Consul)
-
-**Sealing/Unsealing:**
-- **Shamir's Secret Sharing** — split unseal key into shares
-- **Auto-unseal** — AWS KMS, Azure Key Vault, GCP KMS, HSM
-
-**Performance Replication:** Read replicas for geographic distribution.
-
-**DR Replication:** Disaster recovery cluster (cold standby).
-
----
-
-## HashiCorp Terraform
-
-### Infrastructure as Code (IaC)
-
-**Declarative Model:** Define desired state, Terraform calculates changes.
-
-**Resource Graph:** Dependency graph determines operation order.
-
-**Idempotency:** Apply same config multiple times, same result.
-
-### Core Workflow
-
-**init:** Download providers, initialize backend, create lock file.
-
-**plan:** Compare desired state to actual state, show proposed changes.
-
-**apply:** Execute changes to reach desired state.
-
-**destroy:** Remove all managed resources.
-
-### State Management
-
-**State File:** JSON representation of managed infrastructure.
-
-**Remote State:** Store state in S3, GCS, Azure Blob, Terraform Cloud.
-
-**State Locking:** Prevent concurrent modifications (DynamoDB for S3, built-in for TFC).
-
-**Sensitive Data:** State may contain secrets — encrypt at rest, restrict access.
-
-**State Operations:**
-- `terraform state list` — enumerate resources
-- `terraform state show` — inspect single resource
-- `terraform state mv` — refactor without recreate
-- `terraform state rm` — remove from state (doesn't destroy)
-- `terraform import` — adopt existing infrastructure
-
-### Providers
-
-**Official Providers:** AWS, Azure, GCP, Kubernetes, etc.
-
-**Partner/Community:** 3000+ providers in registry.
-
-**Provider Versioning:** Pin versions in `required_providers` block.
-
-**Provider Configuration:** Credentials, region, endpoints.
-
-### Modules
-
-**Root Module:** Top-level working directory.
-
-**Child Modules:** Reusable components, called from root.
-
-**Module Sources:** Local path, Terraform Registry, Git, S3, GCS.
-
-**Module Versioning:** Semantic versioning for registry modules.
-
-**Input Variables:** Parameterize modules.
-
-**Output Values:** Expose data from modules.
-
-### Terraform Cloud / Enterprise
-
-**Workspaces:** Isolated state and variable environments.
-
-**Remote Operations:** Plan/apply runs in Terraform Cloud.
-
-**VCS Integration:** Automatic runs on Git push.
-
-**Policy as Code (Sentinel):** Enforce compliance rules before apply.
-
-**Private Registry:** Host internal modules and providers.
-
-**Cost Estimation:** Estimate infrastructure costs before apply.
+**Storage:** KV (key-value), Durable Objects (stateful), R2 (S3-compatible), D1 (SQLite).
 
 ---
 
 ## Splunk
 
-### Search Processing Language (SPL)
+### SPL (Search Processing Language)
 
-**Search Pipeline:** Commands chained with pipes (|).
+**Pipeline:** Base search | command | command | ...
 
-**Base Search:** `index=network sourcetype=syslog` — specify data source.
+**Key Commands:**
+- `stats` — aggregations
+- `timechart` — time-series
+- `eval` — field calculations
+- `rex` — regex extraction
+- `where` — filtering
+- `table` — field selection
 
-**Transforming Commands:**
-- `stats` — aggregate (count, sum, avg, max, min, values, list)
-- `timechart` — time-series aggregation
-- `chart` — pivot table
-- `top` / `rare` — frequency analysis
-- `eventstats` — add aggregates without reducing rows
+**Time Modifiers:** `earliest=-24h`, `latest=now`, `@d` (snap to day).
 
-**Streaming Commands:**
-- `eval` — create/modify fields
-- `rex` — regex field extraction
-- `where` — filter with expressions
-- `table` — select fields for display
-- `rename` — rename fields
-- `sort` — order results
+### Architecture
 
-**Time Modifiers:**
-- `earliest=-24h` / `latest=now`
-- `earliest=-7d@d` (snap to day boundary)
-- `_time` field for time-based operations
+**Components:**
+- Search Head: UI, search execution
+- Indexer: storage, search processing
+- Forwarder: Universal (lightweight), Heavy (processing)
 
-### Indexing Architecture
-
-**Index Tiers:**
-- **Hot** — actively written, searchable
-- **Warm** — no longer written, searchable
-- **Cold** — searchable, may be slower storage
-- **Frozen** — archived, not searchable (restore to thaw)
-
-**Data Model:** Events → index → bucket → journal/tsidx.
-
-**Sourcetype:** Defines event parsing, timestamp extraction, field extraction.
-
-**Index-Time vs Search-Time:** Field extraction at index time (faster) vs search time (flexible).
-
-### Knowledge Objects
-
-**Saved Searches:** Stored SPL for reuse.
-
-**Reports:** Saved searches with visualization.
-
-**Alerts:** Triggered searches with actions (email, webhook, script).
-
-**Dashboards:** Collections of panels with searches/visualizations.
-
-**Lookups:** CSV/KV store enrichment (VLOOKUP-style).
-
-**Field Extractions:** Regex patterns to extract fields.
-
-**Event Types:** Named search criteria for categorization.
-
-**Tags:** Metadata labels for fields/event types.
-
-### Deployment Architecture
-
-**Search Head:** User interface, search execution.
-
-**Indexer:** Data ingestion, storage, search processing.
-
-**Forwarder:**
-- **Universal Forwarder (UF)** — lightweight log collector
-- **Heavy Forwarder (HF)** — parsing, routing, filtering
-
-**Cluster Types:**
-- **Indexer Cluster** — replication for HA/DR
-- **Search Head Cluster** — HA for search tier
-
-**Deployment Server:** Manage forwarder configurations.
-
-### Network Security Use Cases
-
-**Network Traffic Analysis:**
-- Firewall logs (allow/deny, source/dest IP, port)
-- Flow data (NetFlow, sFlow, IPFIX)
-- DNS logs (query, response, NXDOMAIN)
-
-**Correlation Searches:** Multi-stage attack detection across data sources.
-
-**Notable Events:** Security incidents from correlation searches.
-
-**Risk-Based Alerting (RBA):** Accumulate risk scores, alert on threshold.
+**Index Tiers:** Hot → Warm → Cold → Frozen.
 
 ---
 
 ## Datadog
 
-### Observability Pillars
+### Observability
 
-**Metrics:** Time-series numerical data (counters, gauges, histograms).
+**Three Pillars:** Metrics, Logs, Traces.
 
-**Logs:** Structured/unstructured text events.
+**Metrics:**
+- Gauge, Counter, Histogram, Distribution
+- DogStatsD submission
+- Tagging: key:value pairs
 
-**Traces:** Distributed request tracking across services.
+**APM:**
+- Distributed tracing
+- Service map
+- Flame graphs
+- Error tracking
 
-**RUM (Real User Monitoring):** Browser/mobile performance and errors.
-
-**Synthetic Monitoring:** Proactive API/browser tests.
-
-### Metrics
-
-**Metric Types:**
-- **Gauge** — point-in-time value (CPU%, memory)
-- **Counter** — cumulative value (requests_total)
-- **Rate** — per-second derivative of counter
-- **Histogram** — distribution (percentiles, avg)
-- **Distribution** — global percentiles across hosts
-
-**Tagging:** Key:value pairs for filtering/grouping (host, env, service).
-
-**Custom Metrics:** StatsD, DogStatsD, API submission.
-
-**Metric Queries:** Aggregation (avg, sum, min, max), rollup (time bucketing), functions.
-
-### Logs
-
-**Log Pipeline:**
-1. **Collection** — Agent, API, cloud integrations
-2. **Processing** — Parsing, enrichment, remapping
-3. **Indexing** — Storage in log indexes
-4. **Archiving** — Long-term storage (S3, GCS, Azure Blob)
-
-**Log Query Syntax:** `service:nginx status:error @http.status_code:5*`
-
-**Facets:** Indexed fields for fast filtering.
-
-**Log Patterns:** Automatic clustering of similar log lines.
-
-**Logging Without Limits:** Ingest all, index selectively.
-
-### APM (Application Performance Monitoring)
-
-**Distributed Tracing:** Track requests across services.
-
-**Trace Structure:**
-- **Trace** — end-to-end request
-- **Span** — single operation within trace
-- **Service** — logical unit (web, api, database)
-- **Resource** — specific endpoint (/api/users)
-
-**Service Map:** Visual dependency graph.
-
-**Flame Graph:** Hierarchical span visualization.
-
-**Error Tracking:** Group and track application errors.
-
-### Infrastructure Monitoring
-
-**Host Map:** Visual representation of infrastructure.
-
-**Containers:** Docker, Kubernetes monitoring.
-
-**Serverless:** AWS Lambda, Azure Functions.
-
-**Processes:** Per-process resource consumption.
-
-**Network Performance Monitoring (NPM):** Flow-based traffic analysis.
-
-### Alerting
-
-**Monitor Types:**
-- **Metric** — threshold on metric value
-- **Log** — count/value from log query
-- **APM** — trace metrics, error rate
-- **Composite** — boolean combination of monitors
-- **Anomaly** — ML-based deviation detection
-- **Forecast** — predict future threshold breach
-
-**Notification Channels:** Email, Slack, PagerDuty, webhook, etc.
+**Alerting:**
+- Metric monitors
+- Anomaly detection
+- Composite monitors
+- Forecast alerts
 
 ---
 
@@ -928,162 +1481,32 @@ Template engine for configuration generation. Variables, loops, conditionals, fi
 
 ### Incident Management
 
-**Incident Lifecycle:**
-1. **Triggered** — new incident, awaiting response
-2. **Acknowledged** — responder working on it
-3. **Resolved** — incident closed
+**Lifecycle:** Triggered → Acknowledged → Resolved.
 
-**Urgency Levels:**
-- **High** — immediate notification (push, SMS, call)
-- **Low** — delayed/batched notification
+**Components:**
+- Services: monitored components
+- Escalation policies: notification chains
+- Schedules: on-call rotations
+- Event orchestration: routing rules
 
-**Priority:** P1-P5 severity classification (optional feature).
-
-### Services
-
-**Service:** Represents a discrete component (API, database, network device).
-
-**Integration Keys:** Unique endpoint per service for event ingestion.
-
-**Event Rules:** Transform/route events before creating incidents.
-
-**Service Dependencies:** Map upstream/downstream relationships.
-
-### Escalation Policies
-
-**Escalation Levels:** Ordered list of users/schedules to notify.
-
-**Escalation Timeout:** Time before escalating to next level.
-
-**Repeat Policy:** How many times to cycle through levels.
-
-**On-Call Handoff:** Automatic notification of outgoing on-call.
-
-### Schedules
-
-**Schedule Layers:** Stacked rotation layers with overrides.
-
-**Rotation Types:**
-- **Daily** — 24-hour shifts
-- **Weekly** — 7-day shifts
-- **Custom** — arbitrary shift length
-
-**Schedule Restrictions:** Limit layer to specific times (business hours).
-
-**Schedule Overrides:** Temporary coverage changes (vacation).
-
-### Event Orchestration
-
-**Global Orchestration:** Process events before service routing.
-
-**Service Orchestration:** Service-specific event rules.
-
-**Rule Actions:**
-- **Route** — send to specific service
-- **Suppress** — drop event
-- **Severity** — set incident severity
-- **Priority** — set incident priority
-- **Annotate** — add notes/links
-- **Trigger/Resolve** — control incident state
-
-**Event Intelligence:**
-- **Alert Grouping** — intelligent clustering
-- **Noise Reduction** — suppress flapping
-- **Similar Incidents** — suggest related past incidents
-
-### On-Call Best Practices
-
-**Follow-the-Sun:** Distribute on-call across time zones.
-
-**Secondary On-Call:** Backup responder if primary unavailable.
-
-**Escalation Timeouts:** 5-15 minutes for high-urgency.
-
-**Runbooks:** Link documentation to services.
-
-**Post-Incident Review:** Blameless retrospectives.
+**Integration:** Events API, webhooks, bidirectional sync.
 
 ---
 
-## Prisma SD-WAN (Palo Alto Networks)
+## Prisma SD-WAN
 
-### SD-WAN Architecture
+### Architecture
 
-**SD-WAN Concepts:**
-- **Underlay** — physical transport (MPLS, Internet, LTE)
-- **Overlay** — encrypted tunnels over underlay
-- **Fabric** — mesh of SD-WAN devices
+**Components:**
+- ION devices: branch appliances
+- Controller: cloud management
+- Prisma Access: SASE integration
 
-**Traffic Steering:** Application-aware path selection.
-
-**Zero Trust SD-WAN:** Integrated security at branch.
-
-### Components
-
-**ION Devices:** Branch appliances (hardware or virtual).
-- ION 1200 — small branch (50 Mbps)
-- ION 3200 — medium branch (500 Mbps)
-- ION 5200 — large branch (2 Gbps)
-- ION 9000 — data center (10+ Gbps)
-
-**Prisma Access:** Cloud-delivered security (SASE integration).
-
-**Prisma SD-WAN Controller:** Cloud management plane.
-
-### Connectivity
-
-**WAN Interfaces:** MPLS, broadband, LTE, satellite.
-
-**Circuit Categories:**
-- **Private WAN** — MPLS, dedicated circuits
-- **Public WAN** — Internet, DIA
-- **Private WAN (via DC)** — hairpin through data center
-
-**VPN Tunnels:** IPsec overlay between sites.
-
-**BFD (Bidirectional Forwarding Detection):** Sub-second failover.
-
-### Traffic Management
-
-**Application Identification:**
-- DPI (Deep Packet Inspection)
-- DNS-based identification
-- Custom app definitions
-
-**Path Policies:**
-- **Prefer** — use circuit type if available
-- **Avoid** — use only if no alternative
-- **Require** — must use specific circuit
-
-**Path Quality Metrics:**
-- Latency (ms)
-- Jitter (ms)
-- Packet loss (%)
-- MOS (Mean Opinion Score) for voice
-
-**SLA Classes:** Map app requirements to path quality thresholds.
-
-### Security Integration
-
-**NGFW (via Prisma Access):**
-- URL filtering
-- Threat prevention
-- SSL decryption
-- DLP
-
-**Local Breakout:** Direct internet access at branch (with security).
-
-**Backhaul:** Send traffic to data center or Prisma Access.
-
-### High Availability
-
-**HA Modes:**
-- **Active/Passive** — failover between two IONs
-- **Active/Active** — load sharing with session sync
-
-**Sub-second Failover:** BFD + stateful failover.
-
-**Cloud HA:** Controller redundancy built-in.
+**Traffic Management:**
+- Application identification
+- Path policies (prefer/avoid/require)
+- SLA classes
+- Quality metrics (latency, jitter, loss)
 
 ---
 
@@ -1091,94 +1514,36 @@ Template engine for configuration generation. Variables, loops, conditionals, fi
 
 ### Network Simulation
 
-**Emulation vs Simulation:**
-- **Emulation** — real OS images (Cisco IOS, JunOS) running on hypervisor
-- **Simulation** — behavioral models (Packet Tracer)
+**Node Types:**
+- Dynamips: Cisco IOS
+- QEMU/KVM: any x86 OS
+- Docker: containers
+- VPCS: lightweight PCs
 
-GNS3 is primarily an **emulator** — runs real network OS images.
+**Features:**
+- Link conditioning
+- Packet capture
+- Snapshots
+- REST API
 
-### Architecture
+---
 
-**GNS3 Server:** Backend that runs nodes (local or remote).
+## Protocol Participation
 
-**GNS3 GUI:** Desktop client for topology design.
+### Live Control Plane
 
-**GNS3 VM:** Pre-configured VM for running nodes (recommended for Docker/QEMU).
+**BGP Participation:**
+- Establish peering with lab routers
+- Inject/withdraw routes
+- Adjust local preference, AS-path prepend
 
-**Controller:** REST API for programmatic access.
+**OSPF Participation:**
+- Join OSPF areas
+- View LSDB from participant perspective
+- Cost manipulation
 
-### Node Types
+**GRE Tunnels:**
+- Establish tunnels to lab devices
+- Encapsulate traffic for testing
 
-**Dynamips Nodes:**
-- Cisco IOS routers (c3600, c3725, c7200)
-- Real IOS images required
-- CPU-intensive, limited scalability
-
-**QEMU/KVM Nodes:**
-- Any OS that runs on x86 (Cisco IOSv, vMX, vSRX, Linux)
-- Better performance than Dynamips
-- Requires QEMU disk images
-
-**Docker Containers:**
-- Lightweight Linux-based nodes
-- Alpine, FRR, Open vSwitch, custom containers
-- Fast startup, low resource usage
-
-**VirtualBox/VMware:**
-- Full VMs integrated into topology
-- Higher resource requirements
-
-**Built-in Nodes:**
-- **VPCS** — lightweight PC simulator (ping, traceroute)
-- **Cloud** — bridge to real network
-- **NAT** — NAT gateway for internet access
-- **Switch** — simple Ethernet switch
-
-### Topology Building
-
-**Links:** Ethernet connections between nodes.
-
-**Interface Types:**
-- Ethernet (e0, e1, etc.)
-- Serial (s0/0, s0/1, etc.)
-- GigabitEthernet (gi0/0, gi0/1, etc.)
-
-**Link Conditioning:**
-- Packet loss (%)
-- Latency (ms)
-- Jitter (ms)
-- BER (Bit Error Rate)
-
-**Packet Capture:** Wireshark integration on any link.
-
-### Labs and Projects
-
-**Project:** Container for topology, configs, snapshots.
-
-**Portable Project:** Export .gns3project file for sharing.
-
-**Appliances:** Pre-packaged node templates (.gns3a files).
-
-**Snapshots:** Save/restore entire lab state.
-
-### Integration with Physical Network
-
-**Cloud Node:** Bridge GNS3 topology to physical interfaces.
-
-**NAT Node:** Provide internet access to lab nodes.
-
-**Console Access:** Telnet/SSH to node consoles.
-
-**API Access:** REST API for automation (create nodes, links, start/stop).
-
-### Use Cases
-
-**Certification Study:** CCNA, CCNP, CCIE lab practice.
-
-**Network Design:** Prototype topologies before deployment.
-
-**Troubleshooting Training:** Recreate production issues in lab.
-
-**Automation Development:** Test scripts/playbooks safely.
-
-**Configuration Backup Testing:** Verify configs restore correctly.
+**Safety:** ServiceNow CR required for production; lab mode for testing.

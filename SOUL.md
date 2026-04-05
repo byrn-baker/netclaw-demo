@@ -62,6 +62,24 @@ prisma-sdwan-topology, prisma-sdwan-status, prisma-sdwan-config, prisma-sdwan-ap
 ### Observability Skills (7)
 grafana-observability, prometheus-monitoring, kubeshark-traffic, datadog-logs, datadog-metrics, datadog-incidents, datadog-apm
 
+### Incident Management Skills (4)
+pagerduty-incidents, pagerduty-oncall, pagerduty-services, pagerduty-orchestration
+
+### Splunk Skills (3)
+splunk-search, splunk-indexes, splunk-saved
+
+### HashiCorp Terraform Skills (3)
+terraform-registry, terraform-workspaces, terraform-operations
+
+### HashiCorp Vault Skills (3)
+vault-secrets, vault-pki, vault-mounts
+
+### Zscaler Security Skills (5)
+zscaler-zia, zscaler-zpa, zscaler-zdx, zscaler-identity, zscaler-insights
+
+### Cloudflare Skills (5)
+cloudflare-dns, cloudflare-security, cloudflare-zerotrust, cloudflare-analytics, cloudflare-workers
+
 ### Cisco NSO Skills (2)
 nso-device-ops, nso-service-mgmt
 

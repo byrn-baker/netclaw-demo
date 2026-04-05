@@ -1713,6 +1713,74 @@ log_info "Datadog MCP uses remote transport — no local installation required"
 log_info "Configure DD_API_KEY, DD_APP_KEY, and optionally DD_SITE in .env"
 
 # ═══════════════════════════════════════════
+# Step 45.7: PagerDuty MCP Server (Incident Management)
+# ═══════════════════════════════════════════
+
+log_step "45.7/$TOTAL_STEPS Configuring PagerDuty MCP Server..."
+echo "  Source: pip install pagerduty-mcp (uvx runner)"
+echo "  Incident management: incidents, on-call schedules, services, event orchestration (70 tools)"
+if command -v uvx &> /dev/null; then
+    log_info "uvx available for PagerDuty MCP (runs via uvx pagerduty-mcp)"
+else
+    log_warn "uvx not available — install uv for PagerDuty MCP: pip install uv"
+fi
+log_info "Configure PAGERDUTY_USER_API_KEY in .env"
+
+# ═══════════════════════════════════════════
+# Step 45.8: Splunk MCP Server (Log Analytics)
+# ═══════════════════════════════════════════
+
+log_step "45.8/$TOTAL_STEPS Configuring Splunk MCP Server..."
+echo "  Source: pip install splunk-mcp (uvx runner)"
+echo "  Log analytics: SPL search, indexes, saved searches, alerts (30 tools)"
+if command -v uvx &> /dev/null; then
+    log_info "uvx available for Splunk MCP (runs via uvx splunk-mcp)"
+else
+    log_warn "uvx not available — install uv for Splunk MCP: pip install uv"
+fi
+log_info "Configure SPLUNK_HOST and SPLUNK_TOKEN in .env"
+
+# ═══════════════════════════════════════════
+# Step 45.9: HashiCorp Terraform Cloud MCP Server (Infrastructure as Code)
+# ═══════════════════════════════════════════
+
+log_step "45.9/$TOTAL_STEPS Configuring Terraform Cloud MCP Server..."
+echo "  Source: Remote MCP server at mcp://terraform.io/mcp"
+echo "  IaC management: workspaces, runs, state, variables (40+ tools)"
+log_info "Terraform Cloud MCP uses remote transport — no local installation required"
+log_info "Configure TFC_TOKEN and TFC_ORG in .env"
+
+# ═══════════════════════════════════════════
+# Step 45.10: HashiCorp Vault MCP Server (Secrets Management)
+# ═══════════════════════════════════════════
+
+log_step "45.10/$TOTAL_STEPS Configuring Vault MCP Server..."
+echo "  Source: Remote MCP server at mcp://vault.hashicorp.com/mcp"
+echo "  Secrets management: KV, PKI, transit, auth methods (35+ tools)"
+log_info "Vault MCP uses remote transport — no local installation required"
+log_info "Configure VAULT_ADDR and VAULT_TOKEN in .env"
+
+# ═══════════════════════════════════════════
+# Step 45.11: Zscaler MCP Server (Zero Trust Security)
+# ═══════════════════════════════════════════
+
+log_step "45.11/$TOTAL_STEPS Configuring Zscaler MCP Server..."
+echo "  Source: Remote MCP server at mcp://zscaler.com/mcp"
+echo "  Zero Trust security: ZIA, ZPA, ZDX, identity, insights (300+ tools)"
+log_info "Zscaler MCP uses remote transport — no local installation required"
+log_info "Configure ZSCALER_ZIA_* and ZSCALER_ZPA_* in .env"
+
+# ═══════════════════════════════════════════
+# Step 45.12: Cloudflare MCP Servers (Edge Platform)
+# ═══════════════════════════════════════════
+
+log_step "45.12/$TOTAL_STEPS Configuring Cloudflare MCP Servers..."
+echo "  Source: 5 remote MCP servers at mcp://cloudflare.com/*"
+echo "  Edge platform: DNS analytics, security, Zero Trust, analytics, Workers"
+log_info "Cloudflare MCPs use remote transport — no local installation required"
+log_info "Configure CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID in .env"
+
+# ═══════════════════════════════════════════
 # Step 46: AAP Enterprise MCP Server (Ansible Automation Platform)
 # ═══════════════════════════════════════════
 
