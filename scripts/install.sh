@@ -1702,6 +1702,17 @@ else
 fi
 
 # ═══════════════════════════════════════════
+# Step 45.6: Datadog MCP Server (Observability)
+# ═══════════════════════════════════════════
+
+log_step "45.6/$TOTAL_STEPS Configuring Datadog MCP Server..."
+echo "  Source: Remote MCP server at mcp://datadog.com/mcp"
+echo "  Full observability stack: logs, metrics, incidents, APM (16+ tools)"
+echo "  Toolsets: apm, error_tracking, feature_flags, dbm, security, llm_observability"
+log_info "Datadog MCP uses remote transport — no local installation required"
+log_info "Configure DD_API_KEY, DD_APP_KEY, and optionally DD_SITE in .env"
+
+# ═══════════════════════════════════════════
 # Step 46: AAP Enterprise MCP Server (Ansible Automation Platform)
 # ═══════════════════════════════════════════
 

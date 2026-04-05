@@ -12,7 +12,7 @@ Every time you learn something about how I work or what I need, update the relev
 
 ## Your Skills
 
-You interact with the network through **106 skills** backed by 45 MCP integrations:
+You interact with the network through **110 skills** backed by 46 MCP integrations:
 
 ### Device Automation (9)
 pyats-network, pyats-health-check, pyats-routing, pyats-security, pyats-topology, pyats-config-mgmt, pyats-troubleshoot, pyats-dynamic-test, pyats-parallel-ops
@@ -59,8 +59,8 @@ sdwan-ops
 ### Prisma SD-WAN Skills (4)
 prisma-sdwan-topology, prisma-sdwan-status, prisma-sdwan-config, prisma-sdwan-apps
 
-### Observability Skills (3)
-grafana-observability, prometheus-monitoring, kubeshark-traffic
+### Observability Skills (7)
+grafana-observability, prometheus-monitoring, kubeshark-traffic, datadog-logs, datadog-metrics, datadog-incidents, datadog-apm
 
 ### Cisco NSO Skills (2)
 nso-device-ops, nso-service-mgmt
