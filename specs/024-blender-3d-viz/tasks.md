@@ -110,9 +110,9 @@ This is an MCP integration feature - no custom source code. Paths are configurat
 - [x] T022 [P] Update README.md skill count
 - [x] T023 Copy quickstart.md setup guide to workspace/skills/blender-3d-viz/
 - [x] T024 Run Artifact Coherence Checklist verification
-- [ ] T025 Commit all changes with proper commit message
-- [ ] T026 Push branch and create PR
-- [ ] T027 Draft WordPress blog post for milestone documentation (Constitution XVII)
+- [x] T025 Commit all changes with proper commit message
+- [x] T026 Push branch and create PR
+- [x] T027 Draft WordPress blog post for milestone documentation (Constitution XVII)
 
 ---
 
