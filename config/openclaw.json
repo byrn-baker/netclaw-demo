@@ -213,6 +213,17 @@
     "blender-mcp": {
       "command": "uvx",
       "args": ["blender-mcp"]
+    },
+    "aruba-cx-mcp": {
+      "command": "python3",
+      "args": ["-u", "mcp-servers/aruba-cx-mcp/aruba_cx_mcp_server.py"],
+      "env": {
+        "ARUBA_CX_TARGETS": "${ARUBA_CX_TARGETS}",
+        "ARUBA_CX_CONFIG": "${ARUBA_CX_CONFIG}",
+        "ARUBA_CX_TIMEOUT": "${ARUBA_CX_TIMEOUT:-30}",
+        "ITSM_ENABLED": "${ITSM_ENABLED:-false}",
+        "ITSM_LAB_MODE": "${ITSM_LAB_MODE:-false}"
+      }
     }
   }
 }

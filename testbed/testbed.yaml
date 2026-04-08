@@ -1,160 +1,94 @@
 ---
 devices:
   R1:
-    alias: "Sandbox Router01"
+    alias: "NetClaw-R1"
     type: "router"
     os: "iosxe"
-    platform: CSR1kv
+    platform: "iol-xe"
     credentials:
       default:
-        username: cisco
-        password: cisco
+        username: admin
+        password: C1sco12345
       enable:
-        password: cisco
+        password: C1sco12345
     connections:
       cli:
         protocol: ssh
-        ip: 10.10.20.171
+        ip: 192.168.2.201
         port: 22
         arguments:
-          connection_timeout: 360
+          connection_timeout: 60
+
   R2:
-    alias: "Sandbox Router02"
+    alias: "NetClaw-R2"
     type: "router"
     os: "iosxe"
-    platform: CSR1kv
+    platform: "iol-xe"
     credentials:
       default:
-        username: cisco
-        password: cisco
+        username: admin
+        password: C1sco12345
       enable:
-        password: cisco
+        password: C1sco12345
     connections:
       cli:
         protocol: ssh
-        ip: 10.10.20.172
+        ip: 192.168.2.202
         port: 22
         arguments:
-          connection_timeout: 360
+          connection_timeout: 60
+
   SW1:
-    alias: "Sandbox Switch01"
+    alias: "NetClaw-SW1"
     type: "switch"
     os: "iosxe"
-    platform: CSR1kv
+    platform: "ioll2-xe"
     credentials:
       default:
-        username: cisco
-        password: cisco
+        username: admin
+        password: C1sco12345
       enable:
-        password: cisco
+        password: C1sco12345
     connections:
       cli:
         protocol: ssh
-        ip: 10.10.20.173
+        ip: 192.168.2.211
         port: 22
         arguments:
-          connection_timeout: 360
+          connection_timeout: 60
+
   SW2:
-    alias: "Sandbox Switch02"
+    alias: "NetClaw-SW2"
     type: "switch"
     os: "iosxe"
-    platform: CSR1kv
+    platform: "ioll2-xe"
     credentials:
       default:
-        username: cisco
-        password: cisco
+        username: admin
+        password: C1sco12345
       enable:
-        password: cisco
+        password: C1sco12345
     connections:
       cli:
         protocol: ssh
-        ip: 10.10.20.174
+        ip: 192.168.2.212
         port: 22
         arguments:
-          connection_timeout: 360                  
+          connection_timeout: 60
+
   PC1:
     alias: "CML-PC1-Alpine"
     type: "linux"
     os: "linux"
-    platform: alpine
+    platform: "alpine"
     credentials:
       default:
-        username: cisco
-        password: cisco
+        username: root
+        password: ""
     connections:
       cli:
         protocol: ssh
-        ip: "fd00:10:0:10::100"
+        ip: "10.10.10.11"
         port: 22
         arguments:
           connection_timeout: 30
-
-  PC2:
-    alias: "CML-PC2-Alpine"
-    type: "linux"
-    os: "linux"
-    platform: alpine
-    credentials:
-      default:
-        username: cisco
-        password: cisco
-    connections:
-      cli:
-        protocol: ssh
-        ip: "fd00:10:0:20::100"
-        port: 22
-        arguments:
-          connection_timeout: 30
-
-  Server1:
-    alias: "CML-Server1-TinyCore"
-    type: "linux"
-    os: "linux"
-    platform: tinycore
-    credentials:
-      default:
-        username: cisco
-        password: cisco
-    connections:
-      cli:
-        protocol: ssh
-        ip: "fd00:10:0:30::100"
-        port: 22
-        arguments:
-          connection_timeout: 30
-
-  Server2:
-    alias: "CML-Server2-TinyCore"
-    type: "linux"
-    os: "linux"
-    platform: tinycore
-    credentials:
-      default:
-        username: cisco
-        password: cisco
-    connections:
-      cli:
-        protocol: ssh
-        ip: "fd00:10:0:40::100"
-        port: 22
-        arguments:
-          connection_timeout: 30
-
-  DevNetSandbox:
-    alias: "DevNet Sandbox Catalyst 9000"
-    type: "switch"
-    os: "iosxe"
-    platform: cat9k
-    credentials:
-      default:
-        username: ptcapo
-        password: "P2jA4_dU_3hi"
-      enable:
-        password: "P2jA4_dU_3hi"
-    connections:
-      cli:
-        protocol: ssh
-        ip: devnetsandboxiosxec9k.cisco.com
-        port: 22
-        arguments:
-          connection_timeout: 60

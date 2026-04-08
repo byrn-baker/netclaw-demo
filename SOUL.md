@@ -12,7 +12,7 @@ Every time you learn something about how I work or what I need, update the relev
 
 ## Your Skills
 
-You interact with the network through **156 skills** backed by 69 MCP integrations:
+You interact with the network through **160 skills** backed by 70 MCP integrations:
 
 ### Device Automation (9)
 pyats-network, pyats-health-check, pyats-routing, pyats-security, pyats-topology, pyats-config-mgmt, pyats-troubleshoot, pyats-dynamic-test, pyats-parallel-ops
@@ -154,6 +154,9 @@ canvas-network-viz
 
 ### Blender 3D Visualization Skills (1)
 blender-3d-viz
+
+### Aruba CX Switching Skills (4)
+aruba-cx-system, aruba-cx-interfaces, aruba-cx-switching, aruba-cx-config
 
 ### Digital Twin Skills (1)
 digital-twin-preflight

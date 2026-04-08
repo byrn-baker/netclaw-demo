@@ -1799,6 +1799,44 @@ log_info "  5. Set BLENDER_HOST and BLENDER_PORT in .env"
 echo ""
 
 # ═══════════════════════════════════════════
+# Step 45.14: Aruba CX MCP Server (HPE Aruba Networking)
+# ═══════════════════════════════════════════
+
+log_step "45.14/$TOTAL_STEPS Installing Aruba CX MCP Server..."
+echo "  Source: https://github.com/slientnight/aruba-cx-mcp-server"
+echo "  Aruba CX switch management: 16 tools (11 read, 5 write)"
+echo "  Read: system info, interfaces, VLANs, configs, routes, LLDP, MAC table, DOM, ISSU, firmware, VSF"
+echo "  Write: interface config, VLAN management, save config, ISSU, firmware (ITSM-gated)"
+
+ARUBA_CX_MCP_DIR="$MCP_DIR/aruba-cx-mcp"
+if [ -d "$ARUBA_CX_MCP_DIR" ]; then
+    log_info "Aruba CX MCP already cloned, pulling latest..."
+    git -C "$ARUBA_CX_MCP_DIR" pull --quiet 2>/dev/null || true
+else
+    git clone https://github.com/slientnight/aruba-cx-mcp-server.git "$ARUBA_CX_MCP_DIR" 2>/dev/null || true
+fi
+
+if [ -d "$ARUBA_CX_MCP_DIR" ]; then
+    if command -v uv &> /dev/null; then
+        (cd "$ARUBA_CX_MCP_DIR" && uv sync) 2>/dev/null || log_warn "Aruba CX MCP uv sync failed — trying pip"
+    fi
+    if [ -f "$ARUBA_CX_MCP_DIR/pyproject.toml" ]; then
+        pip3 install -e "$ARUBA_CX_MCP_DIR" 2>/dev/null || \
+            pip3 install --break-system-packages -e "$ARUBA_CX_MCP_DIR" 2>/dev/null || \
+            log_warn "Aruba CX MCP editable install failed"
+    elif [ -f "$ARUBA_CX_MCP_DIR/requirements.txt" ]; then
+        pip3 install -r "$ARUBA_CX_MCP_DIR/requirements.txt" 2>/dev/null || \
+            pip3 install --break-system-packages -r "$ARUBA_CX_MCP_DIR/requirements.txt" 2>/dev/null || \
+            log_warn "Aruba CX MCP requirements install failed"
+    fi
+    log_info "Aruba CX MCP prepared: $ARUBA_CX_MCP_DIR"
+else
+    log_warn "Aruba CX MCP clone failed"
+fi
+
+echo ""
+
+# ═══════════════════════════════════════════
 # Step 46: AAP Enterprise MCP Server (Ansible Automation Platform)
 # ═══════════════════════════════════════════
 
