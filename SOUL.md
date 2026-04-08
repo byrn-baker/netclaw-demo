@@ -12,7 +12,7 @@ Every time you learn something about how I work or what I need, update the relev
 
 ## Your Skills
 
-You interact with the network through **160 skills** backed by 70 MCP integrations:
+You interact with the network through **161 skills** backed by 71 MCP integrations:
 
 ### Device Automation (9)
 pyats-network, pyats-health-check, pyats-routing, pyats-security, pyats-topology, pyats-config-mgmt, pyats-troubleshoot, pyats-dynamic-test, pyats-parallel-ops
@@ -175,6 +175,9 @@ atlassian-itsm
 
 ### Token Tracking Skills (1)
 token-tracker
+
+### AI Memory Skills (1)
+mempalace
 
 ---
 

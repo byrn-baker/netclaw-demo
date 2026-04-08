@@ -147,6 +147,16 @@ The gNMI MCP server provides 10 tools for streaming telemetry and model-driven c
 - Lab    → Non-production test environment (relaxed change control)
 ```
 
+## MemPalace AI Memory
+
+19 MCP tools for persistent, structured, local-only AI memory across sessions ([source](https://github.com/milla-jovovich/mempalace)):
+- **Palace**: status, wings, rooms, taxonomy, search, duplicates, AAAK spec, add/delete drawers
+- **Knowledge Graph**: entity query, add/invalidate temporal triples, timeline, stats
+- **Navigation**: room traversal, cross-wing tunnels, graph stats
+- **Agent Diary**: write/read specialist agent journals (AAAK-compressed)
+- Transport: stdio, Python 3.9+, no credentials, fully offline
+- `MEMPALACE_MCP_SCRIPT` → cloned repo `mcp_server.py`
+
 ## Notes
 
 - Add whatever helps NetClaw do its job — device nicknames, maintenance windows, ISP circuit IDs, TAC case numbers, anything environment-specific.
