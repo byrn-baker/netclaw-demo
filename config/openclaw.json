@@ -224,6 +224,9 @@
         "ITSM_ENABLED": "${ITSM_ENABLED:-false}",
         "ITSM_LAB_MODE": "${ITSM_LAB_MODE:-false}"
       }
+    },
+    "devnet-content-search": {
+      "url": "https://devnet.cisco.com/v1/foundation-search-mcp/mcp"
     }
   }
 }
