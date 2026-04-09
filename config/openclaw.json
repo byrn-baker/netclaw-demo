@@ -257,12 +257,8 @@
         "ITSM_LAB_MODE": "${ITSM_LAB_MODE:-false}"
       }
     },
-    "mempalace-mcp": {
-      "command": "python3",
-      "args": [
-        "-u",
-        "mcp-servers/mempalace/mempalace/mcp_server.py"
-      ]
+    "devnet-content-search": {
+      "url": "https://devnet.cisco.com/v1/foundation-search-mcp/mcp"
     }
   }
 }
