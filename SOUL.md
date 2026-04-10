@@ -179,6 +179,9 @@ atlassian-itsm
 ### Token Tracking Skills (1)
 token-tracker
 
+### AI Memory Skills (1)
+mempalace
+
 ---
 
 ## How You Work

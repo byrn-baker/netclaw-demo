@@ -30,7 +30,10 @@
   "mcpServers": {
     "suzieq-mcp": {
       "command": "python3",
-      "args": ["-u", "mcp-servers/suzieq-mcp/server.py"],
+      "args": [
+        "-u",
+        "mcp-servers/suzieq-mcp/server.py"
+      ],
       "env": {
         "SUZIEQ_API_URL": "${SUZIEQ_API_URL}",
         "SUZIEQ_API_KEY": "${SUZIEQ_API_KEY}",
@@ -40,7 +43,10 @@
     },
     "batfish-mcp": {
       "command": "python3",
-      "args": ["-u", "mcp-servers/batfish-mcp/batfish_mcp_server.py"],
+      "args": [
+        "-u",
+        "mcp-servers/batfish-mcp/batfish_mcp_server.py"
+      ],
       "env": {
         "BATFISH_HOST": "${BATFISH_HOST:-localhost}",
         "BATFISH_PORT": "${BATFISH_PORT:-9997}",
@@ -49,7 +55,10 @@
     },
     "gnmi-mcp": {
       "command": "python3",
-      "args": ["-u", "mcp-servers/gnmi-mcp/gnmi_mcp_server.py"],
+      "args": [
+        "-u",
+        "mcp-servers/gnmi-mcp/gnmi_mcp_server.py"
+      ],
       "env": {
         "GNMI_TARGETS": "${GNMI_TARGETS}",
         "GNMI_TLS_CA_CERT": "${GNMI_TLS_CA_CERT}",
@@ -63,7 +72,9 @@
     },
     "azure-network-mcp": {
       "command": "python",
-      "args": ["mcp-servers/azure-network-mcp/azure_network_mcp_server.py"],
+      "args": [
+        "mcp-servers/azure-network-mcp/azure_network_mcp_server.py"
+      ],
       "env": {
         "AZURE_TENANT_ID": "${AZURE_TENANT_ID}",
         "AZURE_CLIENT_ID": "${AZURE_CLIENT_ID}",
@@ -73,7 +84,10 @@
     },
     "gitlab-mcp": {
       "command": "npx",
-      "args": ["-y", "@zereight/mcp-gitlab"],
+      "args": [
+        "-y",
+        "@zereight/mcp-gitlab"
+      ],
       "env": {
         "GITLAB_PERSONAL_ACCESS_TOKEN": "${GITLAB_PERSONAL_ACCESS_TOKEN}",
         "GITLAB_API_URL": "${GITLAB_API_URL:-https://gitlab.com}"
@@ -91,7 +105,9 @@
     },
     "atlassian-mcp": {
       "command": "uvx",
-      "args": ["mcp-atlassian"],
+      "args": [
+        "mcp-atlassian"
+      ],
       "env": {
         "JIRA_URL": "${JIRA_URL}",
         "JIRA_USERNAME": "${JIRA_USERNAME}",
@@ -103,7 +119,10 @@
     },
     "gns3-mcp": {
       "command": "python3",
-      "args": ["-u", "mcp-servers/gns3-mcp-server/gns3_mcp_server.py"],
+      "args": [
+        "-u",
+        "mcp-servers/gns3-mcp-server/gns3_mcp_server.py"
+      ],
       "env": {
         "GNS3_URL": "${GNS3_URL}",
         "GNS3_USER": "${GNS3_USER}",
@@ -114,7 +133,10 @@
     },
     "prisma-sdwan-mcp": {
       "command": "python3",
-      "args": ["-u", "mcp-servers/prisma-sdwan-mcp/prisma_sdwan_mcp_server.py"],
+      "args": [
+        "-u",
+        "mcp-servers/prisma-sdwan-mcp/prisma_sdwan_mcp_server.py"
+      ],
       "env": {
         "PAN_CLIENT_ID": "${PAN_CLIENT_ID}",
         "PAN_CLIENT_SECRET": "${PAN_CLIENT_SECRET}",
@@ -132,7 +154,10 @@
     },
     "pagerduty-mcp": {
       "command": "uvx",
-      "args": ["pagerduty-mcp", "--enable-write-tools"],
+      "args": [
+        "pagerduty-mcp",
+        "--enable-write-tools"
+      ],
       "env": {
         "PAGERDUTY_USER_API_KEY": "${PAGERDUTY_USER_API_KEY}",
         "PAGERDUTY_API_HOST": "${PAGERDUTY_API_HOST:-https://api.pagerduty.com}"
@@ -140,7 +165,9 @@
     },
     "splunk-mcp": {
       "command": "uvx",
-      "args": ["splunk-mcp"],
+      "args": [
+        "splunk-mcp"
+      ],
       "env": {
         "SPLUNK_HOST": "${SPLUNK_HOST}",
         "SPLUNK_TOKEN": "${SPLUNK_TOKEN}",
@@ -212,11 +239,16 @@
     },
     "blender-mcp": {
       "command": "uvx",
-      "args": ["blender-mcp"]
+      "args": [
+        "blender-mcp"
+      ]
     },
     "aruba-cx-mcp": {
       "command": "python3",
-      "args": ["-u", "mcp-servers/aruba-cx-mcp/aruba_cx_mcp_server.py"],
+      "args": [
+        "-u",
+        "mcp-servers/aruba-cx-mcp/aruba_cx_mcp_server.py"
+      ],
       "env": {
         "ARUBA_CX_TARGETS": "${ARUBA_CX_TARGETS}",
         "ARUBA_CX_CONFIG": "${ARUBA_CX_CONFIG}",

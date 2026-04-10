@@ -38,7 +38,7 @@ clone_or_pull() {
 
 NETCLAW_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MCP_DIR="$NETCLAW_DIR/mcp-servers"
-TOTAL_STEPS=54
+TOTAL_STEPS=55
 
 echo "========================================="
 echo "  NetClaw - CCIE Network Agent"
@@ -2056,6 +2056,30 @@ fi
 
 echo ""
 
+# ═══════════════════════════════════════════
+# Step 50d: MemPalace AI Memory MCP Server
+# ═══════════════════════════════════════════
+
+log_step "50d/$TOTAL_STEPS Installing MemPalace AI Memory MCP Server..."
+echo "  Source: https://github.com/milla-jovovich/mempalace"
+echo "  AI memory system — 19 MCP tools, fully local, no API keys (Python 3.9+)"
+
+MEMPALACE_MCP_DIR="$MCP_DIR/mempalace"
+clone_or_pull "$MEMPALACE_MCP_DIR" "https://github.com/milla-jovovich/mempalace.git"
+
+log_info "Installing MemPalace dependencies..."
+pip3 install -e "$MEMPALACE_MCP_DIR" 2>/dev/null || \
+    pip3 install --break-system-packages -e "$MEMPALACE_MCP_DIR" 2>/dev/null || \
+    log_warn "MemPalace install failed. Install manually: pip3 install mempalace"
+
+if python3 -c "import mempalace" 2>/dev/null; then
+    log_info "MemPalace MCP ready: python3 -u $MEMPALACE_MCP_DIR/mempalace/mcp_server.py"
+else
+    log_warn "MemPalace not importable after install"
+fi
+
+echo ""
+
 log_step "51/$TOTAL_STEPS Deploying skills and configuration..."
 
 PYATS_SCRIPT="$PYATS_MCP_DIR/pyats_mcp_server.py"
@@ -2137,6 +2161,7 @@ _set_env_var "SDWAN_MCP_SCRIPT"         "$SDWAN_MCP_DIR/sdwan_mcp_server.py"
 _set_env_var "INFOBLOX_MCP_CMD"         "$INFOBLOX_MCP_CMD_DETECTED"
 _set_env_var "PANOS_MCP_CMD"            "$PANOS_MCP_CMD_DETECTED"
 _set_env_var "FORTIMANAGER_MCP_CMD"     "$FORTIMANAGER_MCP_CMD_DETECTED"
+_set_env_var "MEMPALACE_MCP_SCRIPT"     "$MEMPALACE_MCP_DIR/mempalace/mcp_server.py"
 
 # gtrace is a Go binary, not a Python script — just record the path
 if command -v gtrace &> /dev/null; then
