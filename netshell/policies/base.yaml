@@ -1,0 +1,225 @@
+# NetShell Base Policy
+# This policy defines sandbox-wide security controls for NetClaw
+# Individual MCP and skill policies extend these defaults
+
+version: 1
+name: netclaw-base
+description: Base sandbox policy for NetClaw production deployment
+
+# =============================================================================
+# FILESYSTEM POLICY (Landlock LSM - locked at sandbox creation)
+# =============================================================================
+filesystem_policy:
+  # Paths the agent can read and write
+  workspace:
+    - path: /workspace
+      permissions: [read, write, execute]
+    - path: /tmp
+      permissions: [read, write]
+
+  # Paths the agent can only read
+  read_only:
+    - /etc/resolv.conf        # DNS resolution
+    - /etc/hosts              # Host resolution
+    - /etc/ssl/certs          # TLS certificates
+    - /usr/share/ca-certificates
+
+  # Explicitly denied paths (defense in depth)
+  denied:
+    - /root
+    - /home
+    - /etc/shadow
+    - /etc/passwd
+    - /etc/ssh
+    - /var/log
+
+# =============================================================================
+# LANDLOCK SETTINGS (kernel-level enforcement)
+# =============================================================================
+landlock:
+  enabled: true
+  # Restrict filesystem access to declared paths only
+  restrict_self: true
+  # Allow execution only in workspace and system paths
+  exec_paths:
+    - /workspace
+    - /usr/bin
+    - /usr/local/bin
+    - /opt
+
+# =============================================================================
+# PROCESS POLICY (seccomp - locked at sandbox creation)
+# =============================================================================
+process:
+  # Run as unprivileged user
+  user: netclaw
+  group: netclaw
+
+  # Prevent privilege escalation
+  no_new_privs: true
+
+  # seccomp profile - block dangerous syscalls
+  seccomp:
+    profile: restricted
+    # Explicitly blocked syscalls
+    deny:
+      - ptrace           # No debugging other processes
+      - mount            # No mounting filesystems
+      - umount2          # No unmounting
+      - pivot_root       # No changing root
+      - init_module      # No loading kernel modules
+      - finit_module
+      - delete_module
+      - reboot           # No rebooting
+      - sethostname      # No changing hostname
+      - setdomainname
+      - iopl             # No I/O privilege level changes
+      - ioperm
+
+  # Resource limits
+  limits:
+    max_processes: 100
+    max_open_files: 1024
+    max_memory_mb: 4096
+
+# =============================================================================
+# NETWORK POLICY (hot-reloadable)
+# =============================================================================
+network_policies:
+  # Default action for unmatched connections
+  default_action: deny
+
+  # Logging for network decisions
+  log_allowed: true
+  log_denied: true
+
+  # Core infrastructure - always allowed
+  core_egress:
+    # LLM API (Anthropic)
+    - name: anthropic-api
+      host: api.anthropic.com
+      ports: [443]
+      protocols: [https]
+      methods: [POST]
+
+    # DNS resolution
+    - name: dns
+      host: "*"
+      ports: [53]
+      protocols: [udp, tcp]
+
+    # NTP time sync
+    - name: ntp
+      host: "*.ntp.org"
+      ports: [123]
+      protocols: [udp]
+
+  # MCP server endpoints - loaded from mcp/*.yaml
+  mcp_egress: []  # Populated by policy compiler
+
+  # Explicitly blocked destinations
+  blocked:
+    - host: "*.crypto-miner.com"
+    - host: "*.malware.com"
+    - host: "metadata.google.internal"      # Cloud metadata service
+    - host: "169.254.169.254"               # AWS/Azure metadata
+    - host: "metadata.azure.com"
+
+# =============================================================================
+# INFERENCE ROUTING (Privacy Router - hot-reloadable)
+# =============================================================================
+inference:
+  # Route LLM calls through privacy router
+  enabled: true
+
+  # Approved inference backends
+  backends:
+    - name: anthropic
+      endpoint: https://api.anthropic.com/v1
+      credential_env: ANTHROPIC_API_KEY
+
+    # Local models (if configured)
+    - name: ollama-local
+      endpoint: http://localhost:11434
+      credential_env: null  # No auth for local
+
+  # Default backend
+  default_backend: anthropic
+
+# =============================================================================
+# CREDENTIAL INJECTION
+# =============================================================================
+credentials:
+  # Credentials to inject as environment variables
+  # These are NEVER written to the sandbox filesystem
+  inject:
+    - ANTHROPIC_API_KEY
+    - MERAKI_API_KEY
+    - CISCO_SDWAN_USERNAME
+    - CISCO_SDWAN_PASSWORD
+    - NETBOX_API_TOKEN
+    - GITHUB_TOKEN
+    - SERVICENOW_USERNAME
+    - SERVICENOW_PASSWORD
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    - GOOGLE_APPLICATION_CREDENTIALS
+    - AZURE_CLIENT_ID
+    - AZURE_CLIENT_SECRET
+    - AZURE_TENANT_ID
+
+  # Credential rotation (optional)
+  rotation:
+    enabled: false
+    interval_hours: 24
+
+# =============================================================================
+# AUDIT LOGGING
+# =============================================================================
+audit:
+  enabled: true
+
+  # Output format
+  format: ocsf  # Open Cybersecurity Schema Framework
+
+  # What to log
+  events:
+    - tool_invocation
+    - network_connection
+    - file_access
+    - policy_violation
+    - credential_use
+
+  # Output destinations
+  destinations:
+    - type: file
+      path: /workspace/logs/audit/netshell.log
+    # - type: syslog
+    #   address: syslog.example.com:514
+    # - type: webhook
+    #   url: https://siem.example.com/ingest
+
+# =============================================================================
+# ITSM INTEGRATION
+# =============================================================================
+itsm:
+  # Require change request for write operations
+  enabled: true
+
+  # Provider configuration
+  provider: servicenow
+
+  # Operations requiring approval
+  require_approval:
+    - configure_device
+    - push_config
+    - create_vlan
+    - update_acl
+    - gnmi_set
+
+  # Auto-approve for read operations
+  auto_approve:
+    - show_command
+    - get_config
+    - gnmi_get
+    - gnmi_subscribe

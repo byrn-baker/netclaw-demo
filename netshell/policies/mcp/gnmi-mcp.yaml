@@ -1,0 +1,89 @@
+# NetShell MCP Policy: gNMI
+# Streaming telemetry and configuration
+
+version: 1
+mcp_server: gnmi-mcp
+description: gNMI streaming telemetry - Get, Set, Subscribe, Capabilities
+
+# Network egress rules
+network_policies:
+  egress:
+    # gNMI targets - typically internal network devices
+    - name: gnmi-targets
+      host: "${GNMI_TARGETS}"
+      ports: ["${GNMI_DEFAULT_PORT:-6030}", "9339", "57400"]
+      protocols: [grpc, grpcs]
+      methods: ["*"]
+
+    # Common internal networks for network devices
+    - name: internal-rfc1918-10
+      host: "10.0.0.0/8"
+      ports: [6030, 9339, 57400]
+      protocols: [grpc, grpcs]
+
+    - name: internal-rfc1918-172
+      host: "172.16.0.0/12"
+      ports: [6030, 9339, 57400]
+      protocols: [grpc, grpcs]
+
+    - name: internal-rfc1918-192
+      host: "192.168.0.0/16"
+      ports: [6030, 9339, 57400]
+      protocols: [grpc, grpcs]
+
+# Tool permissions
+tools:
+  # Read tools - no approval required
+  gnmi_capabilities:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+    description: Query device gNMI capabilities
+
+  gnmi_get:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+    description: Get operational/config state via gNMI
+
+  gnmi_subscribe:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+    description: Subscribe to streaming telemetry
+
+  gnmi_browse_paths:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+    description: Browse available YANG paths
+
+  gnmi_compare_cli:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+    description: Compare gNMI output with CLI output
+
+  # Write tool - REQUIRES APPROVAL
+  gnmi_set:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+    description: Push configuration via gNMI Set
+    argument_rules:
+      - field: "operation"
+        deny_values: ["delete_all", "replace_all"]
+
+# Dangerous patterns
+dangerous_patterns:
+  - pattern: "delete:/"
+    description: "Root-level delete operation"
+  - pattern: "replace:/"
+    description: "Root-level replace operation"
+
+# Credentials required
+credentials:
+  - GNMI_TARGETS
+  - GNMI_TLS_CA_CERT
+  - GNMI_TLS_CLIENT_CERT
+  - GNMI_TLS_CLIENT_KEY

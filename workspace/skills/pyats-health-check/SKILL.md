@@ -4,6 +4,15 @@ description: "Comprehensive network device health monitoring - CPU, memory, inte
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["PYATS_TESTBED_PATH"] } } }
+
+netshell:
+  mcp_tools:
+    - mcp: pyats-mcp
+      tools:
+        - pyats_run_show_command
+        - pyats_parse_show_command
+        - pyats_get_device_info
+        - pyats_list_devices
 ---
 
 # Device Health Check

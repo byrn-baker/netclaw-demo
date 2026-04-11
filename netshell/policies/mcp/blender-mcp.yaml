@@ -1,0 +1,82 @@
+# NetShell MCP Policy: Blender
+# 3D visualization and rendering
+
+version: 1
+mcp_server: blender-mcp
+description: Blender 3D - topology visualization, network diagrams, rendering
+
+# Network egress rules
+network_policies:
+  egress:
+    # Blender MCP runs locally via addon
+    - name: blender-local
+      host: "localhost"
+      ports: [9876]
+      protocols: [tcp]
+
+    - name: blender-local-127
+      host: "127.0.0.1"
+      ports: [9876]
+      protocols: [tcp]
+
+# Tool permissions - visualization is non-destructive
+tools:
+  blender_create_object:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+    description: Create 3D object in Blender
+
+  blender_create_cube:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  blender_create_sphere:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  blender_create_cylinder:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  blender_create_text:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  blender_set_material:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  blender_create_link:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+    description: Create connection between objects
+
+  blender_render:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+    description: Render scene to image
+
+  blender_export:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+    description: Export scene to file
+
+  blender_clear_scene:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+# No dangerous patterns - visualization only
+dangerous_patterns: []
+
+# No credentials required - local connection
+credentials: []

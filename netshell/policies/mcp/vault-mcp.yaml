@@ -1,0 +1,124 @@
+# NetShell MCP Policy: HashiCorp Vault
+# Secrets management
+
+version: 1
+mcp_server: vault-mcp
+description: Vault - secrets, PKI certificates, transit encryption, auth
+
+# Network egress rules
+network_policies:
+  egress:
+    - name: vault-server
+      host: "${VAULT_ADDR}"
+      ports: [8200, 443]
+      protocols: [https]
+      methods: [GET, POST, PUT, DELETE, LIST]
+
+    - name: vault-cloud
+      host: "*.hashicorp.cloud"
+      ports: [443]
+      protocols: [https]
+      methods: [GET, POST, PUT, DELETE, LIST]
+
+# Tool permissions
+tools:
+  # Read tools - no approval required (but secrets are sensitive)
+  vault_read_secret:
+    permission: allow
+    requires_approval: false
+    audit_level: full  # Always full audit for secret access
+    description: Read a secret from Vault
+
+  vault_list_secrets:
+    permission: allow
+    requires_approval: false
+    audit_level: full
+
+  vault_get_secret_metadata:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  vault_list_auth_methods:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  vault_list_policies:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  vault_get_policy:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  vault_read_pki_cert:
+    permission: allow
+    requires_approval: false
+    audit_level: full
+
+  vault_list_pki_certs:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  # Write tools - REQUIRE APPROVAL (affects secrets)
+  vault_write_secret:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+    description: Write a secret to Vault
+
+  vault_delete_secret:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  vault_issue_pki_cert:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  vault_revoke_pki_cert:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  vault_encrypt_transit:
+    permission: allow
+    requires_approval: false  # Non-destructive
+    audit_level: standard
+
+  vault_decrypt_transit:
+    permission: allow
+    requires_approval: false  # Non-destructive
+    audit_level: full
+
+  vault_create_token:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  vault_revoke_token:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+# Dangerous patterns
+dangerous_patterns:
+  - pattern: "sys/seal"
+    description: "Sealing Vault (causes outage)"
+  - pattern: "sys/policies/acl.*delete"
+    description: "Deleting ACL policies"
+  - pattern: "auth/token/revoke-orphan"
+    description: "Revoking orphan tokens"
+  - pattern: "sys/mounts.*delete"
+    description: "Unmounting secrets engines"
+
+# Credentials required
+credentials:
+  - VAULT_ADDR
+  - VAULT_TOKEN
+  - VAULT_NAMESPACE

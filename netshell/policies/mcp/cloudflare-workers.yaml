@@ -1,0 +1,104 @@
+# NetShell MCP Policy: Cloudflare Workers
+# Edge compute platform
+
+version: 1
+mcp_server: cloudflare-workers
+description: Cloudflare Workers - edge functions, KV storage, D1 databases
+
+# Network egress rules
+network_policies:
+  egress:
+    - name: cloudflare-api
+      host: "api.cloudflare.com"
+      ports: [443]
+      protocols: [https]
+      methods: [GET, POST, PUT, PATCH, DELETE]
+
+    - name: cloudflare-mcp
+      host: "mcp.cloudflare.com"
+      ports: [443]
+      protocols: [https]
+      methods: [GET, POST]
+
+# Tool permissions
+tools:
+  # Read tools - no approval required
+  cloudflare_list_workers:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_get_worker:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_get_worker_logs:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_list_kv_namespaces:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_list_kv_keys:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_get_kv_value:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_list_d1_databases:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_query_d1:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  # Write tools - REQUIRE APPROVAL (affects compute)
+  cloudflare_deploy_worker:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  cloudflare_delete_worker:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  cloudflare_put_kv_value:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  cloudflare_delete_kv_value:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  cloudflare_execute_d1:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+# Dangerous patterns
+dangerous_patterns:
+  - pattern: "delete.*worker"
+    description: "Deleting Workers (affects edge compute)"
+  - pattern: "DROP.*TABLE"
+    description: "Dropping D1 database tables"
+  - pattern: "DELETE.*FROM"
+    description: "Bulk delete from D1"
+
+# Credentials required
+credentials:
+  - CLOUDFLARE_API_TOKEN
+  - CLOUDFLARE_ACCOUNT_ID

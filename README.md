@@ -123,6 +123,7 @@ NetClaw is an autonomous network engineering agent powered by Claude that can:
 - **Track** token consumption and cost in real-time — every interaction displays input/output tokens, USD cost, and TOON savings. Session-level tracking with per-tool breakdown. Powered by Anthropic's `count_tokens()` API with local estimation fallback
 - **Optimize** token usage with TOON serialization — all MCP server responses use TOON format (Tabular Object Oriented Notation) for 40-60% token savings on tabular network data (route tables, interface lists, BGP peers). Automatic JSON fallback on errors
 - **Remember** across sessions with [MemPalace](https://github.com/milla-jovovich/mempalace) — semantic search across all past sessions, temporal knowledge graph for network facts (upgrades, peer changes, maintenance windows) with validity windows, cross-domain navigation between wings, and per-agent diaries. Complements OpenClaw's file-based daily logs (`memory/YYYY-MM-DD.md`) with structured, searchable long-term memory — *"GAIT records what happened. MemPalace remembers why."*
+- **Sandbox** production deployments with NetShell — NVIDIA OpenShell kernel-level isolation (Landlock, seccomp), per-skill tool permissions, network egress control, OCSF audit logging for SOC2/PCI-DSS/HIPAA compliance, and credential injection without disk persistence
 
 ---
 

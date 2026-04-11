@@ -1,0 +1,99 @@
+# NetShell MCP Policy: Cloudflare Security
+# WAF, DDoS protection, bot management
+
+version: 1
+mcp_server: cloudflare-security
+description: Cloudflare Security - WAF rules, DDoS analytics, bot scores, threats
+
+# Network egress rules
+network_policies:
+  egress:
+    - name: cloudflare-api
+      host: "api.cloudflare.com"
+      ports: [443]
+      protocols: [https]
+      methods: [GET, POST, PUT, PATCH, DELETE]
+
+    - name: cloudflare-mcp
+      host: "mcp.cloudflare.com"
+      ports: [443]
+      protocols: [https]
+      methods: [GET, POST]
+
+# Tool permissions
+tools:
+  # Read tools - no approval required
+  cloudflare_list_waf_rules:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_get_waf_rule:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_list_firewall_rules:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_get_ddos_analytics:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_list_bot_scores:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_list_threats:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_get_security_events:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  # Write tools - REQUIRE APPROVAL (affects security)
+  cloudflare_create_waf_rule:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  cloudflare_update_waf_rule:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  cloudflare_create_firewall_rule:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  cloudflare_update_firewall_rule:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  cloudflare_block_ip:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+# Dangerous patterns
+dangerous_patterns:
+  - pattern: "action.*bypass"
+    description: "Bypassing security rules"
+  - pattern: "action.*allow.*all"
+    description: "Allowing all traffic"
+  - pattern: "delete.*waf"
+    description: "Deleting WAF rules"
+
+# Credentials required
+credentials:
+  - CLOUDFLARE_API_TOKEN
+  - CLOUDFLARE_ACCOUNT_ID

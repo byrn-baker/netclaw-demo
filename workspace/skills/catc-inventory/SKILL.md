@@ -4,6 +4,16 @@ description: "Catalyst Center device inventory and site management - list/filter
 user-invocable: true
 metadata:
   { "openclaw": { "requires": { "bins": ["python3"], "env": ["CATC_MCP_SCRIPT", "MCP_CALL"] } } }
+
+netshell:
+  mcp_tools:
+    - mcp: catalyst-center-mcp
+      tools:
+        - catc_get_device_list
+        - catc_get_device_by_id
+        - catc_get_device_interfaces
+        - catc_get_site_hierarchy
+        - catc_get_device_enrichment
 ---
 
 # Catalyst Center Device Inventory and Site Management

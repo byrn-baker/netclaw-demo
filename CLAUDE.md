@@ -1,6 +1,6 @@
 # netclaw Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-09
+Auto-generated from all feature plans. Last updated: 2026-04-11
 
 ## Active Technologies
 - N/A (stateless server; subscription state held in-memory during runtime) (003-gnmi-mcp-server)
@@ -34,6 +34,8 @@ Auto-generated from all feature plans. Last updated: 2026-04-09
 - N/A (stateless proxy to Aruba CX REST API) (025-aruba-cx-mcp-server)
 - N/A (Remote MCP server - no code required) + N/A (Remote MCP managed service) (026-devnet-content-search-mcp)
 - N/A (stateless - all data from remote API) (026-devnet-content-search-mcp)
+- Python 3.10+ (MCP servers, policy scripts), Bash (installation) + NVIDIA OpenShell CLI (uv tool), Docker (container runtime), existing FastMCP servers (027-netshell-security)
+- Local filesystem for policies and audit logs; no database (027-netshell-security)
 
 - Python 3.10+ + FastMCP (MCP framework), grpcio + grpcio-tools (gRPC transport), pygnmi (gNMI client library), protobuf, cryptography (TLS handling) (003-gnmi-mcp-server)
 
@@ -53,10 +55,53 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.10+: Follow standard conventions
 
 ## Recent Changes
+- 027-netshell-security: Added Python 3.10+ (MCP servers, policy scripts), Bash (installation) + NVIDIA OpenShell CLI (uv tool), Docker (container runtime), existing FastMCP servers
 - 026-devnet-content-search-mcp: Added N/A (Remote MCP server - no code required) + N/A (Remote MCP managed service)
 - 025-aruba-cx-mcp-server: Added Python 3.10+ (community MCP server with Aruba CX REST API client) + aruba-cx-mcp-server (community), httpx or requests (REST client)
-- 024-blender-3d-viz: Added Python 3.10+ (consistent with NetClaw MCP servers) + blender-mcp (community, via uvx), Blender 3.0+ (user-installed)
 
 
 <!-- MANUAL ADDITIONS START -->
+
+## NetShell Security Layer
+
+NetShell is the optional production security layer for NetClaw, built on NVIDIA OpenShell.
+
+### Key Components
+
+- **netshell/policies/base.yaml** - Base sandbox policy (filesystem, process, network, audit)
+- **netshell/policies/mcp/*.yaml** - Per-MCP server policies (23 files)
+- **netshell/scripts/** - Policy validation, compilation, and runtime scripts
+- **workspace/skills/*/SKILL.md** - Skills declare `netshell:` section for tool permissions
+
+### Scripts
+
+- `validate-policies.py` - Validate policies against contract schemas
+- `compile-policies.py` - Generate skill policies from SKILL.md frontmatter
+- `check-skill-permissions.py` - Runtime permission checking
+- `audit-logger.py` - OCSF 4001 (API Activity) audit logging
+- `audit-report.py` - Generate SOC2-style compliance reports
+- `egress-validator.py` - Check network egress rules for security issues
+- `sandbox-wrapper.sh` - Launch NetClaw in OpenShell sandbox
+- `netshell-enable.sh` - Enable NetShell post-install
+- `netshell-disable.sh` - Disable NetShell (hobby mode)
+
+### Configuration
+
+NetShell is opt-in. Set `netshell.enabled: true` in openclaw.json to enable.
+
+### Adding Permissions to Skills
+
+Add a `netshell:` section to SKILL.md frontmatter:
+
+```yaml
+netshell:
+  mcp_tools:
+    - mcp: pyats-mcp
+      tools:
+        - pyats_run_show_command
+        - pyats_parse_show_command
+```
+
+See `workspace/skills/SKILL-SCHEMA.md` for full schema.
+
 <!-- MANUAL ADDITIONS END -->

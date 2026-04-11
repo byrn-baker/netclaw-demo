@@ -1,0 +1,163 @@
+# NetShell MCP Policy: GNS3
+# Network lab management
+
+version: 1
+mcp_server: gns3-mcp
+description: GNS3 - lab lifecycle, nodes, links, captures, console access
+
+# Network egress rules
+network_policies:
+  egress:
+    - name: gns3-server
+      host: "${GNS3_URL}"
+      ports: [3080, 443]
+      protocols: [http, https]
+      methods: [GET, POST, PUT, DELETE]
+
+    # Telnet/VNC console access to lab nodes
+    - name: gns3-console-telnet
+      host: "${GNS3_URL}"
+      ports: [5000-6000]
+      protocols: [tcp]
+
+    - name: gns3-console-vnc
+      host: "${GNS3_URL}"
+      ports: [5900-5999]
+      protocols: [tcp]
+
+# Tool permissions
+tools:
+  # Read tools - no approval required
+  gns3_list_projects:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  gns3_get_project:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  gns3_list_nodes:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  gns3_get_node:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  gns3_list_links:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  gns3_list_templates:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  gns3_get_console:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  gns3_list_snapshots:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  # Lab management - REQUIRE APPROVAL (affects lab state)
+  gns3_create_project:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  gns3_delete_project:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  gns3_create_node:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  gns3_delete_node:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  gns3_start_node:
+    permission: allow
+    requires_approval: false  # Non-destructive
+    audit_level: standard
+
+  gns3_stop_node:
+    permission: allow
+    requires_approval: false  # Non-destructive
+    audit_level: standard
+
+  gns3_reload_node:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  gns3_create_link:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  gns3_delete_link:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  gns3_start_capture:
+    permission: allow
+    requires_approval: false  # Non-destructive
+    audit_level: standard
+
+  gns3_stop_capture:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  gns3_create_snapshot:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  gns3_restore_snapshot:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  gns3_clone_project:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  gns3_export_project:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  gns3_import_project:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+# Dangerous patterns
+dangerous_patterns:
+  - pattern: "delete.*project"
+    description: "Deleting entire GNS3 project"
+  - pattern: "delete.*all"
+    description: "Bulk delete operations"
+
+# Credentials required
+credentials:
+  - GNS3_URL
+  - GNS3_USER
+  - GNS3_PASSWORD

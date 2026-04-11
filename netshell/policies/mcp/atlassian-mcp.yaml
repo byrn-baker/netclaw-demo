@@ -1,0 +1,120 @@
+# NetShell MCP Policy: Atlassian
+# Jira and Confluence operations
+
+version: 1
+mcp_server: atlassian-mcp
+description: Atlassian - Jira issues, Confluence pages, project management
+
+# Network egress rules
+network_policies:
+  egress:
+    - name: jira-api
+      host: "${JIRA_URL}"
+      ports: [443]
+      protocols: [https]
+      methods: [GET, POST, PUT, DELETE]
+
+    - name: confluence-api
+      host: "${CONFLUENCE_URL}"
+      ports: [443]
+      protocols: [https]
+      methods: [GET, POST, PUT, DELETE]
+
+    - name: atlassian-cloud
+      host: "*.atlassian.net"
+      ports: [443]
+      protocols: [https]
+      methods: [GET, POST, PUT, DELETE]
+
+    - name: atlassian-auth
+      host: "auth.atlassian.com"
+      ports: [443]
+      protocols: [https]
+      methods: [POST]
+
+# Tool permissions
+tools:
+  # Jira read tools - no approval required
+  jira_search_issues:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  jira_get_issue:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  jira_list_projects:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  jira_get_transitions:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  # Confluence read tools - no approval required
+  confluence_search:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  confluence_get_page:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  confluence_list_spaces:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  # Jira write tools - REQUIRE APPROVAL
+  jira_create_issue:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  jira_update_issue:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  jira_transition_issue:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  jira_add_comment:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  # Confluence write tools - REQUIRE APPROVAL
+  confluence_create_page:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  confluence_update_page:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+# Dangerous patterns
+dangerous_patterns:
+  - pattern: "delete.*issue"
+    description: "Deleting Jira issues"
+  - pattern: "delete.*page"
+    description: "Deleting Confluence pages"
+
+# Credentials required
+credentials:
+  - JIRA_URL
+  - JIRA_USERNAME
+  - JIRA_API_TOKEN
+  - CONFLUENCE_URL
+  - CONFLUENCE_USERNAME
+  - CONFLUENCE_API_TOKEN

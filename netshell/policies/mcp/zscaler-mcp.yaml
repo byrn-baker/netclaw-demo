@@ -1,0 +1,156 @@
+# NetShell MCP Policy: Zscaler
+# Zero Trust security platform
+
+version: 1
+mcp_server: zscaler-mcp
+description: Zscaler - ZIA (SWG), ZPA (ZTNA), ZDX (DEM), identity management
+
+# Network egress rules
+network_policies:
+  egress:
+    - name: zscaler-zia
+      host: "zsapi.${ZSCALER_ZIA_CLOUD:-zscaler.net}"
+      ports: [443]
+      protocols: [https]
+      methods: [GET, POST, PUT, DELETE]
+
+    - name: zscaler-zpa
+      host: "config.private.zscaler.com"
+      ports: [443]
+      protocols: [https]
+      methods: [GET, POST, PUT, DELETE]
+
+    - name: zscaler-zdx
+      host: "api.zdxcloud.net"
+      ports: [443]
+      protocols: [https]
+      methods: [GET, POST]
+
+    - name: zscaler-mcp
+      host: "mcp.zscaler.com"
+      ports: [443]
+      protocols: [https]
+      methods: [GET, POST]
+
+# Tool permissions
+tools:
+  # ZIA read tools - no approval required
+  zscaler_list_url_categories:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  zscaler_list_firewall_rules:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  zscaler_list_dlp_policies:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  zscaler_list_locations:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  zscaler_list_users:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  zscaler_get_security_report:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  # ZPA read tools - no approval required
+  zscaler_list_app_segments:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  zscaler_list_server_groups:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  zscaler_list_connectors:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  zscaler_list_access_policies:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  # ZDX read tools
+  zscaler_get_zdx_score:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  zscaler_list_zdx_devices:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  # Write tools - REQUIRE APPROVAL (affects security policy)
+  zscaler_create_url_category:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  zscaler_update_url_category:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  zscaler_create_firewall_rule:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  zscaler_update_firewall_rule:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  zscaler_create_app_segment:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  zscaler_update_access_policy:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  zscaler_activate_changes:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+    description: Activate pending ZIA changes
+
+# Dangerous patterns
+dangerous_patterns:
+  - pattern: "delete.*firewall.*rule"
+    description: "Deleting firewall rules"
+  - pattern: "delete.*access.*policy"
+    description: "Deleting access policies"
+  - pattern: "action.*BLOCK_ALL"
+    description: "Blocking all traffic"
+  - pattern: "action.*ALLOW_ALL"
+    description: "Allowing all traffic (overly permissive)"
+
+# Credentials required
+credentials:
+  - ZSCALER_ZIA_API_KEY
+  - ZSCALER_ZIA_USERNAME
+  - ZSCALER_ZIA_PASSWORD
+  - ZSCALER_ZIA_CLOUD
+  - ZSCALER_ZPA_CLIENT_ID
+  - ZSCALER_ZPA_CLIENT_SECRET
+  - ZSCALER_ZPA_CUSTOMER_ID

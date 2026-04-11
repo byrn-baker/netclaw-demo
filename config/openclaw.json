@@ -27,6 +27,11 @@
     "restart": true,
     "ownerDisplay": "raw"
   },
+  "netshell": {
+    "enabled": false,
+    "policyDir": "netshell/policies",
+    "auditLogPath": "/workspace/logs/audit/netshell.log"
+  },
   "mcpServers": {
     "suzieq-mcp": {
       "command": "python3",

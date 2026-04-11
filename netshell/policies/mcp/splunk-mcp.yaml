@@ -1,0 +1,103 @@
+# NetShell MCP Policy: Splunk
+# Log analytics and SIEM
+
+version: 1
+mcp_server: splunk-mcp
+description: Splunk - SPL search, indexes, saved searches, alerts, dashboards
+
+# Network egress rules
+network_policies:
+  egress:
+    - name: splunk-api
+      host: "${SPLUNK_HOST}"
+      ports: [8089, 443]
+      protocols: [https]
+      methods: [GET, POST, PUT, DELETE]
+
+    - name: splunk-cloud
+      host: "*.splunkcloud.com"
+      ports: [8089, 443]
+      protocols: [https]
+      methods: [GET, POST, PUT, DELETE]
+
+# Tool permissions
+tools:
+  # Read/search tools - no approval required
+  splunk_search:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+    description: Run SPL search query
+
+  splunk_list_indexes:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  splunk_list_saved_searches:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  splunk_get_saved_search:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  splunk_list_alerts:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  splunk_list_dashboards:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  splunk_get_dashboard:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  splunk_list_apps:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  splunk_get_job_results:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  # Write tools - REQUIRE APPROVAL
+  splunk_create_saved_search:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  splunk_update_saved_search:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  splunk_create_alert:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  splunk_disable_alert:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+# Dangerous patterns
+dangerous_patterns:
+  - pattern: "delete.*index"
+    description: "Deleting Splunk indexes"
+  - pattern: "|\\s*delete"
+    description: "SPL delete command"
+
+# Credentials required
+credentials:
+  - SPLUNK_HOST
+  - SPLUNK_TOKEN

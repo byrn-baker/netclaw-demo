@@ -1,0 +1,114 @@
+# NetShell MCP Policy: Cloudflare Zero Trust
+# ZTNA access policies and tunnels
+
+version: 1
+mcp_server: cloudflare-zerotrust
+description: Cloudflare Zero Trust - Access policies, Tunnels, Gateway, CASB
+
+# Network egress rules
+network_policies:
+  egress:
+    - name: cloudflare-api
+      host: "api.cloudflare.com"
+      ports: [443]
+      protocols: [https]
+      methods: [GET, POST, PUT, PATCH, DELETE]
+
+    - name: cloudflare-mcp
+      host: "mcp.cloudflare.com"
+      ports: [443]
+      protocols: [https]
+      methods: [GET, POST]
+
+# Tool permissions
+tools:
+  # Read tools - no approval required
+  cloudflare_list_access_apps:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_get_access_app:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_list_access_policies:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_list_tunnels:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_get_tunnel:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_list_gateway_rules:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_list_device_posture:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_get_access_logs:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  # Write tools - REQUIRE APPROVAL (affects access)
+  cloudflare_create_access_app:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  cloudflare_update_access_app:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  cloudflare_create_access_policy:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  cloudflare_update_access_policy:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  cloudflare_create_tunnel:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  cloudflare_delete_tunnel:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+  cloudflare_create_gateway_rule:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+
+# Dangerous patterns
+dangerous_patterns:
+  - pattern: "delete.*tunnel"
+    description: "Deleting tunnels (causes outage)"
+  - pattern: "decision.*bypass"
+    description: "Bypassing access controls"
+  - pattern: "delete.*access.*policy"
+    description: "Deleting access policies"
+
+# Credentials required
+credentials:
+  - CLOUDFLARE_API_TOKEN
+  - CLOUDFLARE_ACCOUNT_ID

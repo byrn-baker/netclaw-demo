@@ -1,0 +1,56 @@
+# NetShell MCP Policy: Cloudflare DNS Analytics
+# DNS analytics and insights
+
+version: 1
+mcp_server: cloudflare-dns-analytics
+description: Cloudflare DNS Analytics - query volumes, response codes, geo distribution
+
+# Network egress rules
+network_policies:
+  egress:
+    - name: cloudflare-api
+      host: "api.cloudflare.com"
+      ports: [443]
+      protocols: [https]
+      methods: [GET, POST]
+
+    - name: cloudflare-mcp
+      host: "mcp.cloudflare.com"
+      ports: [443]
+      protocols: [https]
+      methods: [GET, POST]
+
+# Tool permissions - primarily read-only analytics
+tools:
+  cloudflare_dns_query_volume:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_dns_response_codes:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_dns_geo_distribution:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_dns_top_queries:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+  cloudflare_dns_latency:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+
+# No dangerous patterns - read-only analytics
+dangerous_patterns: []
+
+# Credentials required
+credentials:
+  - CLOUDFLARE_API_TOKEN
+  - CLOUDFLARE_ACCOUNT_ID

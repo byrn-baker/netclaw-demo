@@ -1,0 +1,56 @@
+# NetShell MCP Policy: SuzieQ
+# Network observability and state queries
+
+version: 1
+mcp_server: suzieq-mcp
+description: SuzieQ network observability - query network state, assertions, path tracing
+
+# Network egress rules
+network_policies:
+  egress:
+    - name: suzieq-api
+      host: "${SUZIEQ_API_URL}"
+      ports: [443, 8000]
+      protocols: [https, http]
+      methods: [GET, POST]
+
+# Tool permissions
+tools:
+  # Read-only tools - no approval required
+  suzieq_show:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+    description: Query network tables (routes, interfaces, BGP, OSPF, etc.)
+
+  suzieq_summarize:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+    description: Summarize network state across tables
+
+  suzieq_assert:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+    description: Run assertions on network state
+
+  suzieq_unique:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+    description: Find unique values in network tables
+
+  suzieq_path:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+    description: Trace network paths between endpoints
+
+# No dangerous commands - SuzieQ is read-only
+dangerous_patterns: []
+
+# Credentials required
+credentials:
+  - SUZIEQ_API_URL
+  - SUZIEQ_API_KEY

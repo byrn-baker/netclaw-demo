@@ -1,0 +1,111 @@
+# NetShell MCP Policy: Azure Network
+# Azure cloud networking operations
+
+version: 1
+mcp_server: azure-network-mcp
+description: Azure networking - VNets, NSGs, load balancers, VPN gateways
+
+# Network egress rules
+network_policies:
+  egress:
+    - name: azure-management
+      host: "management.azure.com"
+      ports: [443]
+      protocols: [https]
+      methods: [GET, POST, PUT, PATCH, DELETE]
+
+    - name: azure-login
+      host: "login.microsoftonline.com"
+      ports: [443]
+      protocols: [https]
+      methods: [POST]
+
+    - name: azure-graph
+      host: "graph.microsoft.com"
+      ports: [443]
+      protocols: [https]
+      methods: [GET]
+
+# Tool permissions
+tools:
+  # Read tools - no approval required
+  azure_list_vnets:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+    description: List virtual networks
+
+  azure_list_subnets:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+    description: List subnets in a VNet
+
+  azure_list_nsgs:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+    description: List network security groups
+
+  azure_get_nsg_rules:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+    description: Get NSG rules
+
+  azure_list_route_tables:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+    description: List route tables
+
+  azure_list_load_balancers:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+    description: List load balancers
+
+  azure_list_vpn_gateways:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+    description: List VPN gateways
+
+  azure_get_effective_routes:
+    permission: allow
+    requires_approval: false
+    audit_level: standard
+    description: Get effective routes for a NIC
+
+  # Write tools - REQUIRE APPROVAL
+  azure_create_nsg_rule:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+    description: Create NSG rule
+
+  azure_delete_nsg_rule:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+    description: Delete NSG rule
+
+  azure_update_route:
+    permission: allow
+    requires_approval: true
+    audit_level: full
+    description: Update route table
+
+# Dangerous patterns
+dangerous_patterns:
+  - pattern: "priority.*100"
+    description: "High priority NSG rule (could override important rules)"
+  - pattern: "action.*Allow.*source.*\\*"
+    description: "Allow all sources (overly permissive)"
+
+# Credentials required
+credentials:
+  - AZURE_TENANT_ID
+  - AZURE_CLIENT_ID
+  - AZURE_CLIENT_SECRET
+  - AZURE_SUBSCRIPTION_ID

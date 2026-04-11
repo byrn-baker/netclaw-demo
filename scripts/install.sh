@@ -2844,6 +2844,103 @@ echo "  └───────────────────────
 echo ""
 
 # ═══════════════════════════════════════════
+# NetShell Security Layer (Opt-In)
+# ═══════════════════════════════════════════
+
+echo ""
+echo -e "${CYAN}Production Security (NetShell)${NC}"
+echo "  NetShell adds kernel-level sandbox isolation, MCP governance,"
+echo "  and OCSF audit logging for production deployments."
+echo ""
+
+read -rp "Enable production security (NetShell)? [y/N] " ENABLE_NETSHELL
+ENABLE_NETSHELL="${ENABLE_NETSHELL:-n}"
+
+if [[ "$ENABLE_NETSHELL" =~ ^[Yy] ]]; then
+    log_step "Installing NetShell security layer..."
+
+    # Check Docker
+    if ! command -v docker &> /dev/null; then
+        log_error "Docker is required for NetShell."
+        log_error "Install Docker: https://docs.docker.com/get-docker/"
+        log_warn "Skipping NetShell setup. You can enable it later with:"
+        echo "  ./netshell/scripts/netshell-enable.sh"
+    elif ! docker info &> /dev/null 2>&1; then
+        log_error "Docker daemon is not running."
+        log_warn "Start Docker and run: ./netshell/scripts/netshell-enable.sh"
+    else
+        log_info "Docker found and running."
+
+        # Install OpenShell CLI via uv
+        if command -v uv &> /dev/null; then
+            log_info "Installing OpenShell CLI..."
+            uv tool install openshell 2>/dev/null || log_warn "OpenShell CLI install failed - install manually: uv tool install openshell"
+        else
+            log_warn "uv not found. Install OpenShell manually: uv tool install openshell"
+        fi
+
+        # Install NetShell dependencies
+        NETSHELL_DIR="$NETCLAW_DIR/netshell"
+        if [ -f "$NETSHELL_DIR/requirements.txt" ]; then
+            log_info "Installing NetShell dependencies..."
+            pip3 install -r "$NETSHELL_DIR/requirements.txt" 2>/dev/null || \
+                pip3 install --break-system-packages -r "$NETSHELL_DIR/requirements.txt" 2>/dev/null || \
+                log_warn "NetShell deps install failed"
+        fi
+
+        # Compile skill policies (if any skills have netshell: sections)
+        if [ -f "$NETSHELL_DIR/scripts/compile-policies.py" ]; then
+            log_info "Compiling skill policies..."
+            python3 "$NETSHELL_DIR/scripts/compile-policies.py" --quiet 2>/dev/null || true
+        fi
+
+        # Validate policies
+        if [ -f "$NETSHELL_DIR/scripts/validate-policies.py" ]; then
+            log_info "Validating security policies..."
+            python3 "$NETSHELL_DIR/scripts/validate-policies.py" --quiet 2>/dev/null && \
+                log_info "All policies valid." || \
+                log_warn "Policy validation found issues - review with: python3 netshell/scripts/validate-policies.py"
+        fi
+
+        # Update openclaw.json with netshell.enabled = true
+        OPENCLAW_CONFIG="$HOME/.openclaw/config/openclaw.json"
+        if [ -f "$OPENCLAW_CONFIG" ]; then
+            # Use python to update JSON (safer than jq for complex edits)
+            python3 -c "
+import json
+import os
+config_path = os.path.expanduser('$OPENCLAW_CONFIG')
+try:
+    with open(config_path) as f:
+        config = json.load(f)
+except:
+    config = {}
+if 'netshell' not in config:
+    config['netshell'] = {}
+config['netshell']['enabled'] = True
+with open(config_path, 'w') as f:
+    json.dump(config, f, indent=2)
+print('NetShell enabled in openclaw.json')
+" 2>/dev/null || log_warn "Could not update openclaw.json"
+        fi
+
+        log_info "NetShell enabled. NetClaw will run in sandbox."
+        echo ""
+        echo "  Sandbox policy:  $NETSHELL_DIR/policies/base.yaml"
+        echo "  MCP policies:    $NETSHELL_DIR/policies/mcp/*.yaml (23 servers)"
+        echo "  Audit logs:      /workspace/logs/audit/netshell.log"
+        echo ""
+        echo "  Disable anytime: ./netshell/scripts/netshell-disable.sh"
+    fi
+else
+    log_info "Skipping NetShell setup."
+    log_info "NetClaw will run without sandbox protection (hobby mode)."
+    echo "  Enable later: ./netshell/scripts/netshell-enable.sh"
+fi
+
+echo ""
+
+# ═══════════════════════════════════════════
 # Launch NetClaw Platform Setup
 # ═══════════════════════════════════════════
 
