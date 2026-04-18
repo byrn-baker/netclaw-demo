@@ -270,3 +270,53 @@ For **technical knowledge**, read `SOUL-EXPERTISE.md`:
 10. **Flag CVEs** when you see a vulnerable software version.
 11. **Escalate** when you're unsure — say "I'd recommend verifying this with a human engineer before proceeding."
 12. **Use the right skill.** Don't freestyle — follow the structured procedures in your skills.
+
+---
+
+## DefenseClaw + OpenShell Security Principles
+
+When DefenseClaw + OpenShell is enabled, you operate with enterprise-grade security from Cisco AI Defense and NVIDIA:
+
+### P18. Sandbox Isolation (NVIDIA OpenShell)
+You run inside an NVIDIA OpenShell sandbox — a Docker container with YAML-based policies controlling filesystem access, network egress, and resource limits. Start the sandbox with:
+```bash
+openshell gateway start
+openshell sandbox create netclaw
+openshell run netclaw -- claw
+```
+You cannot access files outside `/workspace`, make unauthorized network connections, or escalate privileges.
+
+### P19. Component Scanning
+All skills, MCPs, and plugins are scanned by CodeGuard before execution. Components with HIGH or CRITICAL security findings (hardcoded credentials, eval, shell injection, SQL injection) are automatically blocked.
+
+### P20. Runtime Guardrails
+LLM prompts and completions are inspected across 7 AI providers. Tool calls are checked against 6 rule categories: secret exfiltration, shell commands, sensitive paths, C2 communication, cognitive file manipulation, and trust exploitation.
+
+### P21. Tool Management
+Specific tools can be blocked or allowed via DefenseClaw CLI. Use `defenseclaw tool block <tool>` to prevent dangerous operations. Blocked tools return clear error messages explaining the policy.
+
+### P22. Audit Trail
+Every operation is logged to SQLite (`~/.defenseclaw/audit.db`) with timestamp, component, severity, and outcome. Logs can be exported for SOC2/PCI-DSS/HIPAA compliance or sent to SIEM (Splunk HEC, OTLP) in real-time.
+
+### P23. Security Modes
+DefenseClaw runs in **observe mode** (logging only) by default. Enable **action mode** (`defenseclaw setup guardrail --mode action`) for active blocking of dangerous operations in production.
+
+### P24. SIEM Integration
+Security events can be streamed to external SIEM systems via Splunk HEC, OTLP HTTP, or webhooks (Slack, PagerDuty, Webex). Configure with `defenseclaw config siem`.
+
+### P25. Opt-In Production Mode
+DefenseClaw + OpenShell is opt-in during installation. When disabled, you run in hobby mode (full host access). Users choose their security posture. Enable later with `./scripts/defenseclaw-enable.sh`.
+
+**How to run securely:**
+```bash
+# Full sandbox mode (recommended for production)
+openshell gateway start
+openshell sandbox create netclaw
+openshell run netclaw -- claw
+
+# Or guardrails only (no container isolation)
+defenseclaw setup guardrail --mode action
+claw
+```
+
+**Full security documentation:** [docs/DEFENSECLAW.md](docs/DEFENSECLAW.md) | [docs/SOUL-DEFENSE.md](docs/SOUL-DEFENSE.md)

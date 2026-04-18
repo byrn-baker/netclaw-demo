@@ -27,6 +27,9 @@
     "restart": true,
     "ownerDisplay": "raw"
   },
+  "security": {
+    "mode": "hobby"
+  },
   "mcpServers": {
     "suzieq-mcp": {
       "command": "python3",

@@ -42,6 +42,51 @@ Reconfigure anytime:
 
 ---
 
+## Enterprise Security (DefenseClaw + OpenShell)
+
+NetClaw includes enterprise-grade security via **Cisco DefenseClaw** and **NVIDIA OpenShell**:
+
+| Layer | Technology | Protection |
+|-------|------------|------------|
+| **Container** | NVIDIA OpenShell | Docker-based sandbox with YAML policies |
+| **Guardrails** | Cisco DefenseClaw | LLM inspection, tool call filtering |
+| **Scanning** | CodeGuard | Credential detection, injection prevention |
+| **Audit** | SQLite + SIEM | Full compliance logging |
+
+### Enable Security
+
+```bash
+# During install (recommended)
+./scripts/install.sh
+# Answer 'y' to "Enable DefenseClaw + OpenShell?"
+
+# Or enable later
+./scripts/defenseclaw-enable.sh
+```
+
+### Run NetClaw Securely
+
+```bash
+# One-command secure startup (recommended)
+./scripts/netclaw-secure-start.sh
+
+# Then connect to sandbox:
+openshell sandbox connect netclaw
+export HOME=/sandbox
+openclaw gateway run &
+openclaw tui
+```
+
+```bash
+# Or guardrails only (no container)
+defenseclaw setup guardrail --mode action
+claw
+```
+
+**[Full security guide >>>](docs/DEFENSECLAW.md)**
+
+---
+
 ## Visual HUD
 
 <p align="center">
@@ -123,6 +168,43 @@ NetClaw is an autonomous network engineering agent powered by Claude that can:
 - **Track** token consumption and cost in real-time — every interaction displays input/output tokens, USD cost, and TOON savings. Session-level tracking with per-tool breakdown. Powered by Anthropic's `count_tokens()` API with local estimation fallback
 - **Optimize** token usage with TOON serialization — all MCP server responses use TOON format (Tabular Object Oriented Notation) for 40-60% token savings on tabular network data (route tables, interface lists, BGP peers). Automatic JSON fallback on errors
 - **Remember** across sessions with [MemPalace](https://github.com/milla-jovovich/mempalace) — semantic search across all past sessions, temporal knowledge graph for network facts (upgrades, peer changes, maintenance windows) with validity windows, cross-domain navigation between wings, and per-agent diaries. Complements OpenClaw's file-based daily logs (`memory/YYYY-MM-DD.md`) with structured, searchable long-term memory — *"GAIT records what happened. MemPalace remembers why."*
+- **Secure** production deployments with [DefenseClaw](https://github.com/cisco-ai-defense/defenseclaw) — Cisco AI Defense enterprise security: OpenShell kernel-level sandbox (Landlock, seccomp, namespaces), component scanning before execution, CodeGuard static analysis, LLM prompt/completion inspection, runtime guardrails, SQLite audit logging with SIEM export (Splunk HEC, OTLP) for SOC2/PCI-DSS/HIPAA compliance
+
+---
+
+## Enterprise Security
+
+NetClaw includes **DefenseClaw** from Cisco AI Defense as the recommended enterprise security layer:
+
+| Feature | Description |
+|---------|-------------|
+| **OpenShell Sandbox** | Kernel-level isolation (Landlock, seccomp, network namespaces) |
+| **Component Scanning** | Skills, MCPs, and plugins scanned before execution |
+| **CodeGuard Analysis** | Detect hardcoded credentials, eval, shell commands, SQL injection |
+| **Runtime Guardrails** | LLM inspection + tool call inspection with 6 rule categories |
+| **Audit Logging** | SQLite database with SIEM export (Splunk HEC, OTLP) |
+
+### Enable DefenseClaw
+
+```bash
+# During installation
+./scripts/install.sh
+# Answer "y" to "Enable DefenseClaw (recommended)?"
+
+# Or enable later
+./scripts/defenseclaw-enable.sh
+```
+
+### Key Commands
+
+```bash
+defenseclaw --version              # Check installation
+defenseclaw skill scan <name>      # Scan a skill before use
+defenseclaw tool block <tool>      # Block a dangerous tool
+defenseclaw alerts                 # View security alerts
+```
+
+**Full documentation:** [docs/DEFENSECLAW.md](docs/DEFENSECLAW.md) | [Security Principles](docs/SOUL-DEFENSE.md) | [Upgrade Guide](docs/UPGRADE-TO-DEFENSECLAW.md)
 
 ---
 
