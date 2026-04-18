@@ -1,22 +1,23 @@
-# Implementation Plan: NetShell Security and Governance Layer
+# Implementation Plan: DefenseClaw Security Integration
 
-**Branch**: `027-netshell-security` | **Date**: 2026-04-11 | **Spec**: [spec.md](./spec.md)
+**Branch**: `027-netshell-security` | **Date**: 2026-04-16 | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `/specs/027-netshell-security/spec.md`
 
 ## Summary
 
-NetShell adds production-grade security to NetClaw by wrapping it in an NVIDIA OpenShell sandbox with two-layer protection. Layer 0 (OpenShell) provides kernel-level isolation via Landlock LSM, seccomp, and network namespaces. Layer 1 (NetShell) adds MCP protocol governance with per-skill tool permissions, argument validation, and OCSF audit logging. The feature is opt-in during installation, preserving backward compatibility for hobby users.
+Integrate Cisco DefenseClaw as the production security layer for NetClaw. DefenseClaw provides automated OpenShell sandbox setup, component scanning, CodeGuard static analysis, LLM inspection, runtime guardrails, and SIEM integration. The implementation removes the original NetShell artifacts and replaces them with DefenseClaw integration in install.sh, with hobby mode preserved as the no-security alternative.
 
 ## Technical Context
 
-**Language/Version**: Python 3.10+ (MCP servers, policy scripts), Bash (installation)
-**Primary Dependencies**: NVIDIA OpenShell CLI (uv tool), Docker (container runtime), existing FastMCP servers
-**Storage**: Local filesystem for policies and audit logs; no database
-**Testing**: Manual validation per quickstart.md scenarios; policy enforcement verification
-**Target Platform**: Linux (Docker host), WSL2 supported
-**Project Type**: Security layer / configuration-only integration
-**Performance Goals**: Cold start <5s, per-tool overhead <5ms
-**Constraints**: Docker required when enabled; backward compatible when disabled
+**Language/Version**: Bash (installation scripts), Python 3.10+ (DefenseClaw requires), Go 1.25+, Node.js 20+
+**Primary Dependencies**: DefenseClaw (Cisco), Docker (container runtime)
+**Storage**: SQLite (DefenseClaw audit logs), optional SIEM (Splunk HEC, OTLP)
+**Testing**: Manual validation via defenseclaw CLI commands
+**Target Platform**: Linux (primary), macOS (secondary)
+**Project Type**: Integration/Configuration (no new code, configuration and script updates)
+**Performance Goals**: Installation <5 minutes, scanning latency <2 seconds, guardrail latency <10ms
+**Constraints**: Docker required for DefenseClaw, Python 3.10+/Go 1.25+/Node.js 20+ required
+**Scale/Scope**: Single NetClaw installation, 71+ MCP servers
 
 ## Constitution Check
 
@@ -24,25 +25,25 @@ NetShell adds production-grade security to NetClaw by wrapping it in an NVIDIA O
 
 | Principle | Status | Notes |
 |-----------|--------|-------|
-| I. Safety-First Operations | PASS | Sandbox adds safety layer; doesn't change device interaction |
-| II. Read-Before-Write | PASS | No device changes; policy is observe-then-enforce |
-| III. ITSM-Gated Changes | PASS | Write tools require approval via existing ITSM gates |
-| IV. Immutable Audit Trail | PASS | OCSF audit logging satisfies audit requirement |
-| V. MCP-Native Integration | PASS | Policies govern MCP servers; no non-MCP patterns |
-| VI. Multi-Vendor Neutrality | PASS | Per-MCP policies, vendor-agnostic framework |
-| VII. Skill Modularity | PASS | Skills declare permissions in SKILL.md frontmatter |
-| VIII. Verify After Every Change | PASS | Sandbox enforces; policy changes verifiable |
-| IX. Security by Default | PASS | Core purpose is security enhancement |
-| X. Observability | PASS | Audit logs provide observability |
-| XI. Full-Stack Artifact Coherence | PASS | Plan includes README, SOUL, install.sh updates |
-| XII. Documentation-as-Code | PASS | SKILL.md extended with netshell: section |
-| XIII. Credential Safety | PASS | Credentials injected, never written to sandbox |
-| XIV. Human-in-the-Loop | PASS | Opt-in installation; no autonomous external comms |
-| XV. Backwards Compatibility | PASS | Opt-in; disabled mode unchanged |
+| I. Safety-First Operations | PASS | DefenseClaw adds guardrails that block dangerous operations |
+| II. Read-Before-Write | PASS | No device operations in this feature |
+| III. ITSM-Gated Changes | PASS | No production device changes |
+| IV. Immutable Audit Trail | PASS | DefenseClaw provides SQLite audit + SIEM integration |
+| V. MCP-Native Integration | PASS | DefenseClaw integrates with OpenClaw, not custom protocol |
+| VI. Multi-Vendor Neutrality | PASS | Security layer is vendor-agnostic |
+| VII. Skill Modularity | PASS | No new skills created |
+| VIII. Verify After Every Change | PASS | No device changes |
+| IX. Security by Default | PASS | DefenseClaw IS the security enhancement |
+| X. Observability as a First-Class Citizen | PASS | DefenseClaw provides audit logging and SIEM |
+| XI. Full-Stack Artifact Coherence | PASS | Cleanup section ensures all artifacts updated |
+| XII. Documentation-as-Code | PASS | README, SOUL.md, CLAUDE.md updates planned |
+| XIII. Credential Safety | PASS | DefenseClaw injects credentials at runtime |
+| XIV. Human-in-the-Loop | N/A | No external communications |
+| XV. Backwards Compatibility | PASS | Hobby mode preserves current behavior |
 | XVI. Spec-Driven Development | PASS | Following speckit workflow |
-| XVII. Milestone Documentation | PASS | WordPress blog post at completion |
+| XVII. Milestone Documentation | PENDING | WordPress blog post after implementation |
 
-**Gate Result**: ALL PASS - Proceed with implementation
+**Gate Status**: PASS - All applicable principles satisfied.
 
 ## Project Structure
 
@@ -52,103 +53,92 @@ NetShell adds production-grade security to NetClaw by wrapping it in an NVIDIA O
 specs/027-netshell-security/
 ├── spec.md              # Feature specification
 ├── plan.md              # This file
-├── research.md          # OpenShell research (complete)
-├── data-model.md        # Policy schema definitions
-├── quickstart.md        # Validation scenarios
-├── contracts/           # Policy YAML schemas
-│   ├── base-policy.md
-│   ├── mcp-policy.md
-│   └── skill-permission.md
-├── checklists/
-│   └── requirements.md  # Spec quality checklist
+├── research.md          # Phase 0 output
+├── data-model.md        # Phase 1 output (minimal - config only)
+├── quickstart.md        # Phase 1 output
+├── contracts/           # Phase 1 output (N/A - no external APIs)
+├── checklists/          # Quality checklists
+│   └── requirements.md
 └── tasks.md             # Phase 2 output
 ```
 
 ### Source Code (repository root)
 
 ```text
-netshell/
-├── README.md                    # NetShell documentation
-├── policies/
-│   ├── base.yaml                # Default sandbox policy
-│   └── mcp/                     # Per-MCP server policies (23 files)
-│       ├── suzieq-mcp.yaml
-│       ├── gnmi-mcp.yaml
-│       └── ...
-├── scripts/
-│   ├── compile-policies.py      # Generate policies from skills
-│   └── validate-policies.py     # Check policy consistency
-└── templates/
-    └── skill-permission.yaml.j2 # Template for skill policies
-
+# Files to UPDATE:
 scripts/
-└── install.sh                   # Updated with NetShell phase
+└── install.sh           # Replace NetShell section with DefenseClaw
 
 config/
-└── openclaw.json                # Updated with netshell config
+└── openclaw.json        # Update security config section
 
-workspace/skills/
-└── */SKILL.md                   # Extended with netshell: section
+# Files to UPDATE (documentation):
+README.md                # Update security section
+SOUL.md                  # Update P18-P25 to reference DefenseClaw
+CLAUDE.md                # Update NetShell section to DefenseClaw
 
-SOUL.md                          # Updated with security principles
-README.md                        # Updated with NetShell section
+# Files to CREATE:
+scripts/
+├── defenseclaw-enable.sh   # Enable DefenseClaw post-install
+└── defenseclaw-disable.sh  # Disable DefenseClaw (revert to hobby)
+
+# Files to REMOVE:
+netshell/                # Entire directory (replaced by DefenseClaw)
+├── README.md
+├── policies/
+│   ├── base.yaml
+│   └── mcp/*.yaml (23 files)
+└── scripts/*.py (6 files), *.sh (3 files)
 ```
 
-**Structure Decision**: Configuration-only integration using existing `netshell/` directory (already created with 23 MCP policies). No new MCP server required - OpenShell CLI handles sandbox lifecycle.
-
-## Prior Work Migration
-
-The following artifacts were created before speckit workflow and will be incorporated:
-
-| Artifact | Status | Action |
-|----------|--------|--------|
-| `netshell/README.md` | Complete | Keep as-is |
-| `netshell/policies/base.yaml` | Complete | Keep as-is |
-| `netshell/policies/mcp/*.yaml` | Complete (23 files) | Keep as-is |
-| `specs/netshell/spec.md` | Superseded | Delete (replaced by 027) |
+**Structure Decision**: This is a configuration/integration feature. No new source code directories. Updates to existing scripts and documentation. Removal of netshell/ directory.
 
 ## Complexity Tracking
 
-> No Constitution violations requiring justification.
+No violations requiring justification. This feature simplifies the codebase by replacing custom NetShell implementation with DefenseClaw.
 
-| Item | Complexity | Rationale |
-|------|------------|-----------|
-| Two-layer security | Necessary | OpenShell gap requires Layer 1 for MCP governance |
-| 23 MCP policies | Required | Each MCP needs network egress rules |
-| Opt-in installation | Required | Backward compatibility per spec |
+---
 
-## Phase Completion Status
+## Phase 0: Research
 
-### Phase 0: Research (COMPLETE)
+### Research Tasks
 
-- [x] NVIDIA OpenShell architecture research
-- [x] Identified MCP security gap (cannot inspect tool calls)
-- [x] Designed two-layer solution (OpenShell + NetShell)
-- [x] Output: `research.md`
+1. **DefenseClaw Installation Process**: Verify exact installation commands and prerequisites
+2. **DefenseClaw CLI Commands**: Document commands for scanning, tool management, guardrails
+3. **Integration with OpenClaw**: Verify TypeScript plugin integration requirements
+4. **SIEM Configuration**: Document Splunk HEC and OTLP setup
 
-### Phase 1: Design (COMPLETE)
+### Findings
 
-- [x] Data model defined: `data-model.md`
-- [x] Policy schemas defined: `contracts/base-policy.md`, `contracts/mcp-policy.md`, `contracts/skill-permission.md`
-- [x] Validation scenarios: `quickstart.md`
-- [x] Agent context updated: `CLAUDE.md`
-- [x] Constitution check: ALL PASS
+See [research.md](./research.md) for detailed findings.
 
-### Phase 2: Tasks (COMPLETE)
+---
 
-- [x] Run `/speckit.tasks` to generate task list
-- [x] Output: `tasks.md`
+## Phase 1: Design
 
-### Phase 3: Implementation (COMPLETE)
+### Data Model
 
-- [x] Run `/speckit.implement` to execute tasks (50 tasks completed)
-- [x] Update install.sh with NetShell opt-in phase
-- [x] Update SKILL.md schema (`workspace/skills/SKILL-SCHEMA.md`)
-- [x] Create policy compilation scripts (`compile-policies.py`, `validate-policies.py`)
-- [x] Create audit logging scripts (`audit-logger.py`, `audit-report.py`)
-- [x] Create sandbox wrapper (`sandbox-wrapper.sh`)
-- [x] Create egress validator (`egress-validator.py`)
-- [x] Create permission checker (`check-skill-permissions.py`)
-- [x] Update SOUL.md with security principles P18-P25
-- [x] WordPress blog post (Post ID: 1579)
-- [x] Final contract validation (all 24 policies valid)
+Minimal - see [data-model.md](./data-model.md) for configuration schema.
+
+### Contracts
+
+N/A - DefenseClaw provides its own API. NetClaw only integrates via install scripts.
+
+### Quickstart
+
+See [quickstart.md](./quickstart.md) for user-facing setup guide.
+
+---
+
+## Phase 2: Tasks
+
+Generated by `/speckit.tasks` command.
+
+---
+
+## Next Steps
+
+1. Run Phase 0 research to verify DefenseClaw integration details
+2. Generate design artifacts (data-model.md, quickstart.md)
+3. Run `/speckit.tasks` to generate task list
+4. Run `/speckit.implement` to execute

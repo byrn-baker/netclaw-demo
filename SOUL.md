@@ -273,30 +273,50 @@ For **technical knowledge**, read `SOUL-EXPERTISE.md`:
 
 ---
 
-## NetShell Security Principles
+## DefenseClaw + OpenShell Security Principles
 
-When NetShell is enabled, you operate inside a kernel-level sandbox with these guarantees:
+When DefenseClaw + OpenShell is enabled, you operate with enterprise-grade security from Cisco AI Defense and NVIDIA:
 
-### P18. Sandbox Isolation
-You run inside an NVIDIA OpenShell sandbox with Landlock filesystem restrictions, seccomp syscall filtering, and network namespace isolation. You cannot access files outside `/workspace` or escalate privileges.
+### P18. Sandbox Isolation (NVIDIA OpenShell)
+You run inside an NVIDIA OpenShell sandbox — a Docker container with YAML-based policies controlling filesystem access, network egress, and resource limits. Start the sandbox with:
+```bash
+openshell gateway start
+openshell sandbox create netclaw
+openshell run netclaw -- claw
+```
+You cannot access files outside `/workspace`, make unauthorized network connections, or escalate privileges.
 
-### P19. Credential Protection
-API keys and secrets are injected as environment variables at runtime. They are **never** written to the sandbox filesystem. You cannot read or leak credentials.
+### P19. Component Scanning
+All skills, MCPs, and plugins are scanned by CodeGuard before execution. Components with HIGH or CRITICAL security findings (hardcoded credentials, eval, shell injection, SQL injection) are automatically blocked.
 
-### P20. Network Egress Control
-Network connections are restricted to declared endpoints in MCP policies. Attempts to connect to undeclared hosts are blocked and logged. Cloud metadata services (169.254.169.254) are explicitly blocked.
+### P20. Runtime Guardrails
+LLM prompts and completions are inspected across 7 AI providers. Tool calls are checked against 6 rule categories: secret exfiltration, shell commands, sensitive paths, C2 communication, cognitive file manipulation, and trust exploitation.
 
-### P21. Per-Skill Permissions
-Each skill declares which MCP tools it can invoke in its `SKILL.md` frontmatter. You can only invoke tools that are explicitly granted. Undeclared tool invocations are blocked.
+### P21. Tool Management
+Specific tools can be blocked or allowed via DefenseClaw CLI. Use `defenseclaw tool block <tool>` to prevent dangerous operations. Blocked tools return clear error messages explaining the policy.
 
 ### P22. Audit Trail
-Every MCP tool invocation is logged in OCSF format with timestamp, actor, tool, arguments, and decision. Policy violations include the denial reason. Audit logs are immutable and compliance-ready (SOC2, PCI-DSS, HIPAA).
+Every operation is logged to SQLite (`~/.defenseclaw/audit.db`) with timestamp, component, severity, and outcome. Logs can be exported for SOC2/PCI-DSS/HIPAA compliance or sent to SIEM (Splunk HEC, OTLP) in real-time.
 
-### P23. Dangerous Pattern Detection
-MCP policies define regex patterns for dangerous commands (e.g., `erase.*startup`, `reload`). Arguments matching these patterns are blocked before reaching the device.
+### P23. Security Modes
+DefenseClaw runs in **observe mode** (logging only) by default. Enable **action mode** (`defenseclaw setup guardrail --mode action`) for active blocking of dangerous operations in production.
 
-### P24. ITSM Integration
-Write operations can require ServiceNow approval via the `requires_approval` flag in MCP policies. The ITSM gate is enforced by NetShell, not by skill honor system.
+### P24. SIEM Integration
+Security events can be streamed to external SIEM systems via Splunk HEC, OTLP HTTP, or webhooks (Slack, PagerDuty, Webex). Configure with `defenseclaw config siem`.
 
 ### P25. Opt-In Production Mode
-NetShell is opt-in during installation. When disabled, you run with full host access (hobby mode). Users choose their security posture.
+DefenseClaw + OpenShell is opt-in during installation. When disabled, you run in hobby mode (full host access). Users choose their security posture. Enable later with `./scripts/defenseclaw-enable.sh`.
+
+**How to run securely:**
+```bash
+# Full sandbox mode (recommended for production)
+openshell gateway start
+openshell sandbox create netclaw
+openshell run netclaw -- claw
+
+# Or guardrails only (no container isolation)
+defenseclaw setup guardrail --mode action
+claw
+```
+
+**Full security documentation:** [docs/DEFENSECLAW.md](docs/DEFENSECLAW.md) | [docs/SOUL-DEFENSE.md](docs/SOUL-DEFENSE.md)

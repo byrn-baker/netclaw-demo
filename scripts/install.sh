@@ -2844,69 +2844,105 @@ echo "  └───────────────────────
 echo ""
 
 # ═══════════════════════════════════════════
-# NetShell Security Layer (Opt-In)
+# DefenseClaw Security Layer (Opt-In)
 # ═══════════════════════════════════════════
 
 echo ""
-echo -e "${CYAN}Production Security (NetShell)${NC}"
-echo "  NetShell adds kernel-level sandbox isolation, MCP governance,"
-echo "  and OCSF audit logging for production deployments."
+echo -e "${CYAN}Enterprise Security (DefenseClaw + OpenShell)${NC}"
+echo "  DefenseClaw from Cisco AI Defense + NVIDIA OpenShell provides comprehensive protection:"
+echo "  - OpenShell container sandbox (Docker-based isolation with YAML policies)"
+echo "  - DefenseClaw component scanning (skills, MCPs, plugins)"
+echo "  - CodeGuard static analysis (credentials, eval, shell, SQL injection)"
+echo "  - Runtime guardrails (LLM inspection, tool call inspection)"
+echo "  - Audit logging with SIEM integration (Splunk HEC, OTLP)"
+echo ""
+echo "  Full stack: OpenShell (container isolation) + DefenseClaw (runtime security)"
 echo ""
 
-read -rp "Enable production security (NetShell)? [y/N] " ENABLE_NETSHELL
-ENABLE_NETSHELL="${ENABLE_NETSHELL:-n}"
+read -rp "Enable DefenseClaw + OpenShell (recommended)? [y/N] " ENABLE_DEFENSECLAW
+ENABLE_DEFENSECLAW="${ENABLE_DEFENSECLAW:-n}"
 
-if [[ "$ENABLE_NETSHELL" =~ ^[Yy] ]]; then
-    log_step "Installing NetShell security layer..."
+if [[ "$ENABLE_DEFENSECLAW" =~ ^[Yy] ]]; then
+    log_step "Installing DefenseClaw security layer..."
+
+    # Check prerequisites
+    PREREQ_FAIL=0
 
     # Check Docker
     if ! command -v docker &> /dev/null; then
-        log_error "Docker is required for NetShell."
+        log_error "Docker is required for DefenseClaw."
         log_error "Install Docker: https://docs.docker.com/get-docker/"
-        log_warn "Skipping NetShell setup. You can enable it later with:"
-        echo "  ./netshell/scripts/netshell-enable.sh"
+        PREREQ_FAIL=1
     elif ! docker info &> /dev/null 2>&1; then
         log_error "Docker daemon is not running."
-        log_warn "Start Docker and run: ./netshell/scripts/netshell-enable.sh"
+        PREREQ_FAIL=1
     else
         log_info "Docker found and running."
+    fi
 
-        # Install OpenShell CLI via uv
-        if command -v uv &> /dev/null; then
-            log_info "Installing OpenShell CLI..."
-            uv tool install openshell 2>/dev/null || log_warn "OpenShell CLI install failed - install manually: uv tool install openshell"
+    # Check Python 3.10+
+    if command -v python3 &> /dev/null; then
+        PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+        PYTHON_MAJOR=$(echo "$PYTHON_VERSION" | cut -d. -f1)
+        PYTHON_MINOR=$(echo "$PYTHON_VERSION" | cut -d. -f2)
+        if [ "$PYTHON_MAJOR" -ge 3 ] && [ "$PYTHON_MINOR" -ge 10 ]; then
+            log_info "Python $PYTHON_VERSION found."
         else
-            log_warn "uv not found. Install OpenShell manually: uv tool install openshell"
+            log_error "Python 3.10+ required. Found: $PYTHON_VERSION"
+            PREREQ_FAIL=1
         fi
+    else
+        log_error "Python 3 is required."
+        PREREQ_FAIL=1
+    fi
 
-        # Install NetShell dependencies
-        NETSHELL_DIR="$NETCLAW_DIR/netshell"
-        if [ -f "$NETSHELL_DIR/requirements.txt" ]; then
-            log_info "Installing NetShell dependencies..."
-            pip3 install -r "$NETSHELL_DIR/requirements.txt" 2>/dev/null || \
-                pip3 install --break-system-packages -r "$NETSHELL_DIR/requirements.txt" 2>/dev/null || \
-                log_warn "NetShell deps install failed"
+    # Check Go 1.25+
+    if command -v go &> /dev/null; then
+        GO_VERSION=$(go version | grep -oE 'go[0-9]+\.[0-9]+' | sed 's/go//')
+        GO_MAJOR=$(echo "$GO_VERSION" | cut -d. -f1)
+        GO_MINOR=$(echo "$GO_VERSION" | cut -d. -f2)
+        if [ "$GO_MAJOR" -ge 1 ] && [ "$GO_MINOR" -ge 25 ]; then
+            log_info "Go $GO_VERSION found."
+        else
+            log_warn "Go 1.25+ recommended. Found: $GO_VERSION"
         fi
+    else
+        log_warn "Go not found. DefenseClaw gateway may not build."
+    fi
 
-        # Compile skill policies (if any skills have netshell: sections)
-        if [ -f "$NETSHELL_DIR/scripts/compile-policies.py" ]; then
-            log_info "Compiling skill policies..."
-            python3 "$NETSHELL_DIR/scripts/compile-policies.py" --quiet 2>/dev/null || true
+    # Check Node.js 20+
+    if command -v node &> /dev/null; then
+        NODE_VER=$(node --version | sed 's/v//' | cut -d. -f1)
+        if [ "$NODE_VER" -ge 20 ]; then
+            log_info "Node.js v$NODE_VER found."
+        else
+            log_warn "Node.js 20+ recommended. Found: v$NODE_VER"
         fi
+    else
+        log_warn "Node.js not found. DefenseClaw plugin may not build."
+    fi
 
-        # Validate policies
-        if [ -f "$NETSHELL_DIR/scripts/validate-policies.py" ]; then
-            log_info "Validating security policies..."
-            python3 "$NETSHELL_DIR/scripts/validate-policies.py" --quiet 2>/dev/null && \
-                log_info "All policies valid." || \
-                log_warn "Policy validation found issues - review with: python3 netshell/scripts/validate-policies.py"
-        fi
+    if [ "$PREREQ_FAIL" -eq 1 ]; then
+        log_error "Prerequisites not met. Skipping DefenseClaw setup."
+        log_warn "Fix prerequisites and run: ./scripts/defenseclaw-enable.sh"
+    else
+        # Install DefenseClaw
+        log_info "Installing DefenseClaw..."
+        if curl -LsSf https://raw.githubusercontent.com/cisco-ai-defense/defenseclaw/main/scripts/install.sh | bash; then
+            log_info "DefenseClaw installed successfully."
 
-        # Update openclaw.json with netshell.enabled = true
-        OPENCLAW_CONFIG="$HOME/.openclaw/config/openclaw.json"
-        if [ -f "$OPENCLAW_CONFIG" ]; then
-            # Use python to update JSON (safer than jq for complex edits)
-            python3 -c "
+            # Initialize with guardrails
+            log_info "Initializing guardrails (observe mode)..."
+            if command -v defenseclaw &> /dev/null; then
+                defenseclaw init --enable-guardrail 2>/dev/null || log_warn "Guardrail init failed - run manually: defenseclaw init --enable-guardrail"
+            else
+                log_warn "defenseclaw CLI not in PATH. Add ~/.local/bin to PATH and run: defenseclaw init --enable-guardrail"
+            fi
+
+            # Update openclaw.json with security.mode = defenseclaw
+            OPENCLAW_CONFIG="$HOME/.openclaw/config/openclaw.json"
+            if [ -f "$OPENCLAW_CONFIG" ]; then
+                python3 -c "
 import json
 import os
 config_path = os.path.expanduser('$OPENCLAW_CONFIG')
@@ -2915,27 +2951,95 @@ try:
         config = json.load(f)
 except:
     config = {}
-if 'netshell' not in config:
-    config['netshell'] = {}
-config['netshell']['enabled'] = True
+if 'security' not in config:
+    config['security'] = {}
+config['security']['mode'] = 'defenseclaw'
+# Remove old netshell config if present
+config.pop('netshell', None)
 with open(config_path, 'w') as f:
     json.dump(config, f, indent=2)
-print('NetShell enabled in openclaw.json')
+print('DefenseClaw enabled in openclaw.json')
 " 2>/dev/null || log_warn "Could not update openclaw.json"
-        fi
+            fi
 
-        log_info "NetShell enabled. NetClaw will run in sandbox."
-        echo ""
-        echo "  Sandbox policy:  $NETSHELL_DIR/policies/base.yaml"
-        echo "  MCP policies:    $NETSHELL_DIR/policies/mcp/*.yaml (23 servers)"
-        echo "  Audit logs:      /workspace/logs/audit/netshell.log"
-        echo ""
-        echo "  Disable anytime: ./netshell/scripts/netshell-disable.sh"
+            # Install NVIDIA OpenShell
+            log_info "Installing NVIDIA OpenShell sandbox..."
+            if curl -LsSf https://raw.githubusercontent.com/NVIDIA/OpenShell/main/install.sh | sh; then
+                log_info "OpenShell installed successfully."
+
+                # Verify OpenShell
+                if command -v openshell &> /dev/null; then
+                    OPENSHELL_VERSION=$(openshell --version 2>/dev/null || echo "unknown")
+                    log_info "OpenShell version: $OPENSHELL_VERSION"
+
+                    # Start OpenShell gateway (Docker-based)
+                    log_info "Initializing OpenShell gateway..."
+                    openshell gateway start 2>/dev/null || log_warn "OpenShell gateway start failed - start manually: openshell gateway start"
+                else
+                    log_warn "openshell CLI not in PATH. Add ~/.local/bin to PATH"
+                fi
+            else
+                log_warn "OpenShell installation failed. Install manually:"
+                log_warn "  curl -LsSf https://raw.githubusercontent.com/NVIDIA/OpenShell/main/install.sh | sh"
+            fi
+
+            log_info "DefenseClaw + OpenShell enabled. NetClaw will run with enterprise security."
+            echo ""
+            echo "  ┌─────────────────────────────────────────────────────────────┐"
+            echo "  │  ENTERPRISE SECURITY STACK                                   │"
+            echo "  ├─────────────────────────────────────────────────────────────┤"
+            echo "  │  OpenShell:    ~/.local/bin/openshell                       │"
+            echo "  │  DefenseClaw:  ~/.defenseclaw/                              │"
+            echo "  │  Audit DB:     ~/.defenseclaw/audit.db                      │"
+            echo "  └─────────────────────────────────────────────────────────────┘"
+            echo ""
+            echo "  Key commands:"
+            echo "    openshell --version                    # Check OpenShell"
+            echo "    openshell gateway status               # Gateway status"
+            echo "    openshell sandbox create netclaw       # Create sandbox"
+            echo "    defenseclaw --version                  # Check DefenseClaw"
+            echo "    defenseclaw skill scan <name>          # Scan a skill"
+            echo "    defenseclaw setup guardrail --mode action  # Enable blocking"
+            echo ""
+            echo "  Run NetClaw in sandbox:"
+            echo "    openshell sandbox create netclaw"
+            echo "    openshell run netclaw -- claw"
+            echo ""
+            echo "  Full guide: docs/DEFENSECLAW.md"
+            echo "  Disable:    ./scripts/defenseclaw-disable.sh"
+        else
+            log_error "DefenseClaw installation failed."
+            log_warn "Try manual install: curl -LsSf https://raw.githubusercontent.com/cisco-ai-defense/defenseclaw/main/scripts/install.sh | bash"
+        fi
     fi
 else
-    log_info "Skipping NetShell setup."
-    log_info "NetClaw will run without sandbox protection (hobby mode)."
-    echo "  Enable later: ./netshell/scripts/netshell-enable.sh"
+    log_info "Skipping DefenseClaw setup."
+    log_info "NetClaw will run in hobby mode (no security layer)."
+
+    # Update openclaw.json with security.mode = hobby
+    OPENCLAW_CONFIG="$HOME/.openclaw/config/openclaw.json"
+    if [ -f "$OPENCLAW_CONFIG" ]; then
+        python3 -c "
+import json
+import os
+config_path = os.path.expanduser('$OPENCLAW_CONFIG')
+try:
+    with open(config_path) as f:
+        config = json.load(f)
+except:
+    config = {}
+if 'security' not in config:
+    config['security'] = {}
+config['security']['mode'] = 'hobby'
+# Remove old netshell config if present
+config.pop('netshell', None)
+with open(config_path, 'w') as f:
+    json.dump(config, f, indent=2)
+" 2>/dev/null || true
+    fi
+
+    echo ""
+    echo "  Enable later: ./scripts/defenseclaw-enable.sh"
 fi
 
 echo ""

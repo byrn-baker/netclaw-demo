@@ -27,10 +27,8 @@
     "restart": true,
     "ownerDisplay": "raw"
   },
-  "netshell": {
-    "enabled": false,
-    "policyDir": "netshell/policies",
-    "auditLogPath": "/workspace/logs/audit/netshell.log"
+  "security": {
+    "mode": "hobby"
   },
   "mcpServers": {
     "suzieq-mcp": {

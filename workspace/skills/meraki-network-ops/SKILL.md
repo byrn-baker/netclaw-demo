@@ -2,6 +2,7 @@
 name: meraki-network-ops
 description: "Cisco Meraki Dashboard — organization inventory, network management, device lifecycle, client discovery, action batches. Use when listing Meraki devices, managing networks, checking device status, investigating clients, or running bulk Meraki API operations"
 version: 1.0.0
+license: Apache-2.0
 tags: [cisco, meraki, dashboard, network, devices, clients, inventory, organization]
 
 netshell:

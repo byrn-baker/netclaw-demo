@@ -2,6 +2,7 @@
 name: gcp-compute-ops
 description: "Google Cloud Compute Engine — VM instances, disks, templates, instance groups, reservations, project discovery. Use when listing GCP VMs, troubleshooting a Compute Engine instance, checking disk attachments, planning capacity with reservations and commitments, or managing instance groups."
 version: 1.0.0
+license: Apache-2.0
 tags: [gcp, compute-engine, vm, instances, disks, resource-manager]
 
 netshell:

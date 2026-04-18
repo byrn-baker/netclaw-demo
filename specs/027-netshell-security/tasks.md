@@ -1,178 +1,192 @@
-# Tasks: NetShell Security and Governance Layer
+# Tasks: DefenseClaw Security Integration
 
 **Input**: Design documents from `/specs/027-netshell-security/`
-**Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/, quickstart.md
+**Prerequisites**: plan.md, spec.md, research.md, data-model.md, quickstart.md
 
-**Tests**: Not explicitly requested in spec - skipped per template guidelines.
+**Tests**: Not explicitly requested - skipped per template guidelines.
 
-**Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
+**Organization**: Tasks are grouped by user story to enable independent implementation and testing.
 
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependencies)
-- **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3)
+- **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3, US4)
 - Include exact file paths in descriptions
 
-## Prior Work Status
+## Scope
 
-The following artifacts were created before speckit workflow and are complete:
-
-| Artifact | Status | Action |
-|----------|--------|--------|
-| `netshell/README.md` | Complete | Verify alignment |
-| `netshell/policies/base.yaml` | Complete | Validate against contract |
-| `netshell/policies/mcp/*.yaml` | Complete (23 files) | Validate against contract |
-| `netshell/scripts/` | Directory exists, empty | Create scripts |
+This feature:
+1. Removes original NetShell implementation
+2. Integrates Cisco DefenseClaw as the enterprise security layer
+3. Creates comprehensive documentation and onboarding guides
+4. Updates all relevant files (SOUL, README, skills, MCPs)
 
 ---
 
-## Phase 1: Setup (Verify Prior Work)
+## Phase 1: Setup (Cleanup Old Artifacts)
 
-**Purpose**: Validate existing artifacts against contracts and establish project structure
+**Purpose**: Remove original NetShell artifacts that are replaced by DefenseClaw
 
-- [x] T001 Validate netshell/policies/base.yaml against contracts/base-policy.md schema
-- [x] T002 [P] Validate netshell/policies/mcp/*.yaml against contracts/mcp-policy.md schema (23 files)
-- [x] T003 [P] Verify netshell/README.md aligns with spec.md user stories
+- [x] T001 Archive netshell/ directory to netshell.bak/ (preserve for reference)
+- [x] T002 [P] Remove NetShell Security Layer section from CLAUDE.md
+- [x] T003 [P] Remove old NetShell section from scripts/install.sh (lines ~2847-2939)
 
 ---
 
-## Phase 2: Foundational (Core Infrastructure)
+## Phase 2: Foundational (DefenseClaw Infrastructure)
 
-**Purpose**: Core scripts and infrastructure that MUST be complete before ANY user story can be implemented
+**Purpose**: Create core scripts and configuration for DefenseClaw integration
 
 **CRITICAL**: No user story work can begin until this phase is complete
 
-- [x] T004 Create netshell/scripts/validate-policies.py for schema validation
-- [x] T005 [P] Create netshell/templates/skill-permission.yaml.j2 for skill policy generation
-- [x] T006 Create netshell/scripts/compile-policies.py to generate skill policies from SKILL.md
-- [x] T007 [P] Create OCSF audit record schema in netshell/schemas/ocsf-api-activity.json
-- [x] T008 Add pyyaml, jsonschema dependencies to project requirements (if not present)
+- [x] T004 Create scripts/defenseclaw-enable.sh for post-install enablement
+- [x] T005 [P] Create scripts/defenseclaw-disable.sh for disabling DefenseClaw
+- [x] T006 [P] Update config/openclaw.json with security section schema
 
-**Checkpoint**: Foundation ready - user story implementation can now begin
+**Checkpoint**: Foundation ready - DefenseClaw enable/disable scripts exist
 
 ---
 
-## Phase 3: User Story 1 - Production Sandbox Isolation (Priority: P1)
+## Phase 3: User Story 1 - Production Security with DefenseClaw (Priority: P1) MVP
 
-**Goal**: Run NetClaw in an isolated sandbox so that compromised agents cannot access unauthorized files, credentials, or network endpoints
+**Goal**: Enable DefenseClaw as the comprehensive security solution during installation
 
-**Independent Test**: Run NetClaw in sandbox mode and attempt to access files/endpoints outside declared policy - all should be blocked
+**Independent Test**: Run install.sh, enable DefenseClaw, verify CLI/gateway/extension installed
 
 ### Implementation for User Story 1
 
-- [x] T009 [US1] Verify base.yaml filesystem_policy.denied includes /root, /home, /etc/shadow per contract
-- [x] T010 [P] [US1] Verify base.yaml landlock.enabled is true per contract
-- [x] T011 [P] [US1] Verify base.yaml process.no_new_privs is true per contract
-- [x] T012 [P] [US1] Verify base.yaml process.seccomp.deny includes ptrace, mount, reboot per contract
-- [x] T013 [US1] Verify base.yaml credentials.inject list matches required environment variables
-- [x] T014 [US1] Create netshell/scripts/sandbox-wrapper.sh for OpenShell sandbox invocation
-- [x] T015 [US1] Add --netshell CLI flag handling in scripts/openclaw-cli (or equivalent)
+- [x] T007 [US1] Add DefenseClaw section to scripts/install.sh with opt-in prompt
+- [x] T008 [US1] Add prerequisite checks (Docker, Python 3.10+, Go 1.25+, Node.js 20+)
+- [x] T009 [US1] Add DefenseClaw installer: curl -LsSf https://raw.githubusercontent.com/cisco-ai-defense/defenseclaw/main/scripts/install.sh | bash
+- [x] T010 [US1] Add defenseclaw init --enable-guardrail command
+- [x] T011 [US1] Update openclaw.json with security.mode on enable/decline
+- [x] T012 [US1] Add success/skip messages with next steps
 
-**Checkpoint**: Sandbox isolation functional - agent cannot access unauthorized paths or escalate privileges
+**Checkpoint**: DefenseClaw can be enabled during fresh installation
 
 ---
 
-## Phase 4: User Story 2 - Compliance Audit Logging (Priority: P1)
+## Phase 4: User Story 2 - Existing User Onboarding (Priority: P1)
 
-**Goal**: Log every tool invocation in OCSF format for SOC2, PCI-DSS, HIPAA compliance evidence
+**Goal**: Provide clear upgrade path for existing NetClaw users to enable DefenseClaw
 
-**Independent Test**: Invoke tools and verify audit log entries contain required fields (timestamp, actor, tool, arguments, decision)
+**Independent Test**: Existing user runs defenseclaw-enable.sh, DefenseClaw activates
 
 ### Implementation for User Story 2
 
-- [x] T016 [US2] Create netshell/scripts/audit-logger.py implementing OCSF 4001 (API Activity) schema
-- [x] T017 [P] [US2] Add audit_record() function for tool_invocation events
-- [x] T018 [P] [US2] Add audit_record() function for policy_violation events with denial reason
-- [x] T019 [US2] Verify base.yaml audit.enabled is true per contract
-- [x] T020 [US2] Verify base.yaml audit.format is "ocsf" per contract
-- [x] T021 [US2] Create netshell/scripts/audit-report.py for compliance export (SOC2 format)
-- [x] T022 [US2] Document audit log location in netshell/README.md (/workspace/logs/audit/netshell.log)
+- [x] T013 [US2] Enhance scripts/defenseclaw-enable.sh with full onboarding flow
+- [x] T014 [US2] Add prerequisite validation with helpful error messages
+- [x] T015 [US2] Add backup of current config before enabling
+- [x] T016 [P] [US2] Create docs/UPGRADE-TO-DEFENSECLAW.md migration guide
+- [x] T017 [US2] Add "defenseclaw-enable.sh" mention to main README.md
 
-**Checkpoint**: All tool invocations logged with OCSF-compliant fields - ready for compliance audit
+**Checkpoint**: Existing users have clear upgrade path
 
 ---
 
-## Phase 5: User Story 3 - Per-Skill Tool Permissions (Priority: P2)
+## Phase 5: User Story 3 - Hobby Mode Preservation (Priority: P2)
 
-**Goal**: Each skill can only invoke MCP tools explicitly declared in its SKILL.md netshell: section
+**Goal**: Preserve easy onboarding for users who decline security features
 
-**Independent Test**: Load a skill with limited permissions and verify it can only see/invoke declared tools
+**Independent Test**: Decline DefenseClaw during install, NetClaw runs normally
 
 ### Implementation for User Story 3
 
-- [x] T023 [US3] Document netshell: SKILL.md schema in workspace/skills/SKILL-SCHEMA.md
-- [x] T024 [US3] Update netshell/scripts/compile-policies.py to parse netshell: section from SKILL.md frontmatter
-- [x] T025 [US3] Generate compiled skill policies to netshell/policies/skills/*.yaml
-- [x] T026 [P] [US3] Create netshell/scripts/check-skill-permissions.py for runtime permission checks
-- [x] T027 [US3] Add 5 example netshell: sections to existing skills (batch 1):
-  - workspace/skills/meraki-network-ops/SKILL.md
-  - workspace/skills/pyats-health-check/SKILL.md
-  - workspace/skills/catc-inventory/SKILL.md
-  - workspace/skills/gns3-mcp-related skill if exists
-  - workspace/skills/suzieq-related skill if exists
-- [x] T028 [US3] Add 5 more example netshell: sections to existing skills (batch 2):
-  - workspace/skills/aws-network-ops/SKILL.md
-  - workspace/skills/gcp-compute-ops/SKILL.md
-  - workspace/skills/gitlab-related skill if exists
-  - workspace/skills/jenkins-related skill if exists
-  - workspace/skills/datadog-related skill if exists
-- [x] T029 [US3] Update netshell/README.md with skill permission documentation
+- [x] T018 [US3] Add hobby mode path in install.sh when DefenseClaw declined
+- [x] T019 [US3] Add clear messaging about hobby mode limitations
+- [x] T020 [P] [US3] Add upgrade reminder: "Enable later: ./scripts/defenseclaw-enable.sh"
 
-**Checkpoint**: Skills have declared permissions - tool invocations outside allowlist are blocked
+**Checkpoint**: Users can decline security and still use NetClaw
 
 ---
 
-## Phase 6: User Story 4 - Network Egress Control (Priority: P2)
+## Phase 6: User Story 4 - Comprehensive Documentation (Priority: P1)
 
-**Goal**: Limit network egress to declared API endpoints only, preventing data exfiltration
+**Goal**: Create comprehensive DefenseClaw documentation suite
 
-**Independent Test**: Declare allowed endpoints and attempt to connect to undeclared endpoints - all should be blocked
+**Independent Test**: New user can follow docs to fully configure DefenseClaw
 
-### Implementation for User Story 4
+### DefenseClaw Enterprise Guide (New File)
 
-- [x] T030 [US4] Verify all 23 MCP policies have valid network_policies.egress sections
-- [x] T031 [P] [US4] Verify base.yaml network_policies.default_action is "deny" per contract
-- [x] T032 [P] [US4] Verify base.yaml network_policies.core_egress includes api.anthropic.com
-- [x] T033 [US4] Create netshell/scripts/egress-validator.py to check egress rules for common issues
-- [x] T034 [US4] Add network_policies logging configuration (log_denied: true) to base.yaml
-- [x] T035 [US4] Document hot-reload mechanism for network policies in netshell/README.md
+- [x] T021 [US4] Create docs/DEFENSECLAW.md - comprehensive enterprise security guide
+- [x] T022 [P] [US4] Add "What is DefenseClaw?" section with architecture diagram
+- [x] T023 [P] [US4] Add "Installation" section (fresh install + upgrade paths)
+- [x] T024 [US4] Add "Component Scanning" section (skills, MCPs, plugins)
+- [x] T025 [US4] Add "Runtime Guardrails" section (observe vs action modes)
+- [x] T026 [US4] Add "Tool Management" section (block/allow commands)
+- [x] T027 [US4] Add "Audit & Compliance" section (SQLite, SIEM, exports)
+- [x] T028 [US4] Add "SIEM Integration" section (Splunk HEC, OTLP, webhooks)
+- [x] T029 [US4] Add "Troubleshooting" section
+- [x] T030 [US4] Add "Quick Reference" command cheat sheet
 
-**Checkpoint**: Network egress controlled - connections to undeclared endpoints blocked and logged
+### Main README Updates
 
----
+- [x] T031 [US4] Update README.md feature list with DefenseClaw (replace NetShell mention)
+- [x] T032 [P] [US4] Add "Enterprise Security" section to README.md linking to docs/DEFENSECLAW.md
+- [x] T033 [US4] Update architecture diagram in README.md to show DefenseClaw layer
 
-## Phase 7: User Story 5 - Opt-In Installation (Priority: P3)
-
-**Goal**: NetShell is optional during installation, preserving easy onboarding for hobby users
-
-**Independent Test**: Run install.sh, decline NetShell, verify NetClaw works without sandbox
-
-### Implementation for User Story 5
-
-- [x] T036 [US5] Add NetShell opt-in prompt to scripts/install.sh
-- [x] T037 [US5] Add Docker availability check to scripts/install.sh (with clear error message if missing)
-- [x] T038 [P] [US5] Add OpenShell CLI installation step (uv tool install openshell)
-- [x] T039 [US5] Add policy compilation step to install.sh when NetShell enabled
-- [x] T040 [US5] Update config/openclaw.json schema with netshell.enabled flag
-- [x] T041 [US5] Create netshell/scripts/netshell-enable.sh for post-install enablement
-- [x] T042 [US5] Create netshell/scripts/netshell-disable.sh for disabling NetShell
-- [x] T043 [US5] Document installation flow in netshell/README.md
-
-**Checkpoint**: Opt-in installation complete - users can choose sandbox or hobby mode
+**Checkpoint**: Complete documentation suite exists
 
 ---
 
-## Phase 8: Polish & Cross-Cutting Concerns
+## Phase 7: SOUL and Constitution Updates (Priority: P1)
 
-**Purpose**: Documentation updates, validation, and final integration
+**Goal**: Update SOUL.md and create SOUL-DEFENSE.md for security principles
 
-- [x] T044 Update SOUL.md with NetShell security principles (P18-P25 per research.md)
-- [x] T045 [P] Update main README.md with NetShell section
-- [x] T046 [P] Update CLAUDE.md with NetShell context for agent awareness
-- [x] T047 Run quickstart.md validation scenarios 1-9 (documented for manual runtime testing)
-- [x] T048 [P] Remove superseded specs/netshell/spec.md (N/A - no superseded file exists)
-- [x] T049 Create WordPress blog post for NetShell feature announcement (Post ID: 1579)
-- [x] T050 Final review: verify all contracts satisfied (validate-policies.py: all 24 policies OK)
+### SOUL Updates
+
+- [x] T034 [US5] Update SOUL.md P18-P25 to reference DefenseClaw instead of NetShell
+- [x] T035 [P] [US5] Create docs/SOUL-DEFENSE.md with detailed security principles
+- [x] T036 [US5] Add security posture guidance to SOUL-DEFENSE.md (when to use observe vs action)
+- [x] T037 [US5] Add compliance mapping in SOUL-DEFENSE.md (SOC2, PCI-DSS, HIPAA)
+- [x] T038 [P] [US5] Link SOUL-DEFENSE.md from main SOUL.md
+
+**Checkpoint**: Security principles documented and linked
+
+---
+
+## Phase 8: Skill and MCP Awareness (Priority: P2)
+
+**Goal**: Update skills and MCPs to be DefenseClaw-aware
+
+### Skill Updates
+
+- [x] T039 [US6] Update workspace/skills/SKILL-SCHEMA.md to remove netshell: section (DefenseClaw handles this)
+- [x] T040 [P] [US6] Add "Security" section to SKILL-SCHEMA.md explaining DefenseClaw scanning
+- [x] T041 [US6] Create workspace/skills/defenseclaw-ops/SKILL.md for DefenseClaw management skill
+- [x] T042 [US6] Update 5 example skills with security notes (pyats, meraki, catc, suzieq, aws)
+
+### MCP Updates
+
+- [x] T043 [US6] Update mcp-servers/README.md with DefenseClaw scanning note
+- [x] T044 [P] [US6] Add security section to MCP template explaining CodeGuard analysis
+
+**Checkpoint**: Skills and MCPs reference DefenseClaw
+
+---
+
+## Phase 9: CLAUDE.md Agent Context (Priority: P2)
+
+**Goal**: Update agent context for DefenseClaw awareness
+
+- [x] T045 [US7] Add DefenseClaw section to CLAUDE.md (replace NetShell section)
+- [x] T046 [US7] Document key DefenseClaw commands in CLAUDE.md
+- [x] T047 [P] [US7] Add security mode detection guidance
+
+**Checkpoint**: Agent is DefenseClaw-aware
+
+---
+
+## Phase 10: Polish & Validation
+
+**Purpose**: Final validation and blog post
+
+- [x] T048 Validate install.sh flow end-to-end (fresh install with DefenseClaw)
+- [x] T049 [P] Validate defenseclaw-enable.sh flow (existing user upgrade)
+- [x] T050 [P] Validate defenseclaw-disable.sh flow (disable and re-enable)
+- [x] T051 Run quickstart.md validation scenarios 1-8
+- [x] T052 Create WordPress blog post announcing DefenseClaw integration
+- [x] T053 Final review: all links work, no broken references
 
 ---
 
@@ -180,87 +194,103 @@ The following artifacts were created before speckit workflow and are complete:
 
 ### Phase Dependencies
 
-- **Setup (Phase 1)**: No dependencies - validate existing artifacts
-- **Foundational (Phase 2)**: Depends on Setup - creates core scripts
-- **US1 Sandbox (Phase 3)**: Depends on Foundational - implements isolation
-- **US2 Audit (Phase 4)**: Depends on Foundational - can run parallel with US1
-- **US3 Permissions (Phase 5)**: Depends on Foundational - can run parallel with US1/US2
-- **US4 Egress (Phase 6)**: Depends on Foundational - can run parallel with US1/US2/US3
-- **US5 Installation (Phase 7)**: Depends on US1-US4 (needs all features to install)
-- **Polish (Phase 8)**: Depends on US1-US5 completion
-
-### User Story Dependencies
-
-- **US1 (Sandbox)**: Foundational only - no other story dependencies
-- **US2 (Audit)**: Foundational only - independent of US1
-- **US3 (Permissions)**: Foundational only - independent of US1/US2
-- **US4 (Egress)**: Foundational only - independent of US1/US2/US3
-- **US5 (Installation)**: Depends on ALL prior stories (installs all features)
+```
+Phase 1 (Cleanup) ──► Phase 2 (Foundation) ──► Phase 3 (US1 Install)
+                                            │
+                                            ├──► Phase 4 (US2 Onboarding)
+                                            │
+                                            ├──► Phase 5 (US3 Hobby)
+                                            │
+                                            └──► Phase 6 (US4 Docs)
+                                                      │
+                                                      ├──► Phase 7 (SOUL)
+                                                      │
+                                                      ├──► Phase 8 (Skills/MCPs)
+                                                      │
+                                                      └──► Phase 9 (CLAUDE.md)
+                                                                │
+                                                                └──► Phase 10 (Polish)
+```
 
 ### Parallel Opportunities
 
-- All Setup tasks (T001-T003) can validate in parallel
-- Foundational tasks T005, T007 can run in parallel with T004
-- US1 tasks T010-T012 can run in parallel (different validation checks)
-- US2 tasks T017-T018 can run in parallel (different audit functions)
-- US3 tasks can run after compile-policies.py is done
-- US4 tasks T031-T032 can run in parallel (different validation checks)
-- US5 tasks T038 can run in parallel (OpenShell install while editing install.sh)
-- Polish tasks T044-T046, T048 can all run in parallel
+- Phase 1: T002-T003 in parallel
+- Phase 2: T005-T006 in parallel with T004
+- Phase 4: T016 in parallel with T013-T015
+- Phase 5: T020 in parallel with T018-T019
+- Phase 6: T022-T023, T032 in parallel
+- Phase 7: T035, T038 in parallel
+- Phase 8: T040, T044 in parallel
+- Phase 9: T047 in parallel with T045-T046
+- Phase 10: T049-T050 in parallel
 
 ---
 
-## Parallel Example: Phase 2 Foundational
+## Key Files Created/Modified
 
-```bash
-# These can run in parallel (different files):
-Task: "Create netshell/scripts/validate-policies.py"
-Task: "Create netshell/templates/skill-permission.yaml.j2"
-Task: "Create OCSF audit record schema in netshell/schemas/ocsf-api-activity.json"
-```
+### New Files
+| File | Description |
+|------|-------------|
+| `scripts/defenseclaw-enable.sh` | Enable DefenseClaw post-install |
+| `scripts/defenseclaw-disable.sh` | Disable DefenseClaw |
+| `docs/DEFENSECLAW.md` | Comprehensive enterprise security guide |
+| `docs/SOUL-DEFENSE.md` | Security principles and compliance |
+| `docs/UPGRADE-TO-DEFENSECLAW.md` | Migration guide for existing users |
+| `workspace/skills/defenseclaw-ops/SKILL.md` | DefenseClaw management skill |
+
+### Modified Files
+| File | Changes |
+|------|---------|
+| `scripts/install.sh` | Add DefenseClaw section, remove NetShell |
+| `README.md` | Add Enterprise Security section |
+| `SOUL.md` | Update P18-P25 for DefenseClaw |
+| `CLAUDE.md` | Replace NetShell with DefenseClaw context |
+| `config/openclaw.json` | Add security.mode field |
+| `workspace/skills/SKILL-SCHEMA.md` | Update for DefenseClaw |
+| `mcp-servers/README.md` | Add DefenseClaw note |
+
+### Archived Files
+| File | Action |
+|------|--------|
+| `netshell/` | Move to `netshell.bak/` |
 
 ---
 
-## Implementation Strategy
-
-### MVP First (US1 + US2 Only)
-
-1. Complete Phase 1: Setup validation
-2. Complete Phase 2: Foundational scripts
-3. Complete Phase 3: US1 Sandbox Isolation
-4. Complete Phase 4: US2 Audit Logging
-5. **STOP and VALIDATE**: Test sandbox + audit independently
-6. Deploy/demo if ready (sandbox + compliance logging)
-
-### Full Feature Delivery
-
-1. MVP (US1 + US2) → Sandbox isolation + compliance logging
-2. Add US3 → Per-skill tool permissions
-3. Add US4 → Network egress control
-4. Add US5 → Opt-in installation flow
-5. Polish → Documentation, blog, final validation
-
-### Task Count Summary
+## Task Count Summary
 
 | Phase | Tasks | Parallelizable |
 |-------|-------|----------------|
-| Setup | 3 | 2 |
-| Foundational | 5 | 3 |
-| US1 Sandbox | 7 | 3 |
-| US2 Audit | 7 | 2 |
-| US3 Permissions | 7 | 1 |
-| US4 Egress | 6 | 2 |
-| US5 Installation | 8 | 1 |
-| Polish | 7 | 4 |
-| **Total** | **50** | **18** |
+| 1. Setup | 3 | 2 |
+| 2. Foundation | 3 | 2 |
+| 3. US1 Install | 6 | 0 |
+| 4. US2 Onboarding | 5 | 1 |
+| 5. US3 Hobby | 3 | 1 |
+| 6. US4 Docs | 13 | 2 |
+| 7. SOUL | 5 | 2 |
+| 8. Skills/MCPs | 6 | 2 |
+| 9. CLAUDE.md | 3 | 1 |
+| 10. Polish | 6 | 2 |
+| **Total** | **53** | **15** |
+
+---
+
+## MVP Scope
+
+**Phases 1-3 only** (12 tasks):
+- Cleanup NetShell
+- Create enable/disable scripts
+- Integrate DefenseClaw into install.sh
+
+**Full scope**: All 53 tasks for complete documentation and integration.
 
 ---
 
 ## Notes
 
-- Prior work (23 MCP policies, base.yaml, README.md) is preserved
-- Skill netshell: sections added in batches of 5 to manage context
-- OCSF format (class_uid 4001) used for audit logging per spec
-- OpenShell CLI installed via uv tool (not pip) per research.md
-- Docker required only when NetShell enabled (hobby mode works without)
-- Constitution principles P18-P25 to be added to SOUL.md
+- DefenseClaw replaces ALL NetShell functionality
+- DefenseClaw handles OpenShell sandbox automatically
+- No custom Python scripts needed - DefenseClaw provides CLI
+- docs/DEFENSECLAW.md is the comprehensive enterprise guide
+- docs/SOUL-DEFENSE.md contains security principles
+- Existing users upgrade via defenseclaw-enable.sh
+- Blog post per Constitution XVII

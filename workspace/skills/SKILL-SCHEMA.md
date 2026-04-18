@@ -10,6 +10,7 @@ This document defines the YAML frontmatter schema for NetClaw skill definitions.
 name: string                    # Skill identifier (lowercase, hyphens)
 description: string             # Human-readable description
 version: string                 # Semantic version (e.g., "1.0.0")
+license: string                 # SPDX license identifier (e.g., "Apache-2.0", "MIT")
 
 # Optional metadata
 author: string                  # Skill author
@@ -18,13 +19,6 @@ priority: integer               # Execution priority (lower = higher priority)
 
 # MCP dependencies
 mcp_servers: [string]           # List of MCP servers this skill uses
-
-# NetShell permissions (optional - for production security)
-netshell:
-  mcp_tools:                    # Tools this skill is allowed to invoke
-    - mcp: string               # MCP server name (e.g., "pyats-mcp")
-      tools: [string]           # Allowed tool names (e.g., ["show_command", "get_config"])
-  approval_required: boolean    # Override ITSM requirement (default: from MCP policy)
 ---
 ```
 
@@ -37,17 +31,16 @@ netshell:
 | `name` | string | Unique skill identifier. Use lowercase with hyphens (e.g., `pyats-health-check`). |
 | `description` | string | Brief explanation of what the skill does. |
 | `version` | string | Semantic version for tracking changes. |
+| `license` | string | SPDX license identifier (e.g., `Apache-2.0`, `MIT`, `BSD-3-Clause`). |
 
-### NetShell Section
-
-The `netshell` section is **optional** but required for skills to work when NetShell is enabled.
+### Optional Fields
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `netshell.mcp_tools` | array | List of MCP tool grants. |
-| `netshell.mcp_tools[].mcp` | string | MCP server name (must match policy file name). |
-| `netshell.mcp_tools[].tools` | array | Tool names this skill can invoke from the MCP. |
-| `netshell.approval_required` | boolean | Force ITSM approval for all write operations. |
+| `author` | string | Skill author name. |
+| `tags` | array | Categorization tags for filtering. |
+| `priority` | integer | Execution priority (lower = higher priority). |
+| `mcp_servers` | array | List of MCP servers this skill uses. |
 
 ## Examples
 
@@ -58,20 +51,10 @@ The `netshell` section is **optional** but required for skills to work when NetS
 name: network-inventory
 description: Discover and inventory network devices
 version: 1.0.0
+license: Apache-2.0
 author: netclaw
 tags: [inventory, discovery]
-
-netshell:
-  mcp_tools:
-    - mcp: suzieq-mcp
-      tools:
-        - suzieq_show
-        - suzieq_summarize
-        - suzieq_path
-    - mcp: batfish-mcp
-      tools:
-        - analyze_config
-        - get_reachability
+mcp_servers: [suzieq-mcp, batfish-mcp]
 ---
 ```
 
@@ -82,60 +65,78 @@ netshell:
 name: vlan-provisioner
 description: Provision VLANs across network devices
 version: 1.0.0
+license: Apache-2.0
 author: netclaw
 tags: [provisioning, vlan]
-
-netshell:
-  mcp_tools:
-    - mcp: aruba-cx-mcp
-      tools:
-        - aruba_get_vlans         # Read
-        - aruba_create_vlan       # Write (triggers ITSM)
-        - aruba_delete_vlan       # Write (triggers ITSM)
-    - mcp: meraki-magic-mcp
-      tools:
-        - get_network_vlans       # Read
-        - create_network_vlan     # Write (triggers ITSM)
-  approval_required: true         # Require ITSM for all writes
+mcp_servers: [aruba-cx-mcp, meraki-magic-mcp]
 ---
 ```
 
-### Documentation Skill (No Network Access)
+### Documentation Skill
 
 ```yaml
 ---
 name: api-docs-lookup
 description: Search API documentation
 version: 1.0.0
+license: Apache-2.0
 author: netclaw
 tags: [documentation, api]
-
-netshell:
-  mcp_tools:
-    - mcp: devnet-content-search
-      tools:
-        - Meraki-API-Doc-Search
-        - CatalystCenter-API-Doc-Search
-        - Meraki-API-OperationId-Search
+mcp_servers: [devnet-content-search]
 ---
 ```
 
-## Backward Compatibility
+---
 
-- Skills **without** a `netshell` section work normally when NetShell is **disabled**
-- When NetShell is **enabled**, skills without `netshell` section cannot invoke MCP tools
-- Adding `netshell` section to existing skills is opt-in
+## Security with DefenseClaw
 
-## Validation
+When DefenseClaw is enabled, all skills are automatically scanned before execution. No changes to SKILL.md are required.
 
-Run the policy compiler to validate skill permissions:
+### Automatic Scanning
+
+DefenseClaw's CodeGuard scans all skill code for:
+- Hardcoded credentials (API keys, passwords)
+- Dynamic code execution (eval, exec)
+- Shell command injection
+- SQL injection
+- Path traversal
+- Weak cryptography
+
+### Tool Management
+
+Instead of declaring permissions in SKILL.md, DefenseClaw manages tool access centrally:
 
 ```bash
-python netshell/scripts/compile-policies.py --verbose
+# Block a tool for all skills
+defenseclaw tool block delete_file --reason "destructive operation"
+
+# Allow a tool
+defenseclaw tool allow read_file
+
+# List tool rules
+defenseclaw tool list
 ```
 
-This will:
-1. Parse all SKILL.md files in `workspace/skills/`
-2. Validate MCP and tool names exist
-3. Generate compiled policies to `netshell/policies/skills/`
-4. Report any validation errors
+### Scan a Skill
+
+```bash
+# Scan skill code before deployment
+defenseclaw skill scan pyats-health-check
+
+# Expected output:
+# Scanning skill: pyats-health-check
+# ✓ No HIGH/CRITICAL findings
+# Status: ALLOWED
+```
+
+### Security Notes for Skill Authors
+
+1. **Never hardcode credentials** - Use environment variables
+2. **Avoid eval/exec** - Use safe alternatives
+3. **Sanitize inputs** - Validate all user-provided data
+4. **Use approved libraries** - Stick to well-known packages
+
+### Documentation
+
+- [DefenseClaw Guide](../docs/DEFENSECLAW.md) - Full security documentation
+- [Security Principles](../docs/SOUL-DEFENSE.md) - Security posture guidance
