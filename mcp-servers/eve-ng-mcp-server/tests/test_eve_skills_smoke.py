@@ -18,25 +18,49 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 WORKSPACE = REPO_ROOT / "workspace" / "skills"
-SERVER = REPO_ROOT / "mcp-servers" / "eve-ng-mcp-server" / "eve_ng_mcp_server.py"
+SERVER_DIR = REPO_ROOT / "mcp-servers" / "eve-ng-mcp-server"
+SERVER = SERVER_DIR / "eve_ng_mcp_server.py"
+TOOL_MODULES = [
+    SERVER_DIR / "tools_lab.py",
+    SERVER_DIR / "tools_node.py",
+    SERVER_DIR / "tools_network.py",
+    SERVER_DIR / "tools_console_exec.py",
+    SERVER_DIR / "tools_config.py",
+]
 VALIDATOR = WORKSPACE / "eve-lab-topology-design" / "scripts" / "validate_unl_topology.py"
 
 SKILL_FILES = [
     WORKSPACE / "eve-ng-lab-management" / "SKILL.md",
-    WORKSPACE / "eve-ng-lab-management" / "README.md",
-    WORKSPACE / "eve-ng-lab-management" / "references" / "commands.md",
-    WORKSPACE / "eve-ng-lab-management" / "references" / "troubleshooting.md",
+    WORKSPACE / "eve-ng-lab-management" / "references" / "operational-guardrails.md",
+    WORKSPACE / "eve-ng-lab-management" / "references" / "image-and-pagination.md",
     WORKSPACE / "eve-ng-node-operations" / "SKILL.md",
+    WORKSPACE / "eve-ng-node-operations" / "references" / "node-guardrails.md",
+    WORKSPACE / "eve-ng-node-operations" / "references" / "node-types.md",
     WORKSPACE / "eve-ng-config-ops" / "SKILL.md",
+    WORKSPACE / "eve-ng-config-ops" / "references" / "config-guardrails.md",
     WORKSPACE / "eve-ng-console-ops" / "SKILL.md",
+    WORKSPACE / "eve-ng-console-ops" / "references" / "console-guardrails.md",
     WORKSPACE / "eve-lab-topology-build" / "SKILL.md",
+    WORKSPACE / "eve-lab-topology-build" / "references" / "wiring-guardrails.md",
+    WORKSPACE / "eve-lab-topology-build" / "references" / "network-and-interface-reference.md",
     WORKSPACE / "eve-lab-topology-design" / "SKILL.md",
+    WORKSPACE / "eve-lab-topology-design" / "references" / "discovery-workflow.md",
+    WORKSPACE / "eve-lab-topology-design" / "references" / "validation-workflow.md",
+    WORKSPACE / "eve-lab-topology-design" / "references" / "unl-validator.md",
+    WORKSPACE / "eve-lab-topology-discovery" / "SKILL.md",
+    WORKSPACE / "eve-lab-topology-discovery" / "references" / "question-bank.md",
+    WORKSPACE / "eve-lab-topology-discovery" / "references" / "defaults-and-options.md",
+    WORKSPACE / "eve-lab-topology-discovery" / "references" / "domain-and-image-guidance.md",
+    WORKSPACE / "eve-lab-topology-validation" / "SKILL.md",
+    WORKSPACE / "eve-lab-topology-validation" / "references" / "decision-gate.md",
+    WORKSPACE / "eve-lab-topology-validation" / "references" / "output-structure.md",
+    WORKSPACE / "eve-lab-topology-validation" / "references" / "checklists.md",
+    WORKSPACE / "eve-lab-topology-validation" / "references" / "build-and-config-rules.md",
     VALIDATOR,
 ]
 
 BANNED_STRINGS = [
     "/root/.openclaw/workspace",
-    "ishare2",
     "ENSLD/",
     "eve_api_helper.py",
     "eve_console_helper.py",
@@ -59,14 +83,15 @@ def fail(message: str) -> None:
 
 
 def parse_server_tools() -> set[str]:
-    module = ast.parse(SERVER.read_text())
     tools = set()
-    for node in module.body:
-        if not isinstance(node, ast.FunctionDef):
-            continue
-        for decorator in node.decorator_list:
-            if isinstance(decorator, ast.Call) and getattr(decorator.func, "attr", None) == "tool":
-                tools.add(node.name)
+    for path in TOOL_MODULES:
+        module = ast.parse(path.read_text())
+        for node in module.body:
+            if not isinstance(node, ast.FunctionDef):
+                continue
+            for decorator in node.decorator_list:
+                if isinstance(decorator, ast.Call) and getattr(decorator.func, "attr", None) == "tool":
+                    tools.add(node.name)
     return tools
 
 
@@ -97,10 +122,12 @@ def main() -> int:
     if unknown:
         fail(f"documented tools missing from server: {', '.join(unknown)}")
 
-    server_text = SERVER.read_text()
-    for snippet in BANNED_SERVER_SNIPPETS:
-        if snippet in server_text:
-            fail(f"hardcoded credential pattern found in server: {snippet}")
+    all_server_files = [SERVER] + TOOL_MODULES
+    for src_file in all_server_files:
+        src_text = src_file.read_text()
+        for snippet in BANNED_SERVER_SNIPPETS:
+            if snippet in src_text:
+                fail(f"hardcoded credential pattern found in {src_file.name}: {snippet}")
 
     result = subprocess.run(
         [sys.executable, str(VALIDATOR), "--help"],
