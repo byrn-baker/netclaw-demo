@@ -4,11 +4,14 @@ MCP server for managing EVE-NG network lab environments. Provides natural langua
 
 ## Features
 
-- **Lab Lifecycle**: List, inspect, create, delete, and export `.unl` lab files
+- **Lab Lifecycle**: List, inspect, create, delete, export, and import `.unl` lab files
 - **Node Operations**: Add/remove nodes from templates, start/stop individual nodes or whole labs, wipe to factory defaults
 - **Network & Topology**: Create virtual bridges, wire node interfaces to networks, inspect full topology
 - **Console Execution**: Full telnet console access for IOS/IOL, Junos, VPCS, Arista EOS, and NX-OS — mode-aware with automatic bootstrap
 - **Config Management**: Read, push, and clear node startup configs; bulk-export all configs before changes
+- **TOON Serialization**: Structured responses are emitted in TOON format when available, with JSON fallback
+- **Caching**: Cookie auth plus short-lived GET response caching with automatic invalidation after writes
+- **Pagination**: High-cardinality list/read tools support `page` and `page_size`
 - **System**: EVE-NG status, available images, authentication check
 
 ## Prerequisites
@@ -42,6 +45,9 @@ cp .env.example .env
 | `EVE_CONSOLE_HOST` | No | `127.0.0.1` | Host for telnet console connections — set to EVE host IP when running MCP server off-host |
 | `EVE_CONSOLE_USER` | No | - | Optional guest console username for platforms that prompt on login |
 | `EVE_CONSOLE_PASSWORD` | No | - | Optional guest console password |
+| `EVE_CACHE_TTL` | No | `30` | GET response cache TTL in seconds |
+| `EVE_CACHE_MAX_ENTRIES` | No | `256` | Maximum cached GET responses before oldest eviction |
+| `EVE_MAX_PAGE_SIZE` | No | `200` | Upper bound for `page_size` on paginated tools |
 
 ### Auth Notes
 
@@ -76,7 +82,7 @@ Add to `config/openclaw.json`:
 }
 ```
 
-## Available Tools (34)
+## Available Tools (38)
 
 ### System (3 tools)
 
@@ -84,23 +90,24 @@ Add to `config/openclaw.json`:
 |------|------------|-------------|
 | `eve_status` | — | EVE-NG system status: version, CPU, memory, disk |
 | `eve_auth` | — | Verify authentication and get current user info |
-| `eve_list_images` | `node_type?` | List available images, optionally filtered by type (`iol`, `qemu`, `dynamips`) |
+| `eve_list_images` | `node_type?, page?, page_size?` | List available images, optionally filtered by type (`iol`, `qemu`, `dynamips`) |
 
-### Lab Lifecycle (5 tools)
+### Lab Lifecycle (6 tools)
 
 | Tool | Parameters | Description |
 |------|------------|-------------|
-| `eve_list_labs` | `folder?` | List all labs recursively (default `/`) |
+| `eve_list_labs` | `folder?, page?, page_size?` | List all labs recursively (default `/`) |
 | `eve_get_lab` | `lab_path` | Lab metadata: description, version, author |
 | `eve_create_lab` | `name, folder?, description?, version?, author?` | Create a new empty lab |
 | `eve_delete_lab` | `lab_path` | Delete lab and runtime objects |
-| `eve_export_lab` | `lab_path` | Export raw `.unl` XML content |
+| `eve_export_lab` | `lab_path` | Export via EVE ZIP package and return extracted raw `.unl` XML + package metadata |
+| `eve_import_lab` | `archive_path, folder?` | Upload an EVE export ZIP and import it into the target folder |
 
 ### Node Operations (9 tools)
 
 | Tool | Parameters | Description |
 |------|------------|-------------|
-| `eve_list_nodes` | `lab_path` | All nodes with status, type, image, console port |
+| `eve_list_nodes` | `lab_path, page?, page_size?` | All nodes with status, type, image, console port |
 | `eve_get_node` | `lab_path, node` | Full node details |
 | `eve_create_node` | `lab_path, name, node_type, template, image?, left?, top?, ram?, ethernet?, serial?, console?, cpu?, icon?` | Add node from template |
 | `eve_delete_node` | `lab_path, node` | Remove a node (stop first) |
@@ -117,12 +124,12 @@ Nodes can be referenced by **name** (`R1`) or **numeric ID** — resolution is c
 | Tool | Parameters | Description |
 |------|------------|-------------|
 | `eve_get_topology` | `lab_path` | Full topology: nodes, networks, link connections |
-| `eve_list_networks` | `lab_path` | All virtual networks with type and ID |
+| `eve_list_networks` | `lab_path, page?, page_size?` | All virtual networks with type and ID |
 | `eve_create_network` | `lab_path, name, network_type?, visibility?, left?, top?` | Create a virtual network |
 | `eve_delete_network` | `lab_path, network` | Delete a network |
 | `eve_list_node_interfaces` | `lab_path, node` | Node interfaces and their current network connections |
 | `eve_connect_interface` | `lab_path, node, interface_id, network` | Wire node interface to a network |
-| `eve_list_node_types` | — | All node templates installed on EVE-NG |
+| `eve_list_node_types` | `page?, page_size?` | All node templates installed on EVE-NG |
 
 #### Network Types
 
@@ -158,18 +165,24 @@ Console connections go via **raw telnet** to `EVE_CONSOLE_HOST:port`. Default po
 
 If a guest prompts for credentials, set `EVE_CONSOLE_USER` and `EVE_CONSOLE_PASSWORD` explicitly instead of relying on baked-in defaults.
 
-### Config Management (4 tools)
+### Config Management (7 tools)
 
 | Tool | Parameters | Description |
 |------|------------|-------------|
-| `eve_get_node_config` | `lab_path, node` | Get stored startup config for one node |
+| `eve_get_node_config` | `lab_path, node` | Get stored startup config text plus current startup-config mode for one node |
+| `eve_export_node_config` | `lab_path, node` | Export a running node's config into the lab file as startup config |
 | `eve_set_node_config` | `lab_path, node, config` | Push startup config text (node must be stopped) |
-| `eve_get_all_configs` | `lab_path` | Bulk export all node configs in one call |
+| `eve_set_node_startup_mode` | `lab_path, node, enabled` | Turn use of the node's stored startup-config ON or OFF at boot |
+| `eve_export_all_node_configs` | `lab_path` | Native EVE export of all supported running-node configs into the lab file |
+| `eve_list_config_summaries` | `lab_path, page?, page_size?` | Cheap config inventory: existence, mode, and size without reading full config text |
+| `eve_get_all_configs` | `lab_path, page?, page_size?` | Read startup-config mode + stored config text for all supported nodes |
 | `eve_wipe_node_config` | `lab_path, node` | Clear startup config only (lighter than `eve_wipe_node`) |
 
 ## Response Format
 
-All tools return JSON with a consistent envelope:
+Tools return the standard success/error envelope, serialized as **TOON when available** and **pretty JSON on fallback**.
+
+Paginated tools include `count`, `total_count`, and a `pagination` object.
 
 ```json
 // Success
@@ -177,7 +190,16 @@ All tools return JSON with a consistent envelope:
   "success": true,
   "data": { ... },
   "message": "Human-readable summary",
-  "count": 5
+  "count": 5,
+  "total_count": 42,
+  "pagination": {
+    "page": 1,
+    "page_size": 5,
+    "returned": 5,
+    "total_count": 42,
+    "total_pages": 9,
+    "has_next": true
+  }
 }
 
 // Error
@@ -187,6 +209,14 @@ All tools return JSON with a consistent envelope:
   "error_code": "EVE_NOT_FOUND",
   "status_code": 404
 }
+```
+
+Use pagination proactively on large environments, for example:
+
+```text
+ eve_list_labs(folder="/", page=1, page_size=50)
+ eve_list_nodes(lab_path="/ENSLD/7-OSPF.unl", page=1, page_size=25)
+ eve_list_config_summaries(lab_path="/ENSLD/7-OSPF.unl", page=1, page_size=25)
 ```
 
 ## Error Codes
@@ -214,6 +244,7 @@ All tools return JSON with a consistent envelope:
 "Run 'show ip route' on R1"
 "Configure R2 with OSPF and save"
 "Export all startup configs from the BGP lab before I change anything"
+"Export the triangle lab and import it on the DR EVE host"
 "Wipe R1 back to factory and reload it"
 ```
 
@@ -232,9 +263,15 @@ All tools return JSON with a consistent envelope:
 ## Important Constraints
 
 - **Single-user**: This EVE-NG instance is single-user. Do not start a new lab while another is running.
+- **Ask before shutdown**: If another running lab would need to be stopped to proceed, ask the user first before shutting it down.
 - **Wiring rule**: Stop affected nodes before changing interface connections to avoid stale host bridges.
 - **Boot lag**: API may report a node as "running" while it is still booting — use `eve_discover_node` to confirm console readiness.
 - **Config write**: `eve_set_node_config` requires the node to be stopped; configs are stored inside the `.unl` file.
+- **Startup-config mode matters**: A node can have stored config data in the `.unl` while still booting default if its startup-config mode is `0`/OFF. The per-node startup-config selector must be ON (`1`/Exported) for the config to apply at boot.
+- **Native config export**: EVE's native running-config export uses the node/lab `.../export` API actions (same as GUI export-all-configurations) and writes supported startup configs straight into the `.unl` file.
+- **Cheap config check first**: prefer `eve_list_config_summaries` when you only need to compare existence, mode, or size. Use `eve_get_all_configs` only when you truly need the full embedded startup-config text.
+- **Export/import reality**: EVE exports labs as ZIP archives containing the `.unl`; images are not bundled and must exist separately on the destination host.
+- **Startup caveat**: On some hosts, bulk lab start can race after import; sequential per-node start is a valid workaround when the first all-at-once boot is partial.
 
 ## Related Skills
 
