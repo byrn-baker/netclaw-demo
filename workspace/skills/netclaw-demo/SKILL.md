@@ -276,14 +276,18 @@ NetClaw can join the lab's OSPF topology and establish a BGP peering with RR1 us
 
 ### Step 1: Setup the veth link to the lab
 
+Run the setup script to create a veth pair linking the host to P2's network namespace:
+
 ```bash
 sudo /home/ubuntu/netclaw/scripts/setup-ospf-veth.sh
 ```
 
-This creates a veth pair between the host and P2:
+This creates:
 - Host side: `veth-netclaw` with IP `10.0.99.1/30`
 - P2 side: `veth-p2` with IP `10.0.99.2/30`
 - OSPF area 0, point-to-point
+
+**Note:** This requires the ContainerLab topology to be running (P2 must exist). No password or approval is needed — sudoers is pre-configured for this script.
 
 ### Step 2: Start the OSPFv2 speaker via protocol-mcp
 
