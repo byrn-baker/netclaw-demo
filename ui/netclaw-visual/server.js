@@ -1,12 +1,11 @@
 import express from 'express';
-import { WebSocketServer, WebSocket as WebSocketClient } from 'ws';
+import { WebSocketServer } from 'ws';
 import http from 'http';
 import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
 import { fileURLToPath } from 'url';
-import { randomUUID } from 'crypto';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '../..');
@@ -679,19 +678,7 @@ function parseDevices() {
 
 function parseConfig() {
   try {
-    const projectConfig = JSON.parse(readText(CONFIG_FILE)) || {};
-    const gwConfigPath = path.join(process.env.HOME || '/root', '.openclaw', 'openclaw.json');
-    const gwConfig = JSON.parse(readText(gwConfigPath)) || {};
-    // Merge: gateway config (live) takes precedence for agents/model settings
-    if (gwConfig.agents?.defaults?.model?.primary) {
-      projectConfig.agents = projectConfig.agents || {};
-      projectConfig.agents.defaults = projectConfig.agents.defaults || {};
-      projectConfig.agents.defaults.model = gwConfig.agents.defaults.model;
-    }
-    if (gwConfig.gateway) {
-      projectConfig.gateway = { ...projectConfig.gateway, ...gwConfig.gateway };
-    }
-    return projectConfig;
+    return JSON.parse(readText(CONFIG_FILE));
   } catch {
     return {};
   }
@@ -871,19 +858,16 @@ app.get('/api/bgp', async (req, res) => {
 // ── Gateway status endpoint ───────────────────────────────────────
 app.get('/api/gateway/status', async (req, res) => {
   const gw = getGatewayConfig();
-  try {
-    const health = await fetch(`http://127.0.0.1:${gw.port}/health`, {
-      signal: AbortSignal.timeout(2000),
-    });
-    if (health.ok) {
-      const data = await health.json();
-      res.json({ online: data.ok === true, port: gw.port });
-    } else {
-      res.json({ online: false, port: gw.port });
-    }
-  } catch {
-    res.json({ online: false, port: gw.port });
-  }
+  // Check if gateway WS port is listening (TCP connect test)
+  const net = await import('net');
+  const online = await new Promise((resolve) => {
+    const sock = net.default.createConnection(gw.port, '127.0.0.1');
+    sock.setTimeout(2000);
+    sock.on('connect', () => { sock.destroy(); resolve(true); });
+    sock.on('error', () => resolve(false));
+    sock.on('timeout', () => { sock.destroy(); resolve(false); });
+  });
+  res.json({ online, port: gw.port });
 });
 
 // ── Full SKILL.md detail endpoint ──────────────────────────────────
@@ -954,106 +938,6 @@ app.put('/api/testbed/raw', (req, res) => {
 // heuristic response if the gateway is unavailable.
 const chatHistory = [];
 
-// Send a message to the OpenClaw gateway via WebSocket RPC
-function sendGatewayMessage(gw, message) {
-  return new Promise((resolve, reject) => {
-    const wsUrl = `ws://127.0.0.1:${gw.port}`;
-    let ws;
-    try {
-      ws = new WebSocketClient(wsUrl);
-    } catch (err) {
-      return reject(err);
-    }
-
-    const timeout = setTimeout(() => {
-      ws.close();
-      reject(new Error('Gateway timeout'));
-    }, 300000);
-
-    let authenticated = false;
-    let responseText = '';
-
-    ws.on('open', () => {});
-
-    ws.on('message', (data) => {
-      try {
-        const msg = JSON.parse(data.toString());
-
-        // Step 1: Respond to connect challenge
-        if (msg.type === 'event' && msg.event === 'connect.challenge') {
-          ws.send(JSON.stringify({
-            type: 'req',
-            id: randomUUID(),
-            method: 'connect',
-            params: {
-              minProtocol: 4,
-              maxProtocol: 4,
-              client: { id: 'gateway-client', displayName: 'NetClaw Visual', version: '1.0.0', platform: 'linux', mode: 'backend' },
-              caps: ['tool-events'],
-              auth: { token: gw.token },
-              role: 'operator',
-              scopes: ['operator.read', 'operator.write'],
-            },
-          }));
-          return;
-        }
-
-        // Step 2: On successful auth, send the chat message
-        if (msg.type === 'res' && msg.ok === true && !authenticated) {
-          authenticated = true;
-          ws.send(JSON.stringify({
-            type: 'req',
-            id: randomUUID(),
-            method: 'chat.send',
-            params: {
-              sessionKey: 'agent:main:main',
-              message: message,
-              idempotencyKey: randomUUID(),
-            },
-          }));
-          return;
-        }
-
-        // Step 3: Collect streaming chat deltas
-        if (msg.type === 'event' && msg.event === 'chat') {
-          const payload = msg.payload;
-          if (payload.state === 'final') {
-            // Extract final text from message content
-            const content = payload.message?.content;
-            if (Array.isArray(content)) {
-              responseText = content.filter((b) => b.type === 'text').map((b) => b.text).join('');
-            } else if (typeof content === 'string') {
-              responseText = content;
-            }
-            clearTimeout(timeout);
-            ws.close();
-            resolve(responseText);
-            return;
-          }
-        }
-
-        // Handle auth failure
-        if (msg.type === 'res' && msg.ok === false) {
-          clearTimeout(timeout);
-          ws.close();
-          reject(new Error(msg.error?.message || 'Gateway request failed'));
-        }
-      } catch { /* ignore parse errors */ }
-    });
-
-    ws.on('error', (err) => {
-      clearTimeout(timeout);
-      reject(err);
-    });
-
-    ws.on('close', () => {
-      clearTimeout(timeout);
-      if (responseText) resolve(responseText);
-      else if (!authenticated) reject(new Error('Gateway connection failed'));
-    });
-  });
-}
-
 // Read OpenClaw gateway config for auth
 function getGatewayConfig() {
   try {
@@ -1086,17 +970,14 @@ app.post('/api/chat', async (req, res) => {
     timestamp,
   });
 
-  // Try to proxy through the real OpenClaw gateway via WebSocket RPC
+  // Try to proxy through the real OpenClaw gateway with streaming
   let responseText = '';
   let fromGateway = false;
   const gw = getGatewayConfig();
 
-  try {
-    responseText = await sendGatewayMessage(gw, message);
-    if (responseText) fromGateway = true;
-  } catch {
-    // Gateway not reachable — fall back to local heuristic
-  }
+  // Gateway uses WebSocket only — chat is relayed via Slack channel.
+  // We don't proxy chat through server.js; the UI monitors responses via SSE/Slack relay.
+  fromGateway = false;
 
   if (!responseText) {
     responseText = buildChatResponse(message, activations, graph);
