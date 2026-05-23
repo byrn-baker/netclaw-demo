@@ -4,14 +4,33 @@ Skills define *how* tools work. This file is for *your* specifics — the enviro
 
 ## Network Devices
 
-Devices are defined in `testbed/testbed.yaml`. Update that file with your SSH-accessible Cisco devices.
+Devices are defined in `testbed/testbed.yaml`. IPs are assigned by containerlab on deploy.
+Update after: `sudo clab inspect -t lab/demo-sp/demo-sp.clab.yml`
 
 ```
-### Example Device Map
-- R1 → 10.1.1.1, Core Router, IOS-XE 17.9
-- R2 → 10.1.1.2, Distribution Router, IOS-XE 17.9
-- SW1 → 10.1.2.1, Access Switch, IOS-XE 17.9
-- SW2 → 10.1.2.2, Access Switch, IOS-XE 17.9
+### Device Map (demo-sp — containerlab FRR)
+- PE1 → 172.20.20.11, Provider Edge, FRR (AS 65000)
+- P1  → 172.20.20.12, Core P-router, FRR
+- P2  → 172.20.20.13, Core P-router, FRR
+- P3  → 172.20.20.14, Core P-router, FRR
+- P4  → 172.20.20.15, Core P-router, FRR
+- RR1 → 172.20.20.16, Route Reflector, FRR (AS 65000)
+```
+
+## Lab Topologies
+
+```
+### Containerlab — demo-sp (6-node SP Core)
+- Topology: lab/demo-sp/demo-sp.clab.yml
+- Nodes: PE1, P1, P2, P3, P4, RR1 (all FRR)
+- Underlay: OSPF area 0, iBGP AS 65000, RR1 = route reflector
+- Deploy: sudo clab deploy -t lab/demo-sp/demo-sp.clab.yml
+
+### Docker Compose — frr-testbed (IPv6-only, OSPFv3 + MP-BGP)
+- Topology: lab/frr-testbed/docker-compose.yml
+- Nodes: edge1 (AS 65000), core (RR), edge2 — plus GRE tunnel to WSL NetClaw (AS 65001)
+- Address plan: ULA fd00::/48, /127 P2P links
+- Deploy: cd lab/frr-testbed && docker compose up -d
 ```
 
 ## Platform Credentials
@@ -42,6 +61,24 @@ All credentials are in `~/.openclaw/.env`. Never put credentials in skill files 
 - Token Optimization  → ANTHROPIC_API_KEY (reused), NETCLAW_TOKEN_PRICING_OVERRIDE (optional)
 - GitLab MCP          → GITLAB_PERSONAL_ACCESS_TOKEN, GITLAB_API_URL (default: gitlab.com)
 - Jenkins MCP         → JENKINS_URL, JENKINS_AUTH_BASE64 (remote HTTP, Basic Auth)
+- Nautobot            → NAUTOBOT_URL, NAUTOBOT_TOKEN, NAUTOBOT_VERIFY_SSL, NAUTOBOT_TIMEOUT
+- EVE-NG              → EVE_URL, EVE_USER, EVE_PASSWORD, EVE_VERIFY_SSL, EVE_CONSOLE_HOST
+- GNS3                → GNS3_URL, GNS3_USER, GNS3_PASSWORD, GNS3_VERIFY_SSL
+- Prisma SD-WAN       → PAN_CLIENT_ID, PAN_CLIENT_SECRET, PAN_TSG_ID, PAN_REGION
+- Datadog             → DD_API_KEY, DD_APP_KEY, DD_SITE
+- PagerDuty           → PAGERDUTY_USER_API_KEY, PAGERDUTY_API_HOST
+- Splunk              → SPLUNK_HOST, SPLUNK_TOKEN, SPLUNK_VERIFY_SSL
+- Terraform Cloud     → TFC_TOKEN, TFC_ORG, TFC_HOST
+- HashiCorp Vault     → VAULT_ADDR, VAULT_TOKEN, VAULT_NAMESPACE
+- Zscaler ZIA/ZPA     → ZSCALER_ZIA_API_KEY, ZSCALER_ZIA_USERNAME, ZSCALER_ZIA_PASSWORD, ZSCALER_ZIA_CLOUD, ZSCALER_ZPA_CLIENT_ID, ZSCALER_ZPA_CLIENT_SECRET, ZSCALER_ZPA_CUSTOMER_ID
+- Cloudflare          → CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
+- Aruba CX            → ARUBA_CX_TARGETS, ARUBA_CX_CONFIG, ARUBA_CX_TIMEOUT
+- Protocol MCP        → NETCLAW_ROUTER_ID, NETCLAW_LOCAL_AS, NETCLAW_BGP_PEERS, NETCLAW_OSPF_AREAS, NETCLAW_GRE_TUNNELS, NETCLAW_LAB_MODE
+- IPFIX/NetFlow       → IPFIX_PORT (default: 2055), IPFIX_BIND_ADDRESS, IPFIX_RETENTION_HOURS
+- SNMP Trap           → SNMPTRAP_PORT (default: 162), SNMPTRAP_BIND_ADDRESS, SNMPTRAP_RETENTION_HOURS
+- Syslog              → SYSLOG_PORT (default: 514), SYSLOG_BIND_ADDRESS, SYSLOG_RETENTION_HOURS
+- Atlassian           → JIRA_URL, JIRA_USERNAME, JIRA_API_TOKEN, CONFLUENCE_URL, CONFLUENCE_USERNAME, CONFLUENCE_API_TOKEN
+- DevNet Search       → No credentials (public endpoint: https://devnet.cisco.com/v1/foundation-search-mcp/mcp)
 ```
 
 ## GitLab MCP Server
@@ -85,6 +122,141 @@ The Atlassian MCP server (community mcp-atlassian by sooperset) provides 72 tool
 - Auth: API token (Cloud) or Personal Access Token (Server/DC)
 - Runs via `uvx mcp-atlassian`
 
+## EVE-NG MCP Server
+
+MCP server for managing EVE-NG network lab environments via stdio transport:
+- **Lab Lifecycle**: List, inspect, create, delete, export, and import `.unl` lab files
+- **Node Operations**: Add/remove nodes from templates, start/stop individual nodes or whole labs, wipe to factory defaults
+- **Network & Topology**: Create virtual bridges, wire node interfaces to networks, inspect full topology
+- **Console Execution**: Full telnet console access for IOS/IOL, Junos, VPCS, Arista EOS, NX-OS — mode-aware with automatic bootstrap
+- **Config Management**: Read, push, and clear node startup configs; bulk-export all configs
+- **System**: EVE-NG status, available images, authentication check
+- Supports EVE-NG Community and Professional (tested on Community 6.x)
+- Cookie auth with short-lived GET response caching, pagination on high-cardinality tools
+
+## GNS3 MCP Server
+
+MCP server for managing GNS3 network lab environments via stdio transport:
+- **Project Lifecycle**: Create, open, close, delete, clone, export/import GNS3 projects
+- **Node Operations**: Add nodes from templates, start/stop/suspend/reload, access consoles
+- **Link Management**: Create and delete links between node interfaces, isolate nodes
+- **Packet Capture**: Start/stop captures on links, retrieve PCAP data
+- **Snapshot Management**: Create, restore, and delete project snapshots
+- Requires GNS3 Server 2.2.0+ with REST API v3
+
+## Protocol MCP Server (BGP/OSPF/GRE)
+
+Live control-plane participation via 10 tools (source: WontYouBeMyNeighbour):
+- **BGP**: bgp_get_peers, bgp_get_rib, bgp_inject_route, bgp_withdraw_route, bgp_adjust_local_pref
+- **OSPF**: ospf_get_neighbors, ospf_get_lsdb, ospf_adjust_cost
+- **GRE**: gre_tunnel_status
+- **Meta**: protocol_summary
+- Enables NetClaw to participate as a real BGP/OSPF speaker in the lab topology
+- Used with the FRR testbed for live route injection, convergence testing, and path manipulation
+
+## Nautobot MCP Servers (3 servers)
+
+Three specialized Nautobot MCP servers via stdio transport:
+- **nautobot-mcp-v2**: Core IPAM/DCIM — devices, interfaces, IPs, prefixes, sites, tenants, circuits
+- **nautobot-golden-config-mcp**: Golden config compliance — intended vs actual config diffs, remediation jobs
+- **nautobot-routing-mcp**: BGP/OSPF routing models — peerings, ASNs, route policies, prefix lists
+- All share NAUTOBOT_URL/NAUTOBOT_TOKEN credentials, ITSM lab mode supported
+
+## IPFIX/NetFlow MCP Server
+
+Receives and queries flow records over UDP:
+- **Protocols**: NetFlow v5, NetFlow v9 (template-based), IPFIX (RFC 7011)
+- **Tools**: Query flows by IPs/ports/protocol/exporter/time, top talkers analysis
+- Template caching with 30-min expiration, hash-based deduplication, token bucket rate limiting
+- Default port: 2055
+
+## SNMP Trap MCP Server
+
+Receives and queries SNMP traps over UDP:
+- **Protocols**: SNMPv1, SNMPv2c, SNMPv3 (USM)
+- **Tools**: Query traps by time, source, version, or OID
+- In-memory storage with configurable retention, deduplication, rate limiting
+- Default port: 162
+
+## Syslog MCP Server
+
+Receives and queries syslog messages over UDP/TCP:
+- **Formats**: RFC 5424 (structured data), RFC 3164 (BSD/Cisco-style)
+- **Tools**: Query messages by time, severity, facility, hostname, or content
+- In-memory storage with configurable retention, deduplication, rate limiting
+- Default port: 514
+
+## Prisma SD-WAN MCP Server
+
+Palo Alto Prisma SD-WAN management via stdio transport:
+- Site/branch management, policy control, path quality monitoring
+- Auth: OAuth2 via PAN Cloud Services (TSG-scoped)
+
+## Datadog MCP Server
+
+Datadog observability platform via remote MCP (`mcp://datadog.com/mcp`):
+- Metrics queries, log search, APM traces, monitors, dashboards
+- Auth: DD_API_KEY + DD_APP_KEY
+
+## PagerDuty MCP Server
+
+Incident management via stdio (`uvx pagerduty-mcp --enable-write-tools`):
+- Incidents, services, escalation policies, on-call schedules
+- Write tools enabled for incident creation/acknowledgment/resolution
+
+## Splunk MCP Server
+
+Splunk log/event search via stdio (`uvx splunk-mcp`):
+- SPL queries, saved searches, alerts, dashboards
+- Auth: Splunk Bearer token
+
+## Terraform Cloud MCP Server
+
+Terraform Cloud/Enterprise via remote MCP (`mcp://terraform.io/mcp`):
+- Workspaces, runs, state, variables, policy checks
+- Auth: TFC API token
+
+## HashiCorp Vault MCP Server
+
+Secrets management via remote MCP (`mcp://vault.hashicorp.com/mcp`):
+- Secret read/write, dynamic credentials, PKI, transit encryption
+- Auth: Vault token, namespace-aware
+
+## Zscaler MCP Server
+
+Zscaler ZIA + ZPA security via remote MCP (`mcp://zscaler.com/mcp`):
+- ZIA: URL filtering, firewall policies, DLP, SSL inspection
+- ZPA: Application segments, server groups, access policies
+
+## Cloudflare MCP Servers (5 servers)
+
+Cloudflare platform via remote MCP endpoints:
+- **dns-analytics**: DNS queries, analytics, zone management
+- **security**: WAF rules, rate limiting, bot management, DDoS
+- **zero-trust**: Access policies, tunnels, WARP, Gateway
+- **analytics**: Web analytics, performance metrics
+- **workers**: Workers deployment, KV storage, Durable Objects
+- All share CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID
+
+## Aruba CX MCP Server
+
+Aruba CX switch management via stdio transport:
+- REST API access to AOS-CX switches
+- Configuration, monitoring, interface management
+- Multi-target support via ARUBA_CX_TARGETS JSON
+
+## DevNet Content Search MCP Server
+
+Cisco DevNet documentation search via remote MCP (`https://devnet.cisco.com/v1/foundation-search-mcp/mcp`):
+- Search Cisco developer documentation, API references, guides
+- No credentials required (public endpoint)
+
+## Blender MCP Server
+
+Blender 3D visualization via stdio (`uvx blender-mcp`):
+- 3D network topology visualization and rendering
+- Scene manipulation, object creation, material assignment
+
 ## Token Optimization Infrastructure
 
 The `netclaw_tokens` shared library (`src/netclaw_tokens/`) provides token counting, TOON serialization, and cost tracking:
@@ -96,6 +268,7 @@ The `netclaw_tokens` shared library (`src/netclaw_tokens/`) provides token count
 - **toon_wrapper.py** — TOON conversion wrapper for community/remote MCP servers
 - Pricing override via `NETCLAW_TOKEN_PRICING_OVERRIDE` env var (JSON format)
 - Prompt caching discount: 90% off cached input tokens
+- Demo config uses Qwen 3.5 397B (ollama) with zero-cost pricing
 
 ## gNMI Infrastructure
 

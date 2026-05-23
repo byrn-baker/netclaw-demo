@@ -1,11 +1,12 @@
 import express from 'express';
-import { WebSocketServer } from 'ws';
+import { WebSocketServer, WebSocket as WebSocketClient } from 'ws';
 import http from 'http';
 import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
 import { fileURLToPath } from 'url';
+import { randomUUID } from 'crypto';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '../..');
@@ -678,7 +679,19 @@ function parseDevices() {
 
 function parseConfig() {
   try {
-    return JSON.parse(readText(CONFIG_FILE));
+    const projectConfig = JSON.parse(readText(CONFIG_FILE)) || {};
+    const gwConfigPath = path.join(process.env.HOME || '/root', '.openclaw', 'openclaw.json');
+    const gwConfig = JSON.parse(readText(gwConfigPath)) || {};
+    // Merge: gateway config (live) takes precedence for agents/model settings
+    if (gwConfig.agents?.defaults?.model?.primary) {
+      projectConfig.agents = projectConfig.agents || {};
+      projectConfig.agents.defaults = projectConfig.agents.defaults || {};
+      projectConfig.agents.defaults.model = gwConfig.agents.defaults.model;
+    }
+    if (gwConfig.gateway) {
+      projectConfig.gateway = { ...projectConfig.gateway, ...gwConfig.gateway };
+    }
+    return projectConfig;
   } catch {
     return {};
   }
@@ -859,10 +872,15 @@ app.get('/api/bgp', async (req, res) => {
 app.get('/api/gateway/status', async (req, res) => {
   const gw = getGatewayConfig();
   try {
-    const health = await fetch(`http://127.0.0.1:${gw.port}/v1/models`, {
+    const health = await fetch(`http://127.0.0.1:${gw.port}/health`, {
       signal: AbortSignal.timeout(2000),
     });
-    res.json({ online: health.ok, port: gw.port });
+    if (health.ok) {
+      const data = await health.json();
+      res.json({ online: data.ok === true, port: gw.port });
+    } else {
+      res.json({ online: false, port: gw.port });
+    }
   } catch {
     res.json({ online: false, port: gw.port });
   }
@@ -936,6 +954,106 @@ app.put('/api/testbed/raw', (req, res) => {
 // heuristic response if the gateway is unavailable.
 const chatHistory = [];
 
+// Send a message to the OpenClaw gateway via WebSocket RPC
+function sendGatewayMessage(gw, message) {
+  return new Promise((resolve, reject) => {
+    const wsUrl = `ws://127.0.0.1:${gw.port}`;
+    let ws;
+    try {
+      ws = new WebSocketClient(wsUrl);
+    } catch (err) {
+      return reject(err);
+    }
+
+    const timeout = setTimeout(() => {
+      ws.close();
+      reject(new Error('Gateway timeout'));
+    }, 300000);
+
+    let authenticated = false;
+    let responseText = '';
+
+    ws.on('open', () => {});
+
+    ws.on('message', (data) => {
+      try {
+        const msg = JSON.parse(data.toString());
+
+        // Step 1: Respond to connect challenge
+        if (msg.type === 'event' && msg.event === 'connect.challenge') {
+          ws.send(JSON.stringify({
+            type: 'req',
+            id: randomUUID(),
+            method: 'connect',
+            params: {
+              minProtocol: 4,
+              maxProtocol: 4,
+              client: { id: 'gateway-client', displayName: 'NetClaw Visual', version: '1.0.0', platform: 'linux', mode: 'backend' },
+              caps: ['tool-events'],
+              auth: { token: gw.token },
+              role: 'operator',
+              scopes: ['operator.read', 'operator.write'],
+            },
+          }));
+          return;
+        }
+
+        // Step 2: On successful auth, send the chat message
+        if (msg.type === 'res' && msg.ok === true && !authenticated) {
+          authenticated = true;
+          ws.send(JSON.stringify({
+            type: 'req',
+            id: randomUUID(),
+            method: 'chat.send',
+            params: {
+              sessionKey: 'agent:main:main',
+              message: message,
+              idempotencyKey: randomUUID(),
+            },
+          }));
+          return;
+        }
+
+        // Step 3: Collect streaming chat deltas
+        if (msg.type === 'event' && msg.event === 'chat') {
+          const payload = msg.payload;
+          if (payload.state === 'final') {
+            // Extract final text from message content
+            const content = payload.message?.content;
+            if (Array.isArray(content)) {
+              responseText = content.filter((b) => b.type === 'text').map((b) => b.text).join('');
+            } else if (typeof content === 'string') {
+              responseText = content;
+            }
+            clearTimeout(timeout);
+            ws.close();
+            resolve(responseText);
+            return;
+          }
+        }
+
+        // Handle auth failure
+        if (msg.type === 'res' && msg.ok === false) {
+          clearTimeout(timeout);
+          ws.close();
+          reject(new Error(msg.error?.message || 'Gateway request failed'));
+        }
+      } catch { /* ignore parse errors */ }
+    });
+
+    ws.on('error', (err) => {
+      clearTimeout(timeout);
+      reject(err);
+    });
+
+    ws.on('close', () => {
+      clearTimeout(timeout);
+      if (responseText) resolve(responseText);
+      else if (!authenticated) reject(new Error('Gateway connection failed'));
+    });
+  });
+}
+
 // Read OpenClaw gateway config for auth
 function getGatewayConfig() {
   try {
@@ -968,35 +1086,14 @@ app.post('/api/chat', async (req, res) => {
     timestamp,
   });
 
-  // Try to proxy through the real OpenClaw gateway with streaming
+  // Try to proxy through the real OpenClaw gateway via WebSocket RPC
   let responseText = '';
   let fromGateway = false;
   const gw = getGatewayConfig();
 
   try {
-    const gwRes = await fetch(`http://127.0.0.1:${gw.port}/v1/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${gw.token}`,
-        'Content-Type': 'application/json',
-        'x-openclaw-agent-id': 'main',
-      },
-      body: JSON.stringify({
-        model: 'openclaw',
-        messages: chatHistory
-          .filter((m) => m.role === 'user' || m.role === 'assistant')
-          .slice(-10)
-          .map((m) => ({ role: m.role, content: m.text || m.response || '' })),
-        stream: false,
-      }),
-      signal: AbortSignal.timeout(300000),
-    });
-
-    if (gwRes.ok) {
-      const gwData = await gwRes.json();
-      responseText = gwData.choices?.[0]?.message?.content || gwData.choices?.[0]?.text || '';
-      fromGateway = true;
-    }
+    responseText = await sendGatewayMessage(gw, message);
+    if (responseText) fromGateway = true;
   } catch {
     // Gateway not reachable — fall back to local heuristic
   }

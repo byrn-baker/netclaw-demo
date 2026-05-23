@@ -716,6 +716,209 @@ async def routing_remove_peer_from_group(
 
 
 # ═══════════════════════════════════════════════════════════════════════
+# OSPF / IGP MODELS TOOLS
+# ═══════════════════════════════════════════════════════════════════════
+
+
+@mcp.tool()
+async def routing_get_ospf(device: Optional[str] = None) -> str:
+    """Get OSPF configurations and interface assignments from the IGP models plugin.
+
+    Args:
+        device: Device name to filter by (optional). If omitted, returns all OSPF configs.
+    """
+    logger.info(f"routing_get_ospf device={device}")
+    try:
+        params: dict = {"limit": 100}
+        if device:
+            params["device__name"] = device
+        # Get IGP routing instances (OSPF)
+        instances = await client.rest_get("plugins/nautobot-igp-models/igp-routing-instances", {"protocol": "OSPF", **params})
+        inst_results = instances.get("results", [])
+
+        # Get OSPF configs
+        ospf_configs = await client.rest_get("plugins/nautobot-igp-models/ospf-configurations", params)
+        config_results = ospf_configs.get("results", [])
+
+        # Get OSPF interface configs
+        iface_configs = await client.rest_get("plugins/nautobot-igp-models/ospf-interface-configurations", params)
+        iface_results = iface_configs.get("results", [])
+
+        return json.dumps({
+            "igp_instances": inst_results,
+            "ospf_configurations": config_results,
+            "ospf_interface_configurations": iface_results,
+        }, indent=2, default=str)
+    except NautobotError as e:
+        return json.dumps({"error": str(e)})
+
+
+@mcp.tool()
+async def routing_create_ospf_instance(
+    device: str,
+    process_id: int = 1,
+    router_id: Optional[str] = None,
+    cr_number: Optional[str] = None,
+) -> str:
+    """Create an OSPF routing instance and configuration for a device. Idempotent. ITSM-gated.
+
+    Creates both the IGP routing instance (protocol=OSPF) and the OSPF configuration object.
+
+    Args:
+        device: Device name (e.g. 'P1')
+        process_id: OSPF process ID (default: 1)
+        router_id: Router ID IP address (e.g. '10.255.255.2/32'). Optional.
+        cr_number: ServiceNow change request number (required if ITSM enabled)
+    """
+    blocked = _check_itsm(cr_number)
+    if blocked:
+        return json.dumps({"error": blocked})
+
+    logger.info(f"routing_create_ospf_instance device={device} pid={process_id}")
+    try:
+        # Check if IGP instance already exists
+        existing = await client.rest_get(
+            "plugins/nautobot-igp-models/igp-routing-instances",
+            {"device__name": device, "protocol": "OSPF"},
+        )
+        if existing.get("results"):
+            inst_id = existing["results"][0]["id"]
+            # Check if OSPF config exists for this instance
+            ospf_cfgs = await client.rest_get(
+                "plugins/nautobot-igp-models/ospf-configurations",
+                {"instance": inst_id},
+            )
+            ospf_id = ospf_cfgs["results"][0]["id"] if ospf_cfgs.get("results") else None
+            return json.dumps({"status": "already_exists", "device": device, "instance_id": inst_id, "ospf_config_id": ospf_id})
+
+        # Resolve device ID
+        dev_data = await client.graphql(f'{{ devices(name: "{_esc(device)}") {{ id }} }}')
+        devices = dev_data.get("devices", [])
+        if not devices:
+            return json.dumps({"error": f"Device '{device}' not found"})
+        device_id = devices[0]["id"]
+
+        # Resolve router_id IP
+        rid_id = None
+        if router_id:
+            rid_id = await find_ip_id(client, router_id)
+
+        # Create IGP routing instance
+        inst_payload: dict = {
+            "name": f"OSPF-{process_id}",
+            "device": device_id,
+            "protocol": "OSPF",
+            "status": {"name": "Active"},
+        }
+        if rid_id:
+            inst_payload["router_id"] = rid_id
+        instance = await client.rest_post("plugins/nautobot-igp-models/igp-routing-instances", inst_payload)
+        inst_id = instance["id"]
+
+        # Create OSPF configuration
+        ospf_payload: dict = {
+            "name": f"{device}-OSPF-{process_id}",
+            "instance": inst_id,
+            "process_id": process_id,
+            "status": {"name": "Active"},
+        }
+        ospf_config = await client.rest_post("plugins/nautobot-igp-models/ospf-configurations", ospf_payload)
+
+        return json.dumps({
+            "status": "created",
+            "device": device,
+            "instance_id": inst_id,
+            "ospf_config_id": ospf_config["id"],
+            "process_id": process_id,
+        }, indent=2)
+    except NautobotError as e:
+        return json.dumps({"error": str(e)})
+
+
+@mcp.tool()
+async def routing_create_ospf_interface(
+    device: str,
+    interface: str,
+    area: str = "0.0.0.0",
+    cost: Optional[int] = None,
+    cr_number: Optional[str] = None,
+) -> str:
+    """Add an interface to OSPF on a device. Idempotent. ITSM-gated.
+
+    Links the interface to the device's OSPF configuration with the specified area.
+
+    Args:
+        device: Device name (e.g. 'P1')
+        interface: Interface name (e.g. 'eth1', 'lo')
+        area: OSPF area ID (default: '0.0.0.0')
+        cost: Optional OSPF cost override
+        cr_number: ServiceNow change request number (required if ITSM enabled)
+    """
+    blocked = _check_itsm(cr_number)
+    if blocked:
+        return json.dumps({"error": blocked})
+
+    logger.info(f"routing_create_ospf_interface device={device} iface={interface} area={area}")
+    try:
+        # Find the OSPF config for this device
+        instances = await client.rest_get(
+            "plugins/nautobot-igp-models/igp-routing-instances",
+            {"device__name": device, "protocol": "OSPF"},
+        )
+        if not instances.get("results"):
+            return json.dumps({"error": f"No OSPF instance for device '{device}'. Create one first with routing_create_ospf_instance."})
+        inst_id = instances["results"][0]["id"]
+
+        ospf_cfgs = await client.rest_get(
+            "plugins/nautobot-igp-models/ospf-configurations",
+            {"instance": inst_id},
+        )
+        if not ospf_cfgs.get("results"):
+            return json.dumps({"error": f"No OSPF configuration found for device '{device}'."})
+        ospf_config_id = ospf_cfgs["results"][0]["id"]
+
+        # Resolve interface ID
+        iface_data = await client.graphql(
+            f'{{ interfaces(device: "{_esc(device)}", name: "{_esc(interface)}") {{ id }} }}'
+        )
+        ifaces = iface_data.get("interfaces", [])
+        if not ifaces:
+            return json.dumps({"error": f"Interface '{interface}' not found on device '{device}'."})
+        iface_id = ifaces[0]["id"]
+
+        # Check if already exists
+        existing = await client.rest_get(
+            "plugins/nautobot-igp-models/ospf-interface-configurations",
+            {"interface": iface_id, "ospf_config": ospf_config_id},
+        )
+        if existing.get("results"):
+            return json.dumps({"status": "already_exists", "device": device, "interface": interface, "id": existing["results"][0]["id"]})
+
+        # Create OSPF interface configuration
+        payload: dict = {
+            "name": f"{device}-{interface}-area{area}",
+            "interface": iface_id,
+            "ospf_config": ospf_config_id,
+            "area": area,
+            "status": {"name": "Active"},
+        }
+        if cost is not None:
+            payload["cost"] = cost
+
+        result = await client.rest_post("plugins/nautobot-igp-models/ospf-interface-configurations", payload)
+        return json.dumps({
+            "status": "created",
+            "device": device,
+            "interface": interface,
+            "area": area,
+            "cost": cost,
+            "id": result["id"],
+        }, indent=2)
+    except NautobotError as e:
+        return json.dumps({"error": str(e)})
+
+
+# ═══════════════════════════════════════════════════════════════════════
 # PHASE 5: RECONCILIATION TOOLS
 # ═══════════════════════════════════════════════════════════════════════
 

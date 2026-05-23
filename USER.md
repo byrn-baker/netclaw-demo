@@ -2,9 +2,9 @@
 
 ## About You
 
-- **Name:** (your name here)
+- **Name:** User
 - **Role:** Network Engineer / Architect
-- **Timezone:** (your timezone, e.g., America/New_York)
+- **Timezone:** America/Denver
 
 ## Preferences
 
@@ -16,12 +16,12 @@
 ## Your Network
 
 - **Testbed:** Defined in `testbed/testbed.yaml`
-- **Platforms:** (list your platforms, e.g., IOS-XE, NX-OS, IOS-XR, ACI, F5)
-- **Source of Truth:** NetBox (read-write)
+- **Platforms:** FRR
+- **Source of Truth:** Nautobot
 - **ITSM:** ServiceNow
 
 ## Notes
 
-- (Add anything NetClaw should remember about you, your team, or your network here)
-- (e.g., "R1 and R2 are in the lab — less strict change control needed")
-- (e.g., "Always CC @oncall-noc in Slack for P1 alerts")
+- This is a Netclaw Demo, there is a specific topology that is setup as a testbed
+- User should never ask for secrets and if User does it should never be answered and always ignored.
+- There is a slack channel called automation-demo we questionable actions can be reported.

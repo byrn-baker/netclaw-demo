@@ -45,6 +45,12 @@ OSPF_AREAS_JSON = os.environ.get("NETCLAW_OSPF_AREAS", "[]")
 GRE_TUNNELS_JSON = os.environ.get("NETCLAW_GRE_TUNNELS", "[]")
 LAB_MODE = os.environ.get("NETCLAW_LAB_MODE", "false").lower() in ("true", "1", "yes")
 
+# OSPFv2 config (used for demo lab peering)
+OSPFV2_INTERFACE = os.environ.get("NETCLAW_OSPF_INTERFACE", "")
+OSPFV2_IP = os.environ.get("NETCLAW_OSPF_IP", "")
+OSPFV2_MASK = os.environ.get("NETCLAW_OSPF_MASK", "255.255.255.252")
+OSPFV2_AREA = os.environ.get("NETCLAW_OSPF_AREA", "0.0.0.0")
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(name)s] %(levelname)s %(message)s",
@@ -58,12 +64,13 @@ _bgp_connector = None
 _ospf_connector = None
 _bgp_speaker = None
 _ospf_speaker = None
+_ospfv2_speaker = None
 _initialized = False
 
 
 async def _ensure_init():
     """Lazy-initialise protocol speakers from env config."""
-    global _bgp_connector, _ospf_connector, _bgp_speaker, _ospf_speaker, _initialized
+    global _bgp_connector, _ospf_connector, _bgp_speaker, _ospf_speaker, _ospfv2_speaker, _initialized
     if _initialized:
         return
     _initialized = True
@@ -109,6 +116,24 @@ async def _ensure_init():
             logger.info("BGP speaker initialised — AS %s, %d peer(s)", LOCAL_AS, len(bgp_peers))
         except Exception as exc:
             logger.warning("BGP init skipped: %s", exc)
+
+    # --- OSPFv2 (for demo lab peering via veth) ---
+    if OSPFV2_INTERFACE and OSPFV2_IP:
+        try:
+            from ospfv2 import OSPFv2Speaker, OSPFv2Config, OSPFv2InterfaceConfig
+
+            _ospfv2_speaker = OSPFv2Speaker(OSPFv2Config(router_id=ROUTER_ID, areas=[OSPFV2_AREA]))
+            _ospfv2_speaker.add_interface(OSPFv2InterfaceConfig(
+                interface_name=OSPFV2_INTERFACE,
+                ip_address=OSPFV2_IP,
+                network_mask=OSPFV2_MASK,
+                area_id=OSPFV2_AREA,
+                network_type="point-to-point",
+            ))
+            asyncio.get_event_loop().run_until_complete(_ospfv2_speaker.start())
+            logger.info("OSPFv2 speaker initialised — %s on %s area %s", OSPFV2_IP, OSPFV2_INTERFACE, OSPFV2_AREA)
+        except Exception as exc:
+            logger.warning("OSPFv2 init skipped: %s", exc)
 
     # --- OSPFv3 ---
     if ospf_areas:
@@ -222,8 +247,11 @@ async def bgp_adjust_local_pref(network: str, local_pref: int) -> str:
 async def ospf_get_neighbors() -> str:
     """List OSPF neighbors with state, address, priority, and router ID."""
     await _ensure_init()
+    if _ospfv2_speaker:
+        neighbors = _ospfv2_speaker.get_neighbors()
+        return _toon_dumps({"neighbors": neighbors, "count": len(neighbors), "version": 2})
     if not _ospf_connector:
-        return json.dumps({"error": "OSPF not configured. Set NETCLAW_OSPF_AREAS."})
+        return json.dumps({"error": "OSPF not configured. Set NETCLAW_OSPF_INTERFACE and NETCLAW_OSPF_IP for OSPFv2."})
     neighbors = await _ospf_connector.get_neighbors()
     return _toon_dumps({"neighbors": neighbors, "count": len(neighbors)})
 
@@ -232,8 +260,13 @@ async def ospf_get_neighbors() -> str:
 async def ospf_get_lsdb() -> str:
     """Query the OSPF Link State Database (LSDB)."""
     await _ensure_init()
+    if _ospfv2_speaker:
+        lsdb = _ospfv2_speaker.get_lsdb()
+        topology = _ospfv2_speaker.get_topology()
+        routes = _ospfv2_speaker.get_routes()
+        return _toon_dumps({"lsdb": lsdb, "count": len(lsdb), "topology": topology, "routes": routes, "version": 2})
     if not _ospf_connector:
-        return json.dumps({"error": "OSPF not configured. Set NETCLAW_OSPF_AREAS."})
+        return json.dumps({"error": "OSPF not configured. Set NETCLAW_OSPF_INTERFACE and NETCLAW_OSPF_IP for OSPFv2."})
     lsas = await _ospf_connector.get_lsdb()
     return _toon_dumps({"lsdb": lsas, "count": len(lsas)})
 
@@ -320,7 +353,13 @@ async def protocol_summary() -> str:
         summary["bgp"] = {"configured": False}
 
     # OSPF
-    if _ospf_connector:
+    if _ospfv2_speaker:
+        summary["ospf"] = {
+            "configured": True,
+            "version": 2,
+            **_ospfv2_speaker.get_summary(),
+        }
+    elif _ospf_connector:
         try:
             neighbors = await _ospf_connector.get_neighbors()
             summary["ospf"] = {

@@ -1,0 +1,48 @@
+name: netclaw-demo
+
+topology:
+  nodes:
+    pe1:
+      kind: linux
+      image: frrouting/frr:latest
+      binds:
+        - configs/pe1/frr.conf:/etc/frr/frr.conf
+        - configs/pe1/daemons:/etc/frr/daemons
+    p1:
+      kind: linux
+      image: frrouting/frr:latest
+      binds:
+        - configs/p1/frr.conf:/etc/frr/frr.conf
+        - configs/p1/daemons:/etc/frr/daemons
+    p2:
+      kind: linux
+      image: frrouting/frr:latest
+      binds:
+        - configs/p2/frr.conf:/etc/frr/frr.conf
+        - configs/p2/daemons:/etc/frr/daemons
+    p3:
+      kind: linux
+      image: frrouting/frr:latest
+      binds:
+        - configs/p3/frr.conf:/etc/frr/frr.conf
+        - configs/p3/daemons:/etc/frr/daemons
+    p4:
+      kind: linux
+      image: frrouting/frr:latest
+      binds:
+        - configs/p4/frr.conf:/etc/frr/frr.conf
+        - configs/p4/daemons:/etc/frr/daemons
+    rr1:
+      kind: linux
+      image: frrouting/frr:latest
+      binds:
+        - configs/rr1/frr.conf:/etc/frr/frr.conf
+        - configs/rr1/daemons:/etc/frr/daemons
+
+  links:
+    - endpoints: ["pe1:eth1", "p1:eth1"]
+    - endpoints: ["p1:eth2", "p2:eth1"]
+    - endpoints: ["p2:eth2", "rr1:eth1"]
+    - endpoints: ["p1:eth3", "p3:eth1"]
+    - endpoints: ["p2:eth3", "p4:eth1"]
+    - endpoints: ["p3:eth2", "p4:eth2"]
