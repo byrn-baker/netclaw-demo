@@ -1122,6 +1122,67 @@ app.post('/api/chat', async (req, res) => {
   });
 });
 
+// ── SSE streaming chat endpoint (avoids Cloudflare 100s timeout) ───
+app.post('/api/chat/stream', async (req, res) => {
+  const { message } = req.body;
+  if (!message) return res.status(400).json({ error: 'Expected { message: "..." }' });
+
+  // Set SSE headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders();
+
+  const timestamp = new Date().toISOString();
+  chatHistory.push({ role: 'user', text: message, timestamp });
+
+  const graph = buildGraph();
+  const activations = resolveActivations(message, graph);
+
+  // Send activations immediately so the 3D scene lights up
+  res.write(`data: ${JSON.stringify({ type: 'activations', activations, fromGateway: false })}\n\n`);
+
+  broadcastWS('chat:activations', { message, activations, timestamp });
+
+  // Keep-alive: send a comment every 15s to prevent Cloudflare timeout
+  const keepAlive = setInterval(() => {
+    res.write(': keepalive\n\n');
+  }, 15000);
+
+  let responseText = '';
+  let fromGateway = false;
+  const gw = getGatewayConfig();
+
+  try {
+    responseText = await sendGatewayMessage(gw, message);
+    if (responseText) fromGateway = true;
+  } catch {
+    // Gateway not reachable
+  }
+
+  if (!responseText) {
+    responseText = buildChatResponse(message, activations, graph);
+  }
+
+  chatHistory.push({ role: 'assistant', text: responseText, timestamp: new Date().toISOString() });
+
+  if (fromGateway) {
+    setTimeout(() => extractAndBroadcastToolCalls(graph), 500);
+  }
+
+  setTimeout(() => {
+    broadcastWS('chat:deactivate', { timestamp: new Date().toISOString() });
+  }, 6000);
+
+  // Send the final response
+  res.write(`data: ${JSON.stringify({ type: 'done', response: responseText, fromGateway, activations })}\n\n`);
+  res.write('data: [DONE]\n\n');
+
+  clearInterval(keepAlive);
+  res.end();
+});
+
 app.get('/api/chat/history', (req, res) => {
   res.json(chatHistory.slice(-50));
 });

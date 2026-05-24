@@ -1803,25 +1803,61 @@ async function sendChatMessage(message) {
   }
 
   try {
-    const res = await fetch('/api/chat', {
+    const res = await fetch('/api/chat/stream', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message }),
     });
-    const data = await res.json();
-    const badge = data.fromGateway
+
+    if (!res.ok) {
+      const text = await res.text();
+      addChatMessage('assistant', `Error: ${res.status} ${text.slice(0, 100)}`);
+      return;
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let responseText = '';
+    let activations = null;
+    let fromGateway = false;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      const lines = buffer.split('\n');
+      buffer = lines.pop(); // keep incomplete line in buffer
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const payload = line.slice(6);
+        if (payload === '[DONE]') continue;
+        try {
+          const evt = JSON.parse(payload);
+          if (evt.type === 'activations') {
+            activations = evt.activations;
+            fromGateway = evt.fromGateway || false;
+            state._httpActivationPending = true;
+            handleActivations(activations);
+          } else if (evt.type === 'chunk') {
+            responseText += evt.text;
+          } else if (evt.type === 'done') {
+            responseText = evt.response || responseText;
+            fromGateway = evt.fromGateway || fromGateway;
+          }
+        } catch { /* skip malformed events */ }
+      }
+    }
+
+    const badge = fromGateway
       ? '<span class="chat-badge live">LIVE</span>'
       : '<span class="chat-badge heuristic">LOCAL</span>';
-    const warning = !data.fromGateway
+    const warning = !fromGateway
       ? '<div style="margin-bottom:4px;font-size:10px;color:#ff7b54">Gateway offline — showing local heuristic response</div>'
       : '';
-    addChatMessage('assistant', badge + warning + data.response, data.activations);
-
-    // Trigger activation visualization from HTTP response
-    if (data.activations) {
-      state._httpActivationPending = true;
-      handleActivations(data.activations);
-    }
+    addChatMessage('assistant', badge + warning + responseText, activations);
   } catch (err) {
     addChatMessage('assistant', `Error: ${err.message}`);
   }
