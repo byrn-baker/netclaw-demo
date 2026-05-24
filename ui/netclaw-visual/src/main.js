@@ -2660,6 +2660,55 @@ function wireUI() {
     qualityToggle.addEventListener('click', cycleQualityMode);
   }
 
+  // Chat drawer resize handles
+  const chatDrawer = dom.chatDrawer;
+  const resizeLeft = document.getElementById('chat-resize-left');
+  const resizeTop = document.getElementById('chat-resize-top');
+
+  if (resizeLeft) {
+    let startX, startW;
+    resizeLeft.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      startX = e.clientX;
+      startW = chatDrawer.offsetWidth;
+      resizeLeft.setPointerCapture(e.pointerId);
+
+      function onMove(ev) {
+        const dx = startX - ev.clientX;
+        const newW = Math.min(Math.max(startW + dx * 2, 320), window.innerWidth - 40);
+        chatDrawer.style.width = newW + 'px';
+      }
+      function onUp() {
+        resizeLeft.removeEventListener('pointermove', onMove);
+        resizeLeft.removeEventListener('pointerup', onUp);
+      }
+      resizeLeft.addEventListener('pointermove', onMove);
+      resizeLeft.addEventListener('pointerup', onUp);
+    });
+  }
+
+  if (resizeTop) {
+    let startY, startH;
+    resizeTop.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      startY = e.clientY;
+      startH = chatDrawer.offsetHeight;
+      resizeTop.setPointerCapture(e.pointerId);
+
+      function onMove(ev) {
+        const dy = startY - ev.clientY;
+        const newH = Math.min(Math.max(startH + dy, 180), window.innerHeight * 0.7);
+        chatDrawer.style.height = newH + 'px';
+      }
+      function onUp() {
+        resizeTop.removeEventListener('pointermove', onMove);
+        resizeTop.removeEventListener('pointerup', onUp);
+      }
+      resizeTop.addEventListener('pointermove', onMove);
+      resizeTop.addEventListener('pointerup', onUp);
+    });
+  }
+
   window.addEventListener('pointermove', onPointerMove);
   window.addEventListener('click', onClick);
   window.addEventListener('resize', onResize);
