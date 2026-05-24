@@ -1,9 +1,10 @@
 import express from 'express';
-import { WebSocketServer } from 'ws';
+import { WebSocketServer, WebSocket } from 'ws';
 import http from 'http';
 import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 import yaml from 'js-yaml';
 import { fileURLToPath } from 'url';
 
@@ -856,16 +857,14 @@ app.get('/api/bgp', async (req, res) => {
 });
 
 // ── Gateway status endpoint ───────────────────────────────────────
-app.get('/api/gateway/status', async (req, res) => {
+app.get('/api/gateway/status', (req, res) => {
   const gw = getGatewayConfig();
-  try {
-    const health = await fetch(`http://127.0.0.1:${gw.port}/`, {
-      signal: AbortSignal.timeout(2000),
-    });
-    res.json({ online: health.ok, port: gw.port });
-  } catch {
-    res.json({ online: false, port: gw.port });
-  }
+  res.json({
+    online: gwConnected,
+    port: gw.port,
+    scopes: gwScopes,
+    wsState: gwSocket?.readyState ?? -1,
+  });
 });
 
 // ── Full SKILL.md detail endpoint ──────────────────────────────────
@@ -932,8 +931,7 @@ app.put('/api/testbed/raw', (req, res) => {
 });
 
 // ── Chat / natural language interface ──────────────────────────────
-// Proxies to the running OpenClaw gateway, falling back to a local
-// heuristic response if the gateway is unavailable.
+// WebSocket bridge to the OpenClaw gateway (JSON-RPC protocol).
 const chatHistory = [];
 
 // Read OpenClaw gateway config for auth
@@ -950,6 +948,177 @@ function getGatewayConfig() {
   }
 }
 
+// ── ECDSA device identity for gateway auth ────────────────────────
+const DEVICE_KEY_PATH = path.join(process.env.HOME || '/root', '.openclaw', 'visual-ui-device.json');
+
+function getOrCreateDeviceIdentity() {
+  try {
+    const existing = JSON.parse(fs.readFileSync(DEVICE_KEY_PATH, 'utf8'));
+    if (existing.publicKey && existing.privateKey) return existing;
+  } catch { /* generate new */ }
+
+  const { publicKey, privateKey } = crypto.generateKeyPairSync('ec', {
+    namedCurve: 'P-256',
+    publicKeyEncoding: { type: 'spki', format: 'pem' },
+    privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+  });
+
+  const identity = {
+    publicKey,
+    privateKey,
+    deviceId: `visual-ui-${crypto.randomBytes(4).toString('hex')}`,
+    createdAt: new Date().toISOString(),
+  };
+
+  try {
+    const dir = path.dirname(DEVICE_KEY_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(DEVICE_KEY_PATH, JSON.stringify(identity, null, 2), { mode: 0o600 });
+  } catch { /* non-fatal — identity works in memory */ }
+
+  return identity;
+}
+
+function signChallenge(nonce, privateKeyPem) {
+  const sign = crypto.createSign('SHA256');
+  sign.update(nonce);
+  return sign.sign(privateKeyPem, 'base64');
+}
+
+// ── Gateway WebSocket connection manager ──────────────────────────
+let gwSocket = null;
+let gwConnected = false;
+let gwScopes = [];
+let gwPendingRequests = new Map(); // id -> { resolve, reject, timer }
+let gwReqCounter = 0;
+let gwReconnectTimer = null;
+
+function connectToGateway() {
+  const gw = getGatewayConfig();
+  if (!gw.token) return;
+
+  const url = `ws://127.0.0.1:${gw.port}`;
+  try {
+    gwSocket = new WebSocket(url);
+  } catch {
+    return;
+  }
+
+  gwSocket.on('open', () => {
+    console.log('[gw-bridge] WebSocket connected to gateway');
+  });
+
+  gwSocket.on('message', (data) => {
+    let msg;
+    try { msg = JSON.parse(data.toString()); } catch { return; }
+
+    // Handle challenge event — gateway sends nonce on connect
+    if (msg.type === 'event' && msg.event === 'challenge') {
+      handleChallenge(msg, gw);
+      return;
+    }
+
+    // Handle hello response after connect
+    if (msg.type === 'res' && msg.method === 'connect') {
+      if (msg.ok) {
+        gwConnected = true;
+        gwScopes = msg.payload?.scopes || [];
+        console.log(`[gw-bridge] Authenticated. Scopes: ${gwScopes.join(', ') || '(none)'}`);
+      } else {
+        console.log(`[gw-bridge] Auth failed: ${msg.error?.message || 'unknown'}`);
+        gwConnected = false;
+      }
+      return;
+    }
+
+    // Handle responses to our requests
+    if (msg.type === 'res' && msg.id != null) {
+      const pending = gwPendingRequests.get(msg.id);
+      if (pending) {
+        gwPendingRequests.delete(msg.id);
+        clearTimeout(pending.timer);
+        if (msg.ok) {
+          pending.resolve(msg.payload);
+        } else {
+          pending.reject(new Error(msg.error?.message || 'Gateway error'));
+        }
+      }
+      return;
+    }
+
+    // Handle streaming events (chat.stream chunks)
+    if (msg.type === 'event' && msg.event === 'chat.chunk') {
+      // Broadcast to frontend WS clients for live streaming
+      broadcastWS('chat:stream', { chunk: msg.payload?.text || '', timestamp: new Date().toISOString() });
+    }
+  });
+
+  gwSocket.on('close', () => {
+    console.log('[gw-bridge] WebSocket closed');
+    gwConnected = false;
+    gwSocket = null;
+    // Reject all pending requests
+    for (const [id, pending] of gwPendingRequests) {
+      clearTimeout(pending.timer);
+      pending.reject(new Error('Gateway connection closed'));
+    }
+    gwPendingRequests.clear();
+    // Reconnect after delay
+    if (!gwReconnectTimer) {
+      gwReconnectTimer = setTimeout(() => {
+        gwReconnectTimer = null;
+        connectToGateway();
+      }, 5000);
+    }
+  });
+
+  gwSocket.on('error', () => {
+    // close event will handle cleanup
+  });
+}
+
+function handleChallenge(msg, gw) {
+  const nonce = msg.payload?.nonce || '';
+  const device = getOrCreateDeviceIdentity();
+
+  const connectReq = {
+    type: 'req',
+    id: ++gwReqCounter,
+    method: 'connect',
+    params: {
+      client: 'webchat',
+      auth: { token: gw.token },
+      device: {
+        id: device.deviceId,
+        publicKey: device.publicKey,
+        signature: signChallenge(nonce, device.privateKey),
+      },
+    },
+  };
+
+  gwSocket.send(JSON.stringify(connectReq));
+}
+
+function sendGatewayRequest(method, params, timeoutMs = 120000) {
+  return new Promise((resolve, reject) => {
+    if (!gwSocket || gwSocket.readyState !== WebSocket.OPEN || !gwConnected) {
+      return reject(new Error('Gateway not connected'));
+    }
+
+    const id = ++gwReqCounter;
+    const timer = setTimeout(() => {
+      gwPendingRequests.delete(id);
+      reject(new Error('Gateway request timeout'));
+    }, timeoutMs);
+
+    gwPendingRequests.set(id, { resolve, reject, timer });
+    gwSocket.send(JSON.stringify({ type: 'req', id, method, params }));
+  });
+}
+
+// Start gateway connection
+connectToGateway();
+
 app.post('/api/chat', async (req, res) => {
   const { message } = req.body;
   if (!message) return res.status(400).json({ error: 'Expected { message: "..." }' });
@@ -962,49 +1131,24 @@ app.post('/api/chat', async (req, res) => {
   const activations = resolveActivations(message, graph);
 
   // Broadcast activation events to all WS clients so the 3D scene lights up
-  broadcastWS('chat:activations', {
-    message,
-    activations,
-    timestamp,
-  });
+  broadcastWS('chat:activations', { message, activations, timestamp });
 
-  // Try to proxy through the real OpenClaw gateway with streaming
   let responseText = '';
   let fromGateway = false;
-  const gw = getGatewayConfig();
 
-  // Try to proxy through the real OpenClaw gateway with streaming
-  let responseText = '';
-  let fromGateway = false;
-  const gw = getGatewayConfig();
-
+  // Try WebSocket bridge to gateway
   try {
-    const gwRes = await fetch(`http://127.0.0.1:${gw.port}/v1/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${gw.token}`,
-        'Content-Type': 'application/json',
-        'x-openclaw-agent-id': 'main',
-      },
-      body: JSON.stringify({
-        model: 'openclaw',
-        messages: chatHistory
-          .filter((m) => m.role === 'user' || m.role === 'assistant')
-          .slice(-10)
-          .map((m) => ({ role: m.role, content: m.text || m.response || '' })),
-        stream: false,
-      }),
-      signal: AbortSignal.timeout(300000),
+    const payload = await sendGatewayRequest('chat.send', {
+      message,
+      history: chatHistory
+        .filter((m) => m.role === 'user' || m.role === 'assistant')
+        .slice(-10)
+        .map((m) => ({ role: m.role, content: m.text || m.response || '' })),
     });
-
-    const contentType = gwRes.headers.get('content-type') || '';
-    if (gwRes.ok && contentType.includes('application/json')) {
-      const gwData = await gwRes.json();
-      responseText = gwData.choices?.[0]?.message?.content || gwData.choices?.[0]?.text || '';
-      fromGateway = true;
-    }
-  } catch {
-    // Gateway not reachable — fall back to local heuristic
+    responseText = payload?.response || payload?.text || payload?.content || '';
+    if (responseText) fromGateway = true;
+  } catch (err) {
+    console.log(`[gw-bridge] chat.send failed: ${err.message}`);
   }
 
   if (!responseText) {
@@ -1023,12 +1167,7 @@ app.post('/api/chat', async (req, res) => {
     broadcastWS('chat:deactivate', { timestamp: new Date().toISOString() });
   }, 6000);
 
-  res.json({
-    response: responseText,
-    activations,
-    fromGateway,
-    timestamp,
-  });
+  res.json({ response: responseText, activations, fromGateway, timestamp });
 });
 
 app.get('/api/chat/history', (req, res) => {
