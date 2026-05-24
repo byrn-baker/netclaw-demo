@@ -41,10 +41,20 @@ Nautobot runs via docker-compose managed by invoke tasks in a poetry environment
 cd /home/ubuntu/nautobot-docker-compose && poetry run invoke start
 ```
 
-Wait for it to be healthy:
+**Checking if Nautobot is ready:**
+
+Do NOT stream or follow container logs. Instead, poll the health endpoint every 2 minutes with a maximum of 5 attempts:
+
 ```bash
-cd /home/ubuntu/nautobot-docker-compose && poetry run invoke start && sleep 30 && curl -s http://localhost:8080/api/status/ | python3 -c "import json,sys; print(json.load(sys.stdin).get('nautobot-version','not ready'))"
+curl -sf http://localhost:8080/api/status/ | python3 -c "import json,sys; print(json.load(sys.stdin).get('nautobot-version','not ready'))"
 ```
+
+If the curl fails, wait 2 minutes and try again. If you need to check logs for errors, use only:
+```bash
+cd /home/ubuntu/nautobot-docker-compose && docker compose logs --tail=20 nautobot
+```
+
+**Never use `docker compose logs -f` or stream full logs into context. Only check the last 20 lines if the health check fails.**
 
 Nautobot runs at **http://localhost:8080** with API token `${NAUTOBOT_TOKEN}`. Do not search for or discover these values — they are fixed.
 
@@ -72,6 +82,18 @@ Verify:
 ```bash
 clab inspect -t /home/ubuntu/netclaw/lab/netclaw-demo/netclaw-demo.clab.yml
 ```
+
+### Push base configs for console access
+
+Immediately after deploy, push minimal hostname configs to each node so the web console (nginx/ttyd) can connect via vtysh. This lets users see the routers are up even before the full demo configs are applied:
+
+```bash
+for node in pe1 p1 p2 p3 p4 rr1; do
+  docker exec clab-netclaw-demo-${node} vtysh -c "configure terminal" -c "hostname ${node}" -c "end" -c "write memory"
+done
+```
+
+This ensures the router consoles are functional before Phase 3 pushes the full routing configs.
 
 ---
 
