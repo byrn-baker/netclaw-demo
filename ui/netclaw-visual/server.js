@@ -858,16 +858,14 @@ app.get('/api/bgp', async (req, res) => {
 // ── Gateway status endpoint ───────────────────────────────────────
 app.get('/api/gateway/status', async (req, res) => {
   const gw = getGatewayConfig();
-  // Check if gateway WS port is listening (TCP connect test)
-  const net = await import('net');
-  const online = await new Promise((resolve) => {
-    const sock = net.default.createConnection(gw.port, '127.0.0.1');
-    sock.setTimeout(2000);
-    sock.on('connect', () => { sock.destroy(); resolve(true); });
-    sock.on('error', () => resolve(false));
-    sock.on('timeout', () => { sock.destroy(); resolve(false); });
-  });
-  res.json({ online, port: gw.port });
+  try {
+    const health = await fetch(`http://127.0.0.1:${gw.port}/`, {
+      signal: AbortSignal.timeout(2000),
+    });
+    res.json({ online: health.ok, port: gw.port });
+  } catch {
+    res.json({ online: false, port: gw.port });
+  }
 });
 
 // ── Full SKILL.md detail endpoint ──────────────────────────────────
@@ -975,9 +973,39 @@ app.post('/api/chat', async (req, res) => {
   let fromGateway = false;
   const gw = getGatewayConfig();
 
-  // Gateway uses WebSocket only — chat is relayed via Slack channel.
-  // We don't proxy chat through server.js; the UI monitors responses via SSE/Slack relay.
-  fromGateway = false;
+  // Try to proxy through the real OpenClaw gateway with streaming
+  let responseText = '';
+  let fromGateway = false;
+  const gw = getGatewayConfig();
+
+  try {
+    const gwRes = await fetch(`http://127.0.0.1:${gw.port}/v1/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${gw.token}`,
+        'Content-Type': 'application/json',
+        'x-openclaw-agent-id': 'main',
+      },
+      body: JSON.stringify({
+        model: 'openclaw',
+        messages: chatHistory
+          .filter((m) => m.role === 'user' || m.role === 'assistant')
+          .slice(-10)
+          .map((m) => ({ role: m.role, content: m.text || m.response || '' })),
+        stream: false,
+      }),
+      signal: AbortSignal.timeout(300000),
+    });
+
+    const contentType = gwRes.headers.get('content-type') || '';
+    if (gwRes.ok && contentType.includes('application/json')) {
+      const gwData = await gwRes.json();
+      responseText = gwData.choices?.[0]?.message?.content || gwData.choices?.[0]?.text || '';
+      fromGateway = true;
+    }
+  } catch {
+    // Gateway not reachable — fall back to local heuristic
+  }
 
   if (!responseText) {
     responseText = buildChatResponse(message, activations, graph);
