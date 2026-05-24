@@ -2660,52 +2660,92 @@ function wireUI() {
     qualityToggle.addEventListener('click', cycleQualityMode);
   }
 
-  // Chat drawer resize handles
-  const chatDrawer = dom.chatDrawer;
-  const resizeLeft = document.getElementById('chat-resize-left');
-  const resizeTop = document.getElementById('chat-resize-top');
+  // Chat drawer resize from edges and corners
+  {
+    const drawer = dom.chatDrawer;
+    const handles = drawer.querySelectorAll('.chat-resize-handle');
+    handles.forEach(handle => {
+      handle.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        const rect = drawer.getBoundingClientRect();
+        const startX = e.clientX;
+        const startY = e.clientY;
+        const startW = rect.width;
+        const startH = rect.height;
+        const startLeft = rect.left;
+        const startBottom = window.innerHeight - rect.bottom;
+        const isTop = handle.classList.contains('chat-resize-top') || handle.classList.contains('chat-resize-top-left') || handle.classList.contains('chat-resize-top-right');
+        const isLeft = handle.classList.contains('chat-resize-left') || handle.classList.contains('chat-resize-top-left');
+        const isRight = handle.classList.contains('chat-resize-bottom-right') || handle.classList.contains('chat-resize-top-right');
 
-  if (resizeLeft) {
-    let startX, startW;
-    resizeLeft.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      startX = e.clientX;
-      startW = chatDrawer.offsetWidth;
-      resizeLeft.setPointerCapture(e.pointerId);
+        // Switch from centered to absolute positioning during resize
+        drawer.style.transform = 'none';
+        drawer.style.left = rect.left + 'px';
+        drawer.style.bottom = startBottom + 'px';
 
-      function onMove(ev) {
-        const dx = startX - ev.clientX;
-        const newW = Math.min(Math.max(startW + dx * 2, 320), window.innerWidth - 40);
-        chatDrawer.style.width = newW + 'px';
-      }
-      function onUp() {
-        resizeLeft.removeEventListener('pointermove', onMove);
-        resizeLeft.removeEventListener('pointerup', onUp);
-      }
-      resizeLeft.addEventListener('pointermove', onMove);
-      resizeLeft.addEventListener('pointerup', onUp);
+        const onMove = (ev) => {
+          const dx = ev.clientX - startX;
+          const dy = ev.clientY - startY;
+          if (isTop) {
+            const newH = Math.max(200, startH - dy);
+            drawer.style.height = newH + 'px';
+          }
+          if (isLeft) {
+            const newW = Math.max(360, startW - dx);
+            drawer.style.width = newW + 'px';
+            drawer.style.left = (startLeft + startW - newW) + 'px';
+          }
+          if (isRight) {
+            const newW = Math.max(360, startW + dx);
+            drawer.style.width = newW + 'px';
+          }
+          if (handle.classList.contains('chat-resize-bottom-right') && !isTop) {
+            const newH = Math.max(200, startH + dy);
+            drawer.style.height = newH + 'px';
+            drawer.style.bottom = (startBottom - dy) + 'px';
+          }
+        };
+        const onUp = () => {
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseup', onUp);
+        };
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+      });
     });
   }
 
-  if (resizeTop) {
-    let startY, startH;
-    resizeTop.addEventListener('pointerdown', (e) => {
+  // Chat drawer drag-to-move from header
+  {
+    const drawer = dom.chatDrawer;
+    const header = drawer.querySelector('.chat-header');
+    header.addEventListener('mousedown', (e) => {
+      // Don't drag if clicking buttons
+      if (e.target.closest('button')) return;
       e.preventDefault();
-      startY = e.clientY;
-      startH = chatDrawer.offsetHeight;
-      resizeTop.setPointerCapture(e.pointerId);
+      const rect = drawer.getBoundingClientRect();
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const startLeft = rect.left;
+      const startBottom = window.innerHeight - rect.bottom;
 
-      function onMove(ev) {
-        const dy = startY - ev.clientY;
-        const newH = Math.min(Math.max(startH + dy, 180), window.innerHeight * 0.7);
-        chatDrawer.style.height = newH + 'px';
-      }
-      function onUp() {
-        resizeTop.removeEventListener('pointermove', onMove);
-        resizeTop.removeEventListener('pointerup', onUp);
-      }
-      resizeTop.addEventListener('pointermove', onMove);
-      resizeTop.addEventListener('pointerup', onUp);
+      // Switch from centered to absolute positioning
+      drawer.style.transform = 'none';
+      drawer.style.left = startLeft + 'px';
+      drawer.style.bottom = startBottom + 'px';
+
+      const onMove = (ev) => {
+        const dx = ev.clientX - startX;
+        const dy = ev.clientY - startY;
+        drawer.style.left = (startLeft + dx) + 'px';
+        drawer.style.bottom = (startBottom - dy) + 'px';
+      };
+      const onUp = () => {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+      };
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
     });
   }
 
