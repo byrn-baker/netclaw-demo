@@ -1013,34 +1013,39 @@ function connectToGateway() {
     try { msg = JSON.parse(data.toString()); } catch { return; }
 
     // Handle challenge event — gateway sends nonce on connect
-    if (msg.type === 'event' && msg.event === 'challenge') {
+    if (msg.type === 'event' && msg.event === 'connect.challenge') {
       handleChallenge(msg, gw);
       return;
     }
 
-    // Handle hello response after connect
-    if (msg.type === 'res' && msg.method === 'connect') {
-      if (msg.ok) {
-        gwConnected = true;
-        gwScopes = msg.payload?.scopes || [];
-        console.log(`[gw-bridge] Authenticated. Scopes: ${gwScopes.join(', ') || '(none)'}`);
-      } else {
-        console.log(`[gw-bridge] Auth failed: ${msg.error?.message || 'unknown'}`);
-        gwConnected = false;
-      }
-      return;
-    }
+    // Handle responses
+    if (msg.type === 'res') {
+      console.log(`[gw-bridge] Got response: id=${msg.id}, ok=${msg.ok}, method=${msg.method || 'n/a'}, keys=${Object.keys(msg).join(',')}`);
 
-    // Handle responses to our requests
-    if (msg.type === 'res' && msg.id != null) {
-      const pending = gwPendingRequests.get(msg.id);
-      if (pending) {
-        gwPendingRequests.delete(msg.id);
-        clearTimeout(pending.timer);
+      // Handle hello response after connect
+      if (msg.id != null && (msg.method === 'connect' || gwPendingRequests.size === 0 && msg.id <= 1)) {
         if (msg.ok) {
-          pending.resolve(msg.payload);
+          gwConnected = true;
+          gwScopes = msg.payload?.scopes || [];
+          console.log(`[gw-bridge] Authenticated. Scopes: ${gwScopes.join(', ') || '(none)'}`);
         } else {
-          pending.reject(new Error(msg.error?.message || 'Gateway error'));
+          console.log(`[gw-bridge] Auth failed: ${JSON.stringify(msg.error || msg)}`);
+          gwConnected = false;
+        }
+        return;
+      }
+
+      // Handle responses to our requests
+      if (msg.id != null) {
+        const pending = gwPendingRequests.get(msg.id);
+        if (pending) {
+          gwPendingRequests.delete(msg.id);
+          clearTimeout(pending.timer);
+          if (msg.ok) {
+            pending.resolve(msg.payload);
+          } else {
+            pending.reject(new Error(msg.error?.message || JSON.stringify(msg.error) || 'Gateway error'));
+          }
         }
       }
       return;
@@ -1053,8 +1058,8 @@ function connectToGateway() {
     }
   });
 
-  gwSocket.on('close', () => {
-    console.log('[gw-bridge] WebSocket closed');
+  gwSocket.on('close', (code, reason) => {
+    console.log(`[gw-bridge] WebSocket closed (code=${code}, reason=${reason || 'none'})`);
     gwConnected = false;
     gwSocket = null;
     // Reject all pending requests
@@ -1080,6 +1085,7 @@ function connectToGateway() {
 function handleChallenge(msg, gw) {
   const nonce = msg.payload?.nonce || '';
   const device = getOrCreateDeviceIdentity();
+  console.log(`[gw-bridge] Got challenge, nonce=${nonce.slice(0,8)}... Sending connect as device=${device.deviceId}`);
 
   const connectReq = {
     type: 'req',
@@ -1096,6 +1102,7 @@ function handleChallenge(msg, gw) {
     },
   };
 
+  console.log(`[gw-bridge] Sending connect request (id=${connectReq.id})`);
   gwSocket.send(JSON.stringify(connectReq));
 }
 
