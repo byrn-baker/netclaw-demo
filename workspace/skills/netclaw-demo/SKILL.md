@@ -83,17 +83,7 @@ Verify:
 clab inspect -t /home/ubuntu/netclaw/lab/netclaw-demo/netclaw-demo.clab.yml
 ```
 
-### Push base configs for console access
-
-Immediately after deploy, push minimal hostname configs to each node so the web console (nginx/ttyd) can connect via vtysh. This lets users see the routers are up even before the full demo configs are applied:
-
-```bash
-for node in pe1 p1 p2 p3 p4 rr1; do
-  docker exec clab-netclaw-demo-${node} vtysh -c "configure terminal" -c "hostname ${node}" -c "end" -c "write memory"
-done
-```
-
-This ensures the router consoles are functional before Phase 3 pushes the full routing configs.
+The routers start with **no configuration** — no interfaces, no IGP, no BGP. This is intentional so users can inspect the blank routers via the web console before configs are pushed in Phase 3.
 
 ---
 
