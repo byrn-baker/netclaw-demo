@@ -130,7 +130,7 @@ async def _ensure_init():
                 area_id=OSPFV2_AREA,
                 network_type="point-to-point",
             ))
-            asyncio.get_event_loop().run_until_complete(_ospfv2_speaker.start())
+            await _ospfv2_speaker.start()
             logger.info("OSPFv2 speaker initialised — %s on %s area %s", OSPFV2_IP, OSPFV2_INTERFACE, OSPFV2_AREA)
         except Exception as exc:
             logger.warning("OSPFv2 init skipped: %s", exc)

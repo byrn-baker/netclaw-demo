@@ -307,12 +307,8 @@ The protocol-mcp server automatically starts the OSPFv2 speaker when `NETCLAW_OS
 
 **Do NOT write any OSPFv2 code. Do NOT create scripts. The protocol-mcp server handles it.**
 
-To register the protocol-mcp with the gateway (if not already done):
-```bash
-openclaw mcp set protocol-mcp '{"command":"sudo","args":["-E","/home/ubuntu/netclaw/.venv/bin/python3","-u","/home/ubuntu/netclaw/mcp-servers/protocol-mcp/server.py"],"env":{"NETCLAW_ROUTER_ID":"10.0.99.1","NETCLAW_LOCAL_AS":"65001","NETCLAW_BGP_PEERS":"[]","NETCLAW_LAB_MODE":"true","NETCLAW_OSPF_INTERFACE":"veth-netclaw","NETCLAW_OSPF_IP":"10.0.99.1","NETCLAW_OSPF_MASK":"255.255.255.252","NETCLAW_OSPF_AREA":"0.0.0.0"}}'
-```
+The protocol-mcp server is pre-registered in `config/openclaw.json` with the correct environment variables for the demo lab. If the gateway is already running, restart it to pick up the config:
 
-Then restart the gateway:
 ```bash
 systemctl --user restart openclaw-gateway.service
 ```
