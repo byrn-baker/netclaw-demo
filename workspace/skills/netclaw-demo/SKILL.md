@@ -312,13 +312,11 @@ The protocol-mcp server automatically starts the OSPFv2 speaker when `NETCLAW_OS
 
 **Do NOT write any OSPFv2 code. Do NOT create scripts. The protocol-mcp server handles it.**
 
-The protocol-mcp server is pre-registered in `config/openclaw.json` with the correct environment variables for the demo lab. If the gateway is already running, restart it to pick up the config:
+The protocol-mcp server is pre-registered in `config/openclaw.json` with the correct environment variables for the demo lab. It starts automatically when you call any OSPF tool — no gateway restart needed.
 
-```bash
-systemctl --user restart openclaw-gateway.service
-```
+**Do NOT restart the gateway. It will kill your session and disconnect the UI.**
 
-Once running, use `ospf_get_neighbors` to verify adjacency and `ospf_get_lsdb` to see the full topology.
+Simply call `ospf_get_neighbors` — the protocol-mcp server will spawn, detect the veth interface, and start the OSPFv2 speaker automatically. Wait 10-30 seconds for the OSPF adjacency to reach FULL state, then query again.
 
 ### Step 3: Discover RR1's loopback from OSPF LSDB
 
