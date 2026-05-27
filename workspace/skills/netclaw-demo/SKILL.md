@@ -83,6 +83,11 @@ Verify:
 clab inspect -t /home/ubuntu/netclaw/lab/netclaw-demo/netclaw-demo.clab.yml
 ```
 
+Start the topology visualization (serves on default port 50080 for the dashboard):
+```bash
+nohup clab graph -t /home/ubuntu/netclaw/lab/netclaw-demo/netclaw-demo.clab.yml > /dev/null 2>&1 &
+```
+
 The routers start with **no configuration** — no interfaces, no IGP, no BGP. This is intentional so users can inspect the blank routers via the web console before configs are pushed in Phase 3.
 
 ---
