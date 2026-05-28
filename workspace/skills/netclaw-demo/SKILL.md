@@ -94,12 +94,55 @@ The routers start with **no configuration** — no interfaces, no IGP, no BGP. T
 
 ## Phase 2: Populate Nautobot
 
-Run the design builder job "NetClaw Demo - Populate SP Core" via the Nautobot MCP:
+**Prerequisite: Nautobot MUST be running before this phase.** If not already started, run:
+```bash
+cd /home/ubuntu/nautobot-docker-compose && poetry run invoke start
+```
 
-1. Find the job: `nautobot_list_jobs(q="NetClaw Demo")`
-2. Enable it if needed: `nautobot_enable_job(job_id=<id>)`
-3. Run it: `nautobot_run_job(job_id=<id>, data='{"deployment_name": "netclaw-demo"}')`
-4. Check result: `nautobot_get_job_result(job_result_id=<id>)`
+Nautobot takes 3-5 minutes to start (migrations, plugin loading, workers). **Do NOT flood context with logs.** Use this polling strategy:
+
+1. Wait 90 seconds after `invoke start`
+2. Check the health endpoint:
+   ```bash
+   curl -sf http://localhost:8080/api/status/ | python3 -c "import json,sys; print(json.load(sys.stdin).get('nautobot-version','not ready'))"
+   ```
+3. If it fails, check ONLY the last 10 lines for errors:
+   ```bash
+   cd /home/ubuntu/nautobot-docker-compose && docker compose logs --tail=10 nautobot
+   ```
+4. Wait another 90 seconds and repeat. Maximum 5 attempts.
+5. **NEVER use `docker compose logs -f` or `--tail=50+`. NEVER stream logs. Only 10 lines per check.**
+
+Once Nautobot responds with a version, proceed.
+
+---
+
+Run the design builder job **"NetClaw Demo - Populate SP Core"** via the Nautobot MCP.
+
+**Exact steps — follow in order, no deviation:**
+
+1. **Find the job:**
+   ```
+   nautobot_list_jobs(q="NetClaw Demo")
+   ```
+   Look for the job named **"NetClaw Demo - Populate SP Core"**. Copy its `id` field.
+
+2. **Enable the job** (it is disabled by default on fresh installs):
+   ```
+   nautobot_enable_job(job_id="<the-id-from-step-1>", enabled=true)
+   ```
+
+3. **Run the job:**
+   ```
+   nautobot_run_job(job_id="<the-id-from-step-1>", data="{\"deployment_name\": \"netclaw-demo\"}")
+   ```
+   This returns a `job_result_id`.
+
+4. **Wait 10 seconds, then check the result:**
+   ```
+   nautobot_get_job_result(job_result_id="<the-job-result-id-from-step-3>")
+   ```
+   Confirm status is `"completed"`. If still running, wait 10 more seconds and check again.
 
 This creates all devices, interfaces, IPs, cables, BGP models, OSPF models, and config contexts in one shot.
 
