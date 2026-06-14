@@ -2109,6 +2109,74 @@ echo ""
 
 echo ""
 
+# ═══════════════════════════════════════════
+# Step 50f: Check Point Security Integration (15 MCP Servers)
+# ═══════════════════════════════════════════
+
+log_step "50f/$TOTAL_STEPS Check Point Security Integration..."
+echo "  Source: https://github.com/CheckPointSW/mcp-servers"
+echo "  Enterprise security platform — policy, threat intel, gateway, SASE (15 MCP servers, ~40 tools)"
+
+read -r -p "Enable Check Point Security Integration? [y/N] " enable_checkpoint
+if [[ "$enable_checkpoint" =~ ^[Yy]$ ]]; then
+    CHECKPOINT_MCP_DIR="$MCP_DIR/checkpoint-mcp-servers"
+    clone_or_pull "$CHECKPOINT_MCP_DIR" "https://github.com/CheckPointSW/mcp-servers.git"
+
+    log_info "Building Check Point MCP servers..."
+    cd "$CHECKPOINT_MCP_DIR"
+    npm install 2>/dev/null || log_warn "npm install failed for Check Point MCPs"
+    echo "n" | npm run build 2>/dev/null || log_warn "npm run build failed for Check Point MCPs"
+    cd "$NETCLAW_DIR"
+
+    echo ""
+    echo "  Check Point MCP servers installed to: $CHECKPOINT_MCP_DIR"
+    echo ""
+    echo "  Configure credentials in ~/.openclaw/.env:"
+    echo "    # Management Server (policy, logs, threat prevention, gateway)"
+    echo "    CHKP_MGMT_HOST=192.168.1.100"
+    echo "    CHKP_MGMT_API_KEY=your-api-key-here"
+    echo ""
+    echo "    # Reputation Service (IP/URL/file threat intelligence)"
+    echo "    CHKP_REPUTATION_API_KEY=your-reputation-key"
+    echo ""
+    echo "    # Harmony SASE (cloud-delivered security)"
+    echo "    CHKP_SASE_API_KEY=your-sase-key"
+    echo ""
+    echo "  See docs/CHECKPOINT.md for full credential setup."
+    echo ""
+
+    read -r -p "Configure Check Point credentials now? [y/N] " config_checkpoint
+    if [[ "$config_checkpoint" =~ ^[Yy]$ ]]; then
+        echo ""
+        read -r -p "Check Point Management Server host (IP/hostname): " chkp_mgmt_host
+        read -r -p "Check Point Management API key: " chkp_mgmt_key
+        read -r -p "Check Point Reputation API key (or press Enter to skip): " chkp_reputation_key
+
+        if [ -n "$chkp_mgmt_host" ]; then
+            _set_env_var "CHKP_MGMT_HOST" "$chkp_mgmt_host"
+            log_info "Set CHKP_MGMT_HOST"
+        fi
+        if [ -n "$chkp_mgmt_key" ]; then
+            _set_env_var "CHKP_MGMT_API_KEY" "$chkp_mgmt_key"
+            log_info "Set CHKP_MGMT_API_KEY"
+        fi
+        if [ -n "$chkp_reputation_key" ]; then
+            _set_env_var "CHKP_REPUTATION_API_KEY" "$chkp_reputation_key"
+            log_info "Set CHKP_REPUTATION_API_KEY"
+        fi
+        _set_env_var "CHKP_TELEMETRY_DISABLED" "true"
+        log_info "Check Point credentials configured in ~/.openclaw/.env"
+    else
+        log_info "Skipping credential configuration. Set CHKP_* variables in ~/.openclaw/.env later."
+    fi
+
+    log_info "Check Point integration enabled. Use /checkpoint skill to query."
+else
+    log_info "Skipping Check Point integration. Run scripts/checkpoint-enable.sh later to enable."
+fi
+
+echo ""
+
 log_step "51/$TOTAL_STEPS Deploying skills and configuration..."
 
 PYATS_SCRIPT="$PYATS_MCP_DIR/pyats_mcp_server.py"

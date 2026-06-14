@@ -297,6 +297,80 @@
 **Posture Assessment:** Endpoint compliance checking (AV, patch level, etc.).
 
 **TrustSec:**
+- SGT (Security Group Tag) — identity-based segmentation
+- SXP (SGT Exchange Protocol) — propagate SGTs across network
+- SGACL (Security Group ACL) — policies based on source/destination SGTs
+
+---
+
+### Check Point Security Platform
+
+**Management Architecture:**
+- **Management Server** — Central policy and configuration management
+- **SmartConsole** — GUI client for management
+- **Security Gateway** — Enforcement point (firewall, VPN, IPS)
+- **SmartEvent** — Log and event correlation
+
+**Policy Layer Types:**
+- **Access Control** — Firewall rules (allow/drop/reject)
+- **Threat Prevention** — IPS, Anti-Bot, Anti-Virus, SandBlast
+- **HTTPS Inspection** — SSL/TLS decryption for deep inspection
+- **NAT** — Source and destination NAT rules
+
+**Blade Architecture:**
+- **Firewall** — Stateful inspection
+- **IPS** — Intrusion Prevention signatures
+- **Anti-Bot** — C&C communication blocking
+- **Anti-Virus** — Malware detection
+- **SandBlast Threat Emulation** — File sandboxing
+- **SandBlast Threat Extraction** — Content Disarm and Reconstruction
+- **URL Filtering** — Web access control by category
+- **Application Control** — Granular app identification
+
+**ClusterXL:**
+- High availability for security gateways
+- Active/Standby or Load Sharing modes
+- State synchronization between members
+- `cphaprob stat` — cluster status verification
+
+**GAIA OS:**
+- Check Point's secure operating system
+- `clish` — Gaia CLI shell
+- `expert` — Advanced Linux shell mode
+- Web UI at https://gateway-ip
+
+**API Access:**
+- Management API — RESTful JSON over HTTPS (port 443)
+- API key or username/password authentication
+- Session-based — login, operations, publish, logout
+- `publish` — Required to commit changes to database
+
+**Smart-1 Cloud:**
+- Cloud-hosted management option
+- Same API interface as on-premises
+- Tenant-specific URLs
+
+**Harmony SASE:**
+- Cloud-delivered security (SWG, CASB, ZTNA)
+- Region-based deployment
+- Unified policy management
+
+**Threat Intelligence (ThreatCloud):**
+- Real-time threat intelligence feed
+- IP/URL/file reputation services
+- Continuously updated from global sensors
+
+**CPInfo:**
+- Diagnostic data collection tool
+- Gateway health and configuration snapshot
+- Used for TAC support cases
+
+**Argos ERM:**
+- External Risk Management
+- Attack surface monitoring
+- Risk scoring and alerting
+
+**TrustSec:
 - **SGT (Security Group Tag)** — Classify traffic by identity
 - **SGACL (Security Group ACL)** — Policy enforcement based on SGT
 - **SXP** — SGT Exchange Protocol for propagation
