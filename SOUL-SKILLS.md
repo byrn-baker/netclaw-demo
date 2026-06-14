@@ -563,6 +563,58 @@ Cisco Secure Firewall policy search via FMC (4 read-only tools):
 
 ---
 
+## Check Point Security Skills
+
+### checkpoint-security
+Check Point enterprise security platform (15 MCP servers, 60+ tools):
+
+**Policy Management (chkp-management + chkp-policy-insights):**
+- `show-access-rulebase`, `show-nat-rulebase` — audit firewall rules
+- `show-hosts`, `show-networks`, `show-groups` — object inventory
+- `get-policy-insights`, `suggest-optimizations` — AI-powered policy analysis
+
+**Threat Intelligence (chkp-reputation-service):**
+- `query-ip-reputation` — check IP reputation (malicious, suspicious, benign)
+- `query-url-reputation` — URL threat classification
+- `query-file-reputation` — file hash reputation lookup
+
+**Gateway Diagnostics (chkp-quantum-gw-cli + chkp-gw-connection-analysis):**
+- `fw-stat`, `cphaprob-stat` — firewall and ClusterXL status
+- `show-interface`, `cpview` — interface stats and performance
+- `debug-connection`, `analyze-drops` — connection troubleshooting
+
+**Threat Prevention (chkp-threat-prevention):**
+- `show-threat-profiles` — threat prevention policy profiles
+- `show-ips-protections` — IPS signature inventory
+- `show-threat-ioc-feeds` — active IOC feeds
+
+**SASE (chkp-harmony-sase):**
+- `list-sase-regions`, `list-sase-networks` — SASE infrastructure
+- `list-sase-applications` — application control
+
+**Malware Analysis (chkp-threat-emulation):**
+- `submit-file` — submit file for sandbox analysis
+- `query-report`, `get-verdict` — retrieve analysis results
+
+**Additional MCPs:**
+- `chkp-https-inspection` — SSL/TLS decryption policies
+- `chkp-quantum-gaia` — GAIA OS management
+- `chkp-documentation` — Check Point docs search
+- `chkp-spark-management` — MSP distributed firewalls
+- `chkp-cpinfo-analysis` — diagnostic file analysis
+- `chkp-argos-erm` — exposure and risk management
+- `chkp-management-logs` — connection and audit logs
+
+**Workflow:**
+1. Start with `show-access-rulebase` to understand current policy
+2. Use `query-ip-reputation` for threat intelligence lookups
+3. Use `fw-stat` for gateway health verification
+4. Cross-reference with other NetClaw sources (CML labs, SuzieQ state)
+
+**Credentials:** CHKP_MGMT_HOST, CHKP_MGMT_API_KEY (or USERNAME/PASSWORD), plus service-specific keys for SASE, TE, Reputation, Spark, Argos.
+
+---
+
 ## Firewall Rule Analysis Skills
 
 ### fwrule-analyzer
