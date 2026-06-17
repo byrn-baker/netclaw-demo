@@ -242,9 +242,9 @@ def handle_eve_response(response: httpx.Response, success_codes: list | None = N
 
 def _serialize_payload(payload: Any) -> str:
     try:
-        from netclaw_tokens.toon_serializer import serialize_response
+        from netclaw_tokens.gcf_serializer import serialize_response
 
-        return serialize_response(payload).toon_data
+        return serialize_response(payload).gcf_data
     except Exception:
         return json.dumps(payload, indent=2, default=str)
 

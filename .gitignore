@@ -67,4 +67,4 @@ trace.json.gz
 .claude
 docs/blogs/
 .amazonq
-workspace/
+workspace/node_modules/

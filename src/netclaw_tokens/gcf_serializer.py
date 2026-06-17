@@ -1,7 +1,7 @@
-"""TOON serialization utility for MCP server responses.
+"""GCF serialization utility for MCP server responses.
 
-Uses the toon-format package to serialize structured data into TOON format,
-which achieves 40-60% token savings on tabular network data. Falls back to
+Uses the gcf-python package to serialize structured data into GCF format,
+which achieves 53-71% token savings on tabular network data. Falls back to
 JSON on any error, never failing the operation.
 """
 
@@ -11,9 +11,9 @@ import json
 import logging
 from typing import Any
 
-from . import TOONResponse
+from . import GCFResponse
 
-logger = logging.getLogger("netclaw_tokens.toon_serializer")
+logger = logging.getLogger("netclaw_tokens.gcf_serializer")
 
 
 def _estimate_token_count(text: str) -> int:
@@ -34,21 +34,21 @@ def _is_binary_data(data: Any) -> bool:
     return False
 
 
-def serialize_response(data: Any) -> TOONResponse:
-    """Serialize data to TOON format with JSON fallback.
+def serialize_response(data: Any) -> GCFResponse:
+    """Serialize data to GCF format with JSON fallback.
 
     Args:
         data: Any JSON-serializable data structure.
 
     Returns:
-        TOONResponse with toon_data (TOON string or JSON string),
+        GCFResponse with gcf_data (GCF string or JSON string),
         token counts for both formats, savings calculation,
         and fallback_used flag.
 
     Behavior:
         - If data is bytes or non-UTF-8: returns JSON, fallback_used=True
-        - If toon.dumps() fails: returns JSON, fallback_used=True, logs warning
-        - Otherwise: returns TOON, fallback_used=False
+        - If encode_generic() fails: returns JSON, fallback_used=True, logs warning
+        - Otherwise: returns GCF, fallback_used=False
     """
     # Generate JSON representation for comparison
     try:
@@ -58,45 +58,45 @@ def serialize_response(data: Any) -> TOONResponse:
 
     json_token_count = _estimate_token_count(json_str)
 
-    # Skip TOON for binary data
+    # Skip GCF for binary data
     if _is_binary_data(data):
-        logger.debug("Binary data detected; skipping TOON, using JSON")
-        return TOONResponse(
-            toon_data=json_str,
+        logger.debug("Binary data detected; skipping GCF, using JSON")
+        return GCFResponse(
+            gcf_data=json_str,
             json_token_count=json_token_count,
-            toon_token_count=json_token_count,
+            gcf_token_count=json_token_count,
             savings_tokens=0,
             savings_pct=0.0,
             fallback_used=True,
         )
 
-    # Attempt TOON serialization
+    # Attempt GCF serialization
     try:
-        import toon
+        from gcf import encode_generic
 
-        toon_str = toon.dumps(data)
-        toon_token_count = _estimate_token_count(toon_str)
-        savings_tokens = max(0, json_token_count - toon_token_count)
+        gcf_str = encode_generic(data)
+        gcf_token_count = _estimate_token_count(gcf_str)
+        savings_tokens = max(0, json_token_count - gcf_token_count)
         savings_pct = (savings_tokens / json_token_count * 100.0) if json_token_count > 0 else 0.0
 
-        return TOONResponse(
-            toon_data=toon_str,
+        return GCFResponse(
+            gcf_data=gcf_str,
             json_token_count=json_token_count,
-            toon_token_count=toon_token_count,
+            gcf_token_count=gcf_token_count,
             savings_tokens=savings_tokens,
             savings_pct=round(savings_pct, 1),
             fallback_used=False,
         )
     except Exception as exc:
         logger.warning(
-            "TOON serialization failed (%s: %s); falling back to JSON",
+            "GCF serialization failed (%s: %s); falling back to JSON",
             type(exc).__name__,
             exc,
         )
-        return TOONResponse(
-            toon_data=json_str,
+        return GCFResponse(
+            gcf_data=json_str,
             json_token_count=json_token_count,
-            toon_token_count=json_token_count,
+            gcf_token_count=json_token_count,
             savings_tokens=0,
             savings_pct=0.0,
             fallback_used=True,

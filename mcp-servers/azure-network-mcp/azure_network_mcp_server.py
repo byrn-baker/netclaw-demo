@@ -20,12 +20,12 @@ from clients.azure_client import azure_client_factory
 from utils.rate_limiter import format_error_response
 
 
-def _toon_dumps(data, **kwargs) -> str:
-    """Serialize data using TOON format with JSON fallback."""
+def _gcf_dumps(data, **kwargs) -> str:
+    """Serialize data using GCF format with JSON fallback."""
     try:
-        from netclaw_tokens.toon_serializer import serialize_response
+        from netclaw_tokens.gcf_serializer import serialize_response
         result = serialize_response(data)
-        return result.toon_data
+        return result.gcf_data
     except Exception:
         return json.dumps(data, indent=2, default=str)
 
@@ -93,7 +93,7 @@ async def azure_list_subscriptions() -> str:
             "state": sub.state,
             "tenant_id": getattr(sub, "tenant_id", None),
         })
-    return _toon_dumps(subscriptions)
+    return _gcf_dumps(subscriptions)
 
 
 # --- Import and register all tool modules ---

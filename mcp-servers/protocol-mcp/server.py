@@ -21,16 +21,16 @@ from typing import Optional
 
 from mcp.server.fastmcp import FastMCP
 
-# Add netclaw_tokens to path for TOON serialization
+# Add netclaw_tokens to path for GCF serialization
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "src"))
 
 
-def _toon_dumps(data, **kwargs) -> str:
-    """Serialize data using TOON format with JSON fallback."""
+def _gcf_dumps(data, **kwargs) -> str:
+    """Serialize data using GCF format with JSON fallback."""
     try:
-        from netclaw_tokens.toon_serializer import serialize_response
+        from netclaw_tokens.gcf_serializer import serialize_response
         result = serialize_response(data)
-        return result.toon_data
+        return result.gcf_data
     except Exception:
         return json.dumps(data, indent=2, default=str)
 
@@ -145,7 +145,7 @@ async def bgp_get_peers() -> str:
     if not _bgp_connector:
         return json.dumps({"error": "BGP not configured. Set NETCLAW_BGP_PEERS."})
     peers = await _bgp_connector.get_peers()
-    return _toon_dumps({"peers": peers, "count": len(peers)})
+    return _gcf_dumps({"peers": peers, "count": len(peers)})
 
 
 @mcp.tool()
@@ -155,7 +155,7 @@ async def bgp_get_rib(prefix: Optional[str] = None) -> str:
     if not _bgp_connector:
         return json.dumps({"error": "BGP not configured. Set NETCLAW_BGP_PEERS."})
     routes = await _bgp_connector.get_rib(prefix=prefix)
-    return _toon_dumps({"routes": routes, "count": len(routes)})
+    return _gcf_dumps({"routes": routes, "count": len(routes)})
 
 
 @mcp.tool()
@@ -184,7 +184,7 @@ async def bgp_inject_route(
         as_path=parsed_path,
         local_pref=local_pref,
     )
-    return _toon_dumps(result)
+    return _gcf_dumps(result)
 
 
 @mcp.tool()
@@ -198,7 +198,7 @@ async def bgp_withdraw_route(network: str) -> str:
     if not _bgp_connector:
         return json.dumps({"error": "BGP not configured."})
     result = await _bgp_connector.withdraw_route(network=network)
-    return _toon_dumps(result)
+    return _gcf_dumps(result)
 
 
 @mcp.tool()
@@ -213,7 +213,7 @@ async def bgp_adjust_local_pref(network: str, local_pref: int) -> str:
     if not _bgp_connector:
         return json.dumps({"error": "BGP not configured."})
     result = await _bgp_connector.adjust_local_pref(network=network, local_pref=local_pref)
-    return _toon_dumps(result)
+    return _gcf_dumps(result)
 
 
 # ── OSPF tools ─────────────────────────────────────────────────────────────
@@ -225,7 +225,7 @@ async def ospf_get_neighbors() -> str:
     if not _ospf_connector:
         return json.dumps({"error": "OSPF not configured. Set NETCLAW_OSPF_AREAS."})
     neighbors = await _ospf_connector.get_neighbors()
-    return _toon_dumps({"neighbors": neighbors, "count": len(neighbors)})
+    return _gcf_dumps({"neighbors": neighbors, "count": len(neighbors)})
 
 
 @mcp.tool()
@@ -235,7 +235,7 @@ async def ospf_get_lsdb() -> str:
     if not _ospf_connector:
         return json.dumps({"error": "OSPF not configured. Set NETCLAW_OSPF_AREAS."})
     lsas = await _ospf_connector.get_lsdb()
-    return _toon_dumps({"lsdb": lsas, "count": len(lsas)})
+    return _gcf_dumps({"lsdb": lsas, "count": len(lsas)})
 
 
 @mcp.tool()
@@ -251,7 +251,7 @@ async def ospf_adjust_cost(interface: str, cost: int) -> str:
         return json.dumps({"error": "OSPF not configured."})
     result = await _ospf_connector.adjust_interface_cost(cost=cost)
     result["interface"] = interface
-    return _toon_dumps(result)
+    return _gcf_dumps(result)
 
 
 # ── GRE tools ──────────────────────────────────────────────────────────────
@@ -283,7 +283,7 @@ async def gre_tunnel_status() -> str:
     except Exception as exc:
         return json.dumps({"error": str(exc)})
 
-    return _toon_dumps(
+    return _gcf_dumps(
         {"tunnels": tunnels, "addresses": tunnel_addrs, "count": len(tunnels)},
     )
 
@@ -340,7 +340,7 @@ async def protocol_summary() -> str:
     except Exception as exc:
         summary["gre"] = {"error": str(exc)}
 
-    return _toon_dumps(summary)
+    return _gcf_dumps(summary)
 
 
 # ---------------------------------------------------------------------------
