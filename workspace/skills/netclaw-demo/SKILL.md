@@ -119,40 +119,106 @@ Once Nautobot responds with a version, proceed.
 
 Run the design builder job **"NetClaw Demo - Populate SP Core"** via the Nautobot MCP.
 
+The job is located at: `Jobs > NetClaw Demo Designs > NetClaw Demo - Populate SP Core`
+(URL: `/extras/jobs/netclaw_demo.NetClawDemoDesign/run/`)
+
+The job requires ONE input field:
+- **Deployment Name**: `Netclaw Demo`
+- **Import Mode**: unchecked (leave default)
+- **Dryrun**: unchecked (leave default)
+
 **Exact steps — follow in order, no deviation:**
 
 1. **Find the job:**
-   ```
-   nautobot_list_jobs(q="NetClaw Demo")
-   ```
-   Look for the job named **"NetClaw Demo - Populate SP Core"**. Copy its `id` field.
+   Call the MCP tool `nautobot_list_jobs` with argument `q` set to `NetClaw Demo`.
+   Look for the job named **"NetClaw Demo - Populate SP Core"** in the results. Copy its `id` field (a UUID string).
 
 2. **Enable the job** (it is disabled by default on fresh installs):
-   ```
-   nautobot_enable_job(job_id="<the-id-from-step-1>", enabled=true)
-   ```
+   Call the MCP tool `nautobot_enable_job` with argument `job_id` set to the UUID from step 1.
 
 3. **Run the job:**
+   Call the MCP tool `nautobot_run_job` with these arguments:
+   - `job_id`: the UUID from step 1
+   - `data`: a JSON string with the deployment name: `{"deployment_name": "Netclaw Demo"}`
+
+   **CRITICAL — how to pass the `data` parameter correctly:**
+   The `data` parameter type is `string`. Its value must be a valid JSON string.
+   The deployment name is `Netclaw Demo` (title case with a space, NOT `netclaw-demo`).
+
+   When you call the MCP tool, your tool call arguments object should look like:
+   ```json
+   {
+     "job_id": "<uuid-from-step-1>",
+     "data": "{\"deployment_name\": \"Netclaw Demo\"}"
+   }
    ```
-   nautobot_run_job(job_id="<the-id-from-step-1>", data="{\"deployment_name\": \"netclaw-demo\"}")
-   ```
-   This returns a `job_result_id`.
+
+   The MCP framework serializes tool arguments as JSON. Inside that JSON, the `data` field is a string whose contents are themselves JSON. That's why you see escaped quotes — the outer quotes delimit the string, the inner escaped quotes are part of the JSON content inside the string.
+
+   **Do NOT pass a Python dict or object. Do NOT omit the quotes. The value of `data` is a STRING that contains JSON.**
+
+   The tool returns a response containing `job_result` with an `id` field — that's the `job_result_id` for the next step.
 
 4. **Wait 10 seconds, then check the result:**
-   ```
-   nautobot_get_job_result(job_result_id="<the-job-result-id-from-step-3>")
-   ```
-   Confirm status is `"completed"`. If still running, wait 10 more seconds and check again.
+   Call the MCP tool `nautobot_get_job_result` with argument `job_result_id` set to the `id` from the `job_result` in step 3's response.
+   Confirm status is `"completed"`. If still running, wait 10 more seconds and check again (max 5 retries).
 
 This creates all devices, interfaces, IPs, cables, BGP models, OSPF models, and config contexts in one shot.
 
-**Do NOT manually create objects. Do NOT use config contexts for BGP or OSPF. The design job handles everything.**
+**What the design job creates — verify all exist after completion:**
+
+| Category | Objects Created |
+|----------|----------------|
+| Infrastructure | 6 devices (PE1, P1, P2, P3, P4, RR1), loopback + ethX interfaces, all IPs, cables between peers |
+| BGP | AS 65000, routing instance per device, ipv4_unicast address family per routing instance, RR1's IBGP peer group + peer group address family |
+| BGP Peerings | 5 peerings (PE1↔RR1, P1↔RR1, P2↔RR1, P3↔RR1, P4↔RR1), with TWO peer endpoints per peering (10 endpoints total — one local side, one remote side) |
+| OSPF | IGP routing instance per device, OSPF process 1 per device, interface configurations for lo + all ethX on every device (all area 0.0.0.0) |
+| Config Context | "OSPF P2P Network Type" applied to all three roles (PE-Router, P-Router, Route-Reflector) |
+
+**Understanding the BGP peering structure in the model:**
+
+Each BGP peering object has EXACTLY two peer endpoints. For this topology, peerings are defined from the spoke side (PE1/P1/P2/P3/P4 → RR1):
+- The spoke endpoint: has `routing_instance` pointing to the spoke's BGP RI, `source_ip` = spoke's loopback, NO `peer_group` field
+- The RR1 endpoint: has `routing_instance` pointing to RR1's BGP RI, `source_ip` = RR1's loopback (10.255.255.6/32), `peer_group` = "IBGP"
+
+**Only RR1's endpoints have a `peer_group` — this is correct.** Spokes peer directly with RR1 using individual neighbor statements (not peer-groups on the spoke side). The absence of `peer_group` on spoke endpoints does NOT mean the peerings are broken or incomplete.
+
+**Expected totals after a successful design job run:**
+- 5 peering objects (one per spoke↔RR1 pair)
+- 10 peer endpoint objects (2 per peering — one spoke side, one RR1 side)
+- All 10 endpoints should have `routing_instance` set (NOT null)
+- All 10 endpoints should have `source_ip` and `source_interface` set
+- RR1's 5 endpoints should all have `peer_group` = "IBGP"
+
+**Verification query after the job completes — run this to confirm everything was created:**
+
+```
+nautobot_graphql(query: "{ bgp_peerings { status { name } endpoints { routing_instance { device { name } } source_ip { address } peer_group { name } } } }")
+```
+
+Expected: 5 peerings, each with 2 endpoints (10 total). Every endpoint must have a `routing_instance` (NOT null). RR1's endpoints should show `peer_group: IBGP`.
+
+If you see endpoints with null `routing_instance` or more than 5 peerings, the design job has a bug — report it.
+
+```
+nautobot_graphql(query: "{ ospf_interface_configurations { interface { name device { name } } area status { name } } }")
+```
+
+Expected: All loopback and ethX interfaces across all 6 devices with area `0.0.0.0`.
+
+**If peerings or OSPF data is missing, the design job did NOT complete successfully.** Re-run it. Do NOT manually create these objects — the design job is the sole authority.
+
+**Do NOT manually create objects. Do NOT use config contexts for BGP or OSPF. The design job handles everything, including extra_attributes.**
 
 ---
 
-## Phase 3: Populate BGP Address Family Extra Attributes
+## Understanding BGP Extra Attributes (Reference)
 
-### Understanding the Nautobot BGP Object Hierarchy
+The design job sets `extra_attributes: {"route-reflector-client": true}` on RR1's IBGP PeerGroupAddressFamily automatically. No manual step is required.
+
+This section explains the model hierarchy for reference when generating configs in Phase 3.
+
+### Nautobot BGP Object Hierarchy
 
 The BGP Models plugin has MULTIPLE objects that each have an `extra_attributes` field. They are NOT interchangeable. You must understand which object maps to which FRR config scope:
 
@@ -162,85 +228,72 @@ RoutingInstance (one per device)
        └── extra_attributes: DO NOT USE for this demo
   └── PeerGroup (e.g., "IBGP" on RR1)
        └── PeerGroupAddressFamily                ← "address-family ipv4 unicast" commands applied to ALL group members
-            └── extra_attributes: ✅ PUT route-reflector-client HERE (RR1 only)
+            └── extra_attributes: ✅ route-reflector-client lives HERE (RR1 only, set by design job)
   └── PeerEndpoint (one per peering direction)
        └── PeerEndpointAddressFamily             ← per-peer AF overrides (only if different from group)
             └── extra_attributes: DO NOT USE for this demo
 ```
 
-**In this demo topology, the ONLY object that needs extra_attributes is:**
+**In this demo topology, the ONLY object with extra_attributes is:**
 - RR1 → IBGP PeerGroup → PeerGroupAddressFamily (ipv4_unicast) → `{"route-reflector-client": true}`
 
-**Everything else stays empty/null.** Do NOT set extra_attributes on:
-- Routing Instance Address Families (the global AF objects)
-- Peer Endpoint Address Families (per-peer AFs on RR1 or spokes)
-- Spoke-side anything (spokes don't configure RR knobs)
-- The PeerEndpoint or PeerGroup objects themselves (those have their own extra_attributes field but it's for non-AF stuff)
+**Everything else stays empty/null.** The design job sets this correctly. Do NOT manually add or modify extra_attributes on any object.
 
----
+**COMMON MISTAKE — DO NOT DO THIS:**
+Do NOT put address-family data inside the `extra_attributes` field of `PeerEndpoint` or `PeerGroup` objects. These are DIFFERENT models:
+- ❌ WRONG: `PeerEndpoint.extra_attributes = {"address_family": {"ipv4_unicast": {"route-reflector-client": true}}}`
+- ❌ WRONG: `PeerGroup.extra_attributes = {"afi_safi": "ipv4_unicast", "route-reflector-client": true}`
+- ✅ CORRECT: `PeerGroupAddressFamily` object (separate model) with `afi_safi = "ipv4_unicast"` and `extra_attributes = {"route-reflector-client": true}`
 
-### The ONE Change to Make
-
-The design job creates PeerGroup and PeerEndpoint objects but does **not** populate the `extra_attributes` on their address family records.
-
-After the design job completes, you must set **exactly ONE extra_attribute on exactly ONE object**. Nothing else.
-
-**The ONLY change to make:**
-
-Set `extra_attributes` = `{"route-reflector-client": true}` on **RR1's IBGP PeerGroupAddressFamily** (afi_safi = `ipv4_unicast`).
-
-That's it. No other object gets extra_attributes. Period.
-
-**Step 1: Find the RR1 IBGP PeerGroupAddressFamily ID**
-
-```
-nautobot_graphql(query: "{ bgp_routing_instances(device: \"RR1\") { peer_groups { name id address_families { id afi_safi extra_attributes } } } }")
-```
-
-Look for the peer group named "IBGP" and its address family with `afi_safi = "ipv4_unicast"`. Copy the address family `id`.
-
-**Step 2: PATCH (or POST) only that one object**
-
-If the address family record exists, PATCH it:
-```
-curl -X PATCH http://localhost:8080/api/plugins/bgp/peer-group-address-families/<RR1_IBGP_AF_ID>/ \
-  -H "Authorization: Token ${NAUTOBOT_TOKEN}" \
-  -H "Content-Type: application/json" \
-  -d '{"extra_attributes": {"route-reflector-client": true}}'
-```
-
-If it doesn't exist yet, create it:
-```
-curl -X POST http://localhost:8080/api/plugins/bgp/peer-group-address-families/ \
-  -H "Authorization: Token ${NAUTOBOT_TOKEN}" \
-  -H "Content-Type: application/json" \
-  -d '{"peer_group": "<RR1_IBGP_PEER_GROUP_ID>", "afi_safi": "ipv4_unicast", "extra_attributes": {"route-reflector-client": true}}'
-```
-
-**Step 3: Verify — confirm no other objects have extra_attributes**
-
-Query all address families and confirm only the one RR1 peer-group AF has extra_attributes set:
-```
-nautobot_graphql(query: "{ bgp_routing_instances { device { name } peer_groups { name address_families { id afi_safi extra_attributes } } endpoints { source_ip { address } address_families { id afi_safi extra_attributes } } } }")
-```
-
-Expected: ONLY `RR1 → IBGP → ipv4_unicast` has `{"route-reflector-client": true}`. Everything else should be `null` or `{}`.
-
----
+The `PeerGroupAddressFamily` is a **separate Nautobot object** with its own UUID, linked to a PeerGroup via foreign key. It is NOT a nested field inside PeerGroup. Query it via GraphQL as `peer_groups { address_families { afi_safi extra_attributes } }`.
 
 **WHY only this one object?**
 
 `route-reflector-client` is configured on the **route reflector**, under its **peer-group**, in the **address-family**. It tells the RR "reflect routes to all members of this group." The spoke routers (PE1, P1–P4) configure NOTHING about route reflection — they just peer with the RR and receive reflected routes automatically.
 
-**DO NOT set extra_attributes on any of these:**
-- ❌ Spoke (PE1, P1, P2, P3, P4) PeerEndpointAddressFamily — spokes don't configure RR knobs
-- ❌ RR1 per-peer PeerEndpointAddressFamily — redundant, the peer-group AF already covers all members
-- ❌ Any object's `extra_attributes` field directly (the routing instance or endpoint `extra_attributes`) — only the **address family** object gets it
-- ❌ `next-hop-self` anywhere — not needed in this topology (full IGP mesh means all next-hops are reachable via OSPF)
+### Common Mistakes — DO NOT DO THESE
+
+**Mistake 1: Putting AF commands in `PeerEndpoint.extra_attributes` or `PeerGroup.extra_attributes`**
+
+❌ WRONG — setting address-family behavior on the peer endpoint or peer group object directly:
+```json
+// PeerEndpoint.extra_attributes — THIS IS WRONG
+{"address-family": {"ipv4_unicast": {"route-reflector-client": true}}}
+```
+
+❌ WRONG — nesting AF config as JSON in peer group extra_attributes:
+```json
+// PeerGroup.extra_attributes — THIS IS WRONG
+{"route-reflector-client": true}
+```
+
+✅ CORRECT — use the dedicated `PeerGroupAddressFamily` model object with its own `extra_attributes` field:
+```json
+// PeerGroupAddressFamily.extra_attributes — THIS IS CORRECT
+{"route-reflector-client": true}
+```
+
+**Mistake 2: Creating address-family config as nested JSON instead of using the Address Family model**
+
+The BGP Models plugin has SEPARATE model objects for address families:
+- `AddressFamily` (routing instance level)
+- `PeerGroupAddressFamily` (peer group level)
+- `PeerEndpointAddressFamily` (peer endpoint level)
+
+These are real Nautobot objects with their own UUIDs, queryable via GraphQL and REST API. They are NOT nested JSON inside other objects. Do NOT try to simulate them by stuffing JSON into `extra_attributes` on parent objects.
+
+**Mistake 3: Setting extra_attributes on spoke-side objects**
+
+Only the RR's PeerGroupAddressFamily gets `route-reflector-client`. Spokes don't configure RR knobs. Do NOT set extra_attributes on:
+- ❌ Spoke PeerEndpoint objects
+- ❌ Spoke PeerEndpointAddressFamily objects
+- ❌ Any RoutingInstance AddressFamily objects
+
+**Rule of thumb:** If you need to configure behavior that goes under `address-family ipv4 unicast` in FRR, it belongs on a `*AddressFamily.extra_attributes` object — never on the parent PeerGroup/PeerEndpoint/RoutingInstance `extra_attributes` directly.
 
 ---
 
-## Phase 4: Generate and Push Configs
+## Phase 3: Generate and Push Configs
 
 For each device, query Nautobot via GraphQL then push config via vtysh.
 
@@ -449,7 +502,7 @@ Recommended order: P1, P2, P3, P4 (core first for OSPF paths), then PE1, then RR
 
 ---
 
-## Phase 5: Validate
+## Phase 4: Validate
 
 ```bash
 # OSPF - all neighbors should be in FULL state
@@ -475,7 +528,7 @@ docker exec clab-netclaw-demo-pe1 vtysh -c "show bgp ipv4 unicast"
 
 ---
 
-## Phase 6: Protocol Participation (Optional)
+## Phase 5: Protocol Participation (Optional)
 
 NetClaw can join the lab's OSPF topology and establish a BGP peering with RR1 using the protocol-mcp server.
 
@@ -618,11 +671,26 @@ docker exec clab-netclaw-demo-<node> vtysh \
 
 ## MCP Tools Available
 
+### Job Management Tools
+
+These tools manage Nautobot jobs (finding, enabling, running, checking results):
+
+- `nautobot_list_jobs(q)` — find jobs by name substring search. Returns `{count, jobs: [{id, name, enabled}]}`
+- `nautobot_enable_job(job_id, enabled)` — enable/disable a job. `job_id` is a UUID string, `enabled` is boolean (default true)
+- `nautobot_run_job(job_id, data)` — trigger a job. `job_id` is a UUID string, `data` is an **optional JSON string** (not a dict/object — a string containing JSON). Returns `{triggered: true, job_result: {id, ...}}`
+- `nautobot_get_job_result(job_result_id)` — check job status. Returns status, result data, and any errors
+
+**Important notes on `nautobot_run_job` `data` parameter:**
+- Type: `string` (Optional)
+- Content: A JSON-formatted string, e.g. `{"deployment_name": "Netclaw Demo"}`
+- The MCP tool internally does `json.loads(data)` to parse it
+- If no data is needed, omit the parameter entirely (don't pass empty string)
+- Do NOT pass a Python dict or object — pass a string that contains valid JSON
+- For the design builder job, the deployment name is `Netclaw Demo` (title case with space)
+
+### Query Tools
+
 - `nautobot_graphql(query)` — run any GraphQL query against Nautobot
-- `nautobot_list_jobs(q)` — find jobs by name
-- `nautobot_enable_job(job_id)` — enable a job
-- `nautobot_run_job(job_id, data)` — trigger a job
-- `nautobot_get_job_result(job_result_id)` — check job status
 - `nautobot_get_devices(name)` — query devices
 - `nautobot_get_interfaces(device)` — query interfaces
 - `routing_get_bgp_summary(device)` — get BGP state from models
