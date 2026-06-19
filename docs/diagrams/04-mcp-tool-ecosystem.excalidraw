@@ -1,0 +1,378 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "netclaw-demo",
+  "elements": [
+    {
+      "type": "text",
+      "id": "title",
+      "x": 250,
+      "y": 30,
+      "width": 600,
+      "height": 45,
+      "text": "MCP — The Universal Tool Interface",
+      "fontSize": 30,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "x": 250,
+      "y": 75,
+      "width": 600,
+      "height": 22,
+      "text": "Model Context Protocol: one spec, 66 integrations, infinite composability",
+      "fontSize": 14,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#868e96"
+    },
+
+    {
+      "type": "ellipse",
+      "id": "agent-center",
+      "x": 430,
+      "y": 250,
+      "width": 180,
+      "height": 180,
+      "strokeColor": "#c92a2a",
+      "backgroundColor": "#fff5f5",
+      "fillStyle": "solid",
+      "strokeWidth": 3
+    },
+    {
+      "type": "text",
+      "id": "agent-center-label",
+      "x": 465,
+      "y": 310,
+      "width": 110,
+      "height": 60,
+      "text": "🦞\nNetClaw\nAgent",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#c92a2a"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "cat-devices",
+      "x": 60,
+      "y": 120,
+      "width": 170,
+      "height": 80,
+      "strokeColor": "#2f9e44",
+      "backgroundColor": "#b2f2bb",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 }
+    },
+    {
+      "type": "text",
+      "id": "cat-devices-label",
+      "x": 70,
+      "y": 130,
+      "width": 150,
+      "height": 60,
+      "text": "🖧 Device Automation\n\npyATS • gNMI • JunOS\nArista CVP • F5 • NSO",
+      "fontSize": 11,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "cat-sot",
+      "x": 60,
+      "y": 240,
+      "width": 170,
+      "height": 80,
+      "strokeColor": "#1971c2",
+      "backgroundColor": "#a5d8ff",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 }
+    },
+    {
+      "type": "text",
+      "id": "cat-sot-label",
+      "x": 70,
+      "y": 250,
+      "width": 150,
+      "height": 60,
+      "text": "📋 Source of Truth\n\nNautobot • NetBox\nInfrahub • Infoblox",
+      "fontSize": 11,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "cat-itsm",
+      "x": 60,
+      "y": 360,
+      "width": 170,
+      "height": 80,
+      "strokeColor": "#e8590c",
+      "backgroundColor": "#ffec99",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 }
+    },
+    {
+      "type": "text",
+      "id": "cat-itsm-label",
+      "x": 70,
+      "y": 370,
+      "width": 150,
+      "height": 60,
+      "text": "🎫 ITSM & DevOps\n\nServiceNow • Jira\nGitHub • GitLab • Jenkins",
+      "fontSize": 11,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "cat-observ",
+      "x": 60,
+      "y": 480,
+      "width": 170,
+      "height": 80,
+      "strokeColor": "#862e9c",
+      "backgroundColor": "#e5dbff",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 }
+    },
+    {
+      "type": "text",
+      "id": "cat-observ-label",
+      "x": 70,
+      "y": 490,
+      "width": 150,
+      "height": 60,
+      "text": "📊 Observability\n\nGrafana • Prometheus\nSplunk • Datadog • Loki",
+      "fontSize": 11,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "cat-security",
+      "x": 820,
+      "y": 120,
+      "width": 170,
+      "height": 80,
+      "strokeColor": "#c92a2a",
+      "backgroundColor": "#ffc9c9",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 }
+    },
+    {
+      "type": "text",
+      "id": "cat-security-label",
+      "x": 830,
+      "y": 130,
+      "width": 150,
+      "height": 60,
+      "text": "🔒 Security\n\nCheck Point • FMC\nPanorama • FortiMgr\nZscaler • Cloudflare",
+      "fontSize": 11,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "cat-cloud",
+      "x": 820,
+      "y": 240,
+      "width": 170,
+      "height": 80,
+      "strokeColor": "#1971c2",
+      "backgroundColor": "#d0ebff",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 }
+    },
+    {
+      "type": "text",
+      "id": "cat-cloud-label",
+      "x": 830,
+      "y": 250,
+      "width": 150,
+      "height": 60,
+      "text": "☁️ Cloud\n\nAWS (27 tools)\nAzure • GCP\nMeraki • SD-WAN",
+      "fontSize": 11,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "cat-lab",
+      "x": 820,
+      "y": 360,
+      "width": 170,
+      "height": 80,
+      "strokeColor": "#2f9e44",
+      "backgroundColor": "#ebfbee",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 }
+    },
+    {
+      "type": "text",
+      "id": "cat-lab-label",
+      "x": 830,
+      "y": 370,
+      "width": 150,
+      "height": 60,
+      "text": "🧪 Lab & Simulation\n\nCisco CML • ContainerLab\nGNS3 • EVE-NG • Batfish",
+      "fontSize": 11,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "cat-viz",
+      "x": 820,
+      "y": 480,
+      "width": 170,
+      "height": 80,
+      "strokeColor": "#495057",
+      "backgroundColor": "#e9ecef",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 }
+    },
+    {
+      "type": "text",
+      "id": "cat-viz-label",
+      "x": 830,
+      "y": 490,
+      "width": 150,
+      "height": 60,
+      "text": "📐 Visualization\n\nDraw.io • Markmap\nKroki/UML • Canvas A2UI\nBlender 3D",
+      "fontSize": 11,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "line",
+      "id": "spoke-1",
+      "x": 230,
+      "y": 160,
+      "width": 200,
+      "height": 140,
+      "points": [[0, 0], [200, 140]],
+      "strokeColor": "#2f9e44",
+      "strokeWidth": 1
+    },
+    {
+      "type": "line",
+      "id": "spoke-2",
+      "x": 230,
+      "y": 280,
+      "width": 200,
+      "height": 50,
+      "points": [[0, 0], [200, 50]],
+      "strokeColor": "#1971c2",
+      "strokeWidth": 1
+    },
+    {
+      "type": "line",
+      "id": "spoke-3",
+      "x": 230,
+      "y": 400,
+      "width": 200,
+      "height": -50,
+      "points": [[0, 0], [200, -50]],
+      "strokeColor": "#e8590c",
+      "strokeWidth": 1
+    },
+    {
+      "type": "line",
+      "id": "spoke-4",
+      "x": 230,
+      "y": 520,
+      "width": 200,
+      "height": -170,
+      "points": [[0, 0], [200, -170]],
+      "strokeColor": "#862e9c",
+      "strokeWidth": 1
+    },
+    {
+      "type": "line",
+      "id": "spoke-5",
+      "x": 610,
+      "y": 300,
+      "width": 210,
+      "height": -140,
+      "points": [[0, 0], [210, -140]],
+      "strokeColor": "#c92a2a",
+      "strokeWidth": 1
+    },
+    {
+      "type": "line",
+      "id": "spoke-6",
+      "x": 610,
+      "y": 330,
+      "width": 210,
+      "height": -50,
+      "points": [[0, 0], [210, -50]],
+      "strokeColor": "#1971c2",
+      "strokeWidth": 1
+    },
+    {
+      "type": "line",
+      "id": "spoke-7",
+      "x": 610,
+      "y": 360,
+      "width": 210,
+      "height": 40,
+      "points": [[0, 0], [210, 40]],
+      "strokeColor": "#2f9e44",
+      "strokeWidth": 1
+    },
+    {
+      "type": "line",
+      "id": "spoke-8",
+      "x": 610,
+      "y": 380,
+      "width": 210,
+      "height": 140,
+      "points": [[0, 0], [210, 140]],
+      "strokeColor": "#495057",
+      "strokeWidth": 1
+    },
+
+    {
+      "type": "rectangle",
+      "id": "analogy-box",
+      "x": 200,
+      "y": 600,
+      "width": 650,
+      "height": 80,
+      "strokeColor": "#dee2e6",
+      "backgroundColor": "#f8f9fa",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 }
+    },
+    {
+      "type": "text",
+      "id": "analogy-text",
+      "x": 220,
+      "y": 615,
+      "width": 610,
+      "height": 50,
+      "text": "Think of MCP like USB for AI:\nOne standard interface → Any tool plugs in → Agent uses it immediately\nAdd a new MCP server → Zero code changes to the agent → New capability unlocked",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#495057"
+    }
+  ],
+  "appState": {
+    "viewBackgroundColor": "#ffffff",
+    "gridSize": 20
+  }
+}

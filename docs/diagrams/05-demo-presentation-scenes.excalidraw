@@ -1,0 +1,3190 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "netclaw-demo",
+  "elements": [
+    {
+      "type": "frame",
+      "id": "el-1",
+      "x": 0,
+      "y": 0,
+      "width": 1920,
+      "height": 1080,
+      "name": "Scene 1 \u2014 Title",
+      "strokeColor": "#495057",
+      "strokeWidth": 1
+    },
+    {
+      "type": "text",
+      "id": "el-2",
+      "x": 460,
+      "y": 300,
+      "width": 1000,
+      "height": 100,
+      "text": "NetClaw",
+      "fontSize": 96,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#c92a2a"
+    },
+    {
+      "type": "text",
+      "id": "el-3",
+      "x": 460,
+      "y": 420,
+      "width": 1000,
+      "height": 36,
+      "text": "A CCIE-Level AI Network Engineering Coworker",
+      "fontSize": 32,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "text",
+      "id": "el-4",
+      "x": 460,
+      "y": 520,
+      "width": 1000,
+      "height": 32,
+      "text": "Reach. Grab. Execute.  \ud83e\udd9e",
+      "fontSize": 28,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#868e96"
+    },
+    {
+      "type": "text",
+      "id": "el-5",
+      "x": 560,
+      "y": 700,
+      "width": 800,
+      "height": 24,
+      "text": "NetGru Demo \u2014 cisco.com/go/netgru",
+      "fontSize": 20,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#1971c2"
+    },
+    {
+      "type": "text",
+      "id": "el-6",
+      "x": 560,
+      "y": 760,
+      "width": 800,
+      "height": 22,
+      "text": "Built on OpenClaw | 163 Skills | 66 MCP Integrations",
+      "fontSize": 18,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#868e96"
+    },
+    {
+      "type": "frame",
+      "id": "el-7",
+      "x": 2120,
+      "y": 0,
+      "width": 1920,
+      "height": 1080,
+      "name": "Scene 2 \u2014 The Problem",
+      "strokeColor": "#495057",
+      "strokeWidth": 1
+    },
+    {
+      "type": "text",
+      "id": "el-8",
+      "x": 2220,
+      "y": 80,
+      "width": 316.8,
+      "height": 52,
+      "text": "The Problem",
+      "fontSize": 48,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-9",
+      "x": 2220,
+      "y": 160,
+      "width": 360.0,
+      "height": 28,
+      "text": "Network automation today:",
+      "fontSize": 24,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-10",
+      "x": 2220,
+      "y": 230,
+      "width": 500,
+      "height": 100,
+      "strokeColor": "#c92a2a",
+      "backgroundColor": "#fff5f5",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-11",
+      "x": 2240,
+      "y": 245,
+      "width": 384.0,
+      "height": 80,
+      "text": "Write Ansible playbooks / Python scripts\nMaintain Jinja2 templates per vendor\nManual runbooks that drift from reality\nCopy-paste CLI from documentation",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#c92a2a"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-12",
+      "x": 2220,
+      "y": 380,
+      "width": 500,
+      "height": 100,
+      "strokeColor": "#c92a2a",
+      "backgroundColor": "#fff5f5",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-13",
+      "x": 2240,
+      "y": 395,
+      "width": 384.0,
+      "height": 80,
+      "text": "Tribal knowledge lives in people's heads\nSpreadsheets as source of truth\nNo audit trail for 'who changed what'\nValidation is an afterthought",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#c92a2a"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-14",
+      "x": 2820,
+      "y": 230,
+      "width": 500,
+      "height": 250,
+      "strokeColor": "#2f9e44",
+      "backgroundColor": "#ebfbee",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-15",
+      "x": 2840,
+      "y": 245,
+      "width": 230.39999999999998,
+      "height": 28,
+      "text": "What if instead:",
+      "fontSize": 24,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#2f9e44"
+    },
+    {
+      "type": "text",
+      "id": "el-16",
+      "x": 2840,
+      "y": 290,
+      "width": 421.2,
+      "height": 154,
+      "text": "\u2022 Source of truth IS the config source\n\u2022 AI understands protocol semantics\n\u2022 Natural language drives the workflow\n\u2022 Every action is audited automatically\n\u2022 Validation is built into every change\n\n   Intent in  \u2192  Working network out",
+      "fontSize": 18,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "frame",
+      "id": "el-17",
+      "x": 4240,
+      "y": 0,
+      "width": 1920,
+      "height": 1080,
+      "name": "Scene 3 \u2014 Architecture",
+      "strokeColor": "#495057",
+      "strokeWidth": 1
+    },
+    {
+      "type": "text",
+      "id": "el-18",
+      "x": 4340,
+      "y": 60,
+      "width": 489.59999999999997,
+      "height": 52,
+      "text": "How NetClaw Works",
+      "fontSize": 48,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-19",
+      "x": 4340,
+      "y": 120,
+      "width": 360.0,
+      "height": 24,
+      "text": "Three-layer agent architecture",
+      "fontSize": 20,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#868e96"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-20",
+      "x": 4320,
+      "y": 250,
+      "width": 250,
+      "height": 140,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "#ffc9c9",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-21",
+      "x": 4340,
+      "y": 270,
+      "width": 192.0,
+      "height": 24,
+      "text": "\ud83d\udc64 Human Operator",
+      "fontSize": 20,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-22",
+      "x": 4340,
+      "y": 310,
+      "width": 168.0,
+      "height": 54,
+      "text": "Slack / WebEx / TUI\n\"Deploy the SP core\"\n\"Check BGP state\"",
+      "fontSize": 14,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "line",
+      "id": "el-23",
+      "x": 4570,
+      "y": 320,
+      "width": 100,
+      "height": 0,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          100,
+          0
+        ]
+      ],
+      "strokeColor": "#1e1e1e",
+      "strokeWidth": 2,
+      "endArrowhead": "arrow"
+    },
+    {
+      "type": "text",
+      "id": "el-24",
+      "x": 4580,
+      "y": 295,
+      "width": 115.19999999999999,
+      "height": 16,
+      "text": "Natural Language",
+      "fontSize": 12,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#868e96"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-25",
+      "x": 4690,
+      "y": 180,
+      "width": 400,
+      "height": 700,
+      "strokeColor": "#1971c2",
+      "backgroundColor": "#e7f5ff",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-26",
+      "x": 4770,
+      "y": 195,
+      "width": 216.0,
+      "height": 28,
+      "text": "\ud83e\udd9e NetClaw Agent",
+      "fontSize": 24,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1971c2"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-27",
+      "x": 4710,
+      "y": 240,
+      "width": 360,
+      "height": 100,
+      "strokeColor": "#862e9c",
+      "backgroundColor": "#f3d9fa",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-28",
+      "x": 4730,
+      "y": 255,
+      "width": 194.4,
+      "height": 22,
+      "text": "SOUL.md \u2014 Identity",
+      "fontSize": 18,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#862e9c"
+    },
+    {
+      "type": "text",
+      "id": "el-29",
+      "x": 4730,
+      "y": 285,
+      "width": 249.6,
+      "height": 51,
+      "text": "CCIE expertise \u2022 12 safety rules\nProtocol knowledge \u2022 Personality\n\"Never guess device state\"",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-30",
+      "x": 4710,
+      "y": 360,
+      "width": 360,
+      "height": 100,
+      "strokeColor": "#2f9e44",
+      "backgroundColor": "#d8f5a2",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-31",
+      "x": 4730,
+      "y": 375,
+      "width": 205.2,
+      "height": 22,
+      "text": "Skills \u2014 Procedures",
+      "fontSize": 18,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#2f9e44"
+    },
+    {
+      "type": "text",
+      "id": "el-32",
+      "x": 4730,
+      "y": 405,
+      "width": 210.6,
+      "height": 51,
+      "text": "163 structured workflows\nRunbooks the agent executes\n\"How to safely push config\"",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-33",
+      "x": 4710,
+      "y": 480,
+      "width": 360,
+      "height": 100,
+      "strokeColor": "#e8590c",
+      "backgroundColor": "#fff4e6",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-34",
+      "x": 4730,
+      "y": 495,
+      "width": 280.8,
+      "height": 22,
+      "text": "MCP Servers \u2014 Capabilities",
+      "fontSize": 18,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#e8590c"
+    },
+    {
+      "type": "text",
+      "id": "el-35",
+      "x": 4730,
+      "y": 525,
+      "width": 296.4,
+      "height": 51,
+      "text": "66 integrations (stateless tool calls)\nSwap without code changes\n\"USB ports for AI\"",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-36",
+      "x": 4710,
+      "y": 600,
+      "width": 360,
+      "height": 100,
+      "strokeColor": "#495057",
+      "backgroundColor": "#dee2e6",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-37",
+      "x": 4730,
+      "y": 615,
+      "width": 194.4,
+      "height": 22,
+      "text": "GAIT \u2014 Audit Trail",
+      "fontSize": 18,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "text",
+      "id": "el-38",
+      "x": 4730,
+      "y": 645,
+      "width": 226.2,
+      "height": 51,
+      "text": "Immutable Git record\nEvery action + decision\n\"What did the AI do and why?\"",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "line",
+      "id": "el-39",
+      "x": 5090,
+      "y": 450,
+      "width": 100,
+      "height": 0,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          100,
+          0
+        ]
+      ],
+      "strokeColor": "#1e1e1e",
+      "strokeWidth": 2,
+      "endArrowhead": "arrow"
+    },
+    {
+      "type": "text",
+      "id": "el-40",
+      "x": 5100,
+      "y": 425,
+      "width": 72.0,
+      "height": 16,
+      "text": "Tool Calls",
+      "fontSize": 12,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#868e96"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-41",
+      "x": 5210,
+      "y": 180,
+      "width": 350,
+      "height": 700,
+      "strokeColor": "#868e96",
+      "backgroundColor": "#f8f9fa",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 1
+    },
+    {
+      "type": "text",
+      "id": "el-42",
+      "x": 5290,
+      "y": 195,
+      "width": 168.0,
+      "height": 24,
+      "text": "Infrastructure",
+      "fontSize": 20,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-43",
+      "x": 5230,
+      "y": 240,
+      "width": 310,
+      "height": 75,
+      "strokeColor": "#1971c2",
+      "backgroundColor": "#a5d8ff",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-44",
+      "x": 5250,
+      "y": 250,
+      "width": 153.0,
+      "height": 19,
+      "text": "\ud83d\udccb Source of Truth",
+      "fontSize": 15,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1971c2"
+    },
+    {
+      "type": "text",
+      "id": "el-45",
+      "x": 5250,
+      "y": 275,
+      "width": 132.6,
+      "height": 17,
+      "text": "Nautobot / NetBox",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-46",
+      "x": 5230,
+      "y": 335,
+      "width": 310,
+      "height": 75,
+      "strokeColor": "#2f9e44",
+      "backgroundColor": "#b2f2bb",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-47",
+      "x": 5250,
+      "y": 345,
+      "width": 81.0,
+      "height": 19,
+      "text": "\ud83d\udda7 Devices",
+      "fontSize": 15,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#2f9e44"
+    },
+    {
+      "type": "text",
+      "id": "el-48",
+      "x": 5250,
+      "y": 370,
+      "width": 171.6,
+      "height": 17,
+      "text": "pyATS / gNMI / NETCONF",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-49",
+      "x": 5230,
+      "y": 430,
+      "width": 310,
+      "height": 75,
+      "strokeColor": "#e8590c",
+      "backgroundColor": "#ffec99",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-50",
+      "x": 5250,
+      "y": 440,
+      "width": 54.0,
+      "height": 19,
+      "text": "\ud83c\udfab ITSM",
+      "fontSize": 15,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#e8590c"
+    },
+    {
+      "type": "text",
+      "id": "el-51",
+      "x": 5250,
+      "y": 465,
+      "width": 132.6,
+      "height": 17,
+      "text": "ServiceNow / Jira",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-52",
+      "x": 5230,
+      "y": 525,
+      "width": 310,
+      "height": 75,
+      "strokeColor": "#862e9c",
+      "backgroundColor": "#e5dbff",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-53",
+      "x": 5250,
+      "y": 535,
+      "width": 135.0,
+      "height": 19,
+      "text": "\ud83d\udcca Observability",
+      "fontSize": 15,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#862e9c"
+    },
+    {
+      "type": "text",
+      "id": "el-54",
+      "x": 5250,
+      "y": 560,
+      "width": 156.0,
+      "height": 17,
+      "text": "Grafana / Prometheus",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-55",
+      "x": 5230,
+      "y": 620,
+      "width": 310,
+      "height": 75,
+      "strokeColor": "#1971c2",
+      "backgroundColor": "#d0ebff",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-56",
+      "x": 5250,
+      "y": 630,
+      "width": 72.0,
+      "height": 19,
+      "text": "\u2601\ufe0f Cloud",
+      "fontSize": 15,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1971c2"
+    },
+    {
+      "type": "text",
+      "id": "el-57",
+      "x": 5250,
+      "y": 655,
+      "width": 132.6,
+      "height": 17,
+      "text": "AWS / Azure / GCP",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-58",
+      "x": 5230,
+      "y": 715,
+      "width": 310,
+      "height": 75,
+      "strokeColor": "#c92a2a",
+      "backgroundColor": "#ffc9c9",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-59",
+      "x": 5250,
+      "y": 725,
+      "width": 90.0,
+      "height": 19,
+      "text": "\ud83d\udd12 Security",
+      "fontSize": 15,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#c92a2a"
+    },
+    {
+      "type": "text",
+      "id": "el-60",
+      "x": 5250,
+      "y": 750,
+      "width": 132.6,
+      "height": 17,
+      "text": "Check Point / FMC",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "frame",
+      "id": "el-61",
+      "x": 6360,
+      "y": 0,
+      "width": 1920,
+      "height": 1080,
+      "name": "Scene 4 \u2014 Demo Lab",
+      "strokeColor": "#495057",
+      "strokeWidth": 1
+    },
+    {
+      "type": "text",
+      "id": "el-62",
+      "x": 6460,
+      "y": 60,
+      "width": 662.4,
+      "height": 52,
+      "text": "The Lab: 6-Node SP Core",
+      "fontSize": 48,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-63",
+      "x": 6460,
+      "y": 120,
+      "width": 918.0,
+      "height": 22,
+      "text": "FRRouting containers via ContainerLab \u2022 Starts BLANK \u2022 Everything built from Nautobot",
+      "fontSize": 18,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#868e96"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-64",
+      "x": 6560,
+      "y": 350,
+      "width": 150,
+      "height": 80,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "#a5d8ff",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-65",
+      "x": 6580,
+      "y": 360,
+      "width": 110,
+      "height": 26,
+      "text": "PE1",
+      "fontSize": 22,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-66",
+      "x": 6580,
+      "y": 395,
+      "width": 110,
+      "height": 17,
+      "text": "10.255.255.1/32",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-67",
+      "x": 6860,
+      "y": 350,
+      "width": 150,
+      "height": 80,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "#b2f2bb",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-68",
+      "x": 6880,
+      "y": 360,
+      "width": 110,
+      "height": 26,
+      "text": "P1",
+      "fontSize": 22,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-69",
+      "x": 6880,
+      "y": 395,
+      "width": 110,
+      "height": 17,
+      "text": "10.255.255.2/32",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-70",
+      "x": 7160,
+      "y": 350,
+      "width": 150,
+      "height": 80,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "#b2f2bb",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-71",
+      "x": 7180,
+      "y": 360,
+      "width": 110,
+      "height": 26,
+      "text": "P2",
+      "fontSize": 22,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-72",
+      "x": 7180,
+      "y": 395,
+      "width": 110,
+      "height": 17,
+      "text": "10.255.255.3/32",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-73",
+      "x": 7460,
+      "y": 350,
+      "width": 150,
+      "height": 80,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "#ffec99",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-74",
+      "x": 7480,
+      "y": 360,
+      "width": 110,
+      "height": 26,
+      "text": "RR1",
+      "fontSize": 22,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-75",
+      "x": 7480,
+      "y": 395,
+      "width": 110,
+      "height": 17,
+      "text": "10.255.255.6/32",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-76",
+      "x": 6860,
+      "y": 600,
+      "width": 150,
+      "height": 80,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "#b2f2bb",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-77",
+      "x": 6880,
+      "y": 610,
+      "width": 110,
+      "height": 26,
+      "text": "P3",
+      "fontSize": 22,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-78",
+      "x": 6880,
+      "y": 645,
+      "width": 110,
+      "height": 17,
+      "text": "10.255.255.4/32",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-79",
+      "x": 7160,
+      "y": 600,
+      "width": 150,
+      "height": 80,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "#b2f2bb",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-80",
+      "x": 7180,
+      "y": 610,
+      "width": 110,
+      "height": 26,
+      "text": "P4",
+      "fontSize": 22,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-81",
+      "x": 7180,
+      "y": 645,
+      "width": 110,
+      "height": 17,
+      "text": "10.255.255.5/32",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "line",
+      "id": "el-82",
+      "x": 6710,
+      "y": 390,
+      "width": 150,
+      "height": 0,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          150,
+          0
+        ]
+      ],
+      "strokeColor": "#495057",
+      "strokeWidth": 3
+    },
+    {
+      "type": "line",
+      "id": "el-83",
+      "x": 7010,
+      "y": 390,
+      "width": 150,
+      "height": 0,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          150,
+          0
+        ]
+      ],
+      "strokeColor": "#495057",
+      "strokeWidth": 3
+    },
+    {
+      "type": "line",
+      "id": "el-84",
+      "x": 7310,
+      "y": 390,
+      "width": 150,
+      "height": 0,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          150,
+          0
+        ]
+      ],
+      "strokeColor": "#495057",
+      "strokeWidth": 3
+    },
+    {
+      "type": "line",
+      "id": "el-85",
+      "x": 6935,
+      "y": 430,
+      "width": 0,
+      "height": 170,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          170
+        ]
+      ],
+      "strokeColor": "#495057",
+      "strokeWidth": 3
+    },
+    {
+      "type": "line",
+      "id": "el-86",
+      "x": 7235,
+      "y": 430,
+      "width": 0,
+      "height": 170,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          170
+        ]
+      ],
+      "strokeColor": "#495057",
+      "strokeWidth": 3
+    },
+    {
+      "type": "line",
+      "id": "el-87",
+      "x": 7010,
+      "y": 640,
+      "width": 150,
+      "height": 0,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          150,
+          0
+        ]
+      ],
+      "strokeColor": "#495057",
+      "strokeWidth": 3
+    },
+    {
+      "type": "text",
+      "id": "el-88",
+      "x": 6460,
+      "y": 750,
+      "width": 334.8,
+      "height": 22,
+      "text": "ASN: 65000 (single iBGP domain)",
+      "fontSize": 18,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-89",
+      "x": 6460,
+      "y": 785,
+      "width": 378.0,
+      "height": 22,
+      "text": "IGP: OSPFv2 area 0 on all P2P links",
+      "fontSize": 18,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-90",
+      "x": 6460,
+      "y": 820,
+      "width": 486.0,
+      "height": 22,
+      "text": "BGP: iBGP full mesh via RR1 (route reflector)",
+      "fontSize": 18,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-91",
+      "x": 6460,
+      "y": 855,
+      "width": 475.2,
+      "height": 22,
+      "text": "NOS: FRRouting (latest) in Docker containers",
+      "fontSize": 18,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-92",
+      "x": 7160,
+      "y": 750,
+      "width": 500,
+      "height": 120,
+      "strokeColor": "#c92a2a",
+      "backgroundColor": "#fff5f5",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-93",
+      "x": 7180,
+      "y": 770,
+      "width": 108.0,
+      "height": 22,
+      "text": "Key Point:",
+      "fontSize": 18,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#c92a2a"
+    },
+    {
+      "type": "text",
+      "id": "el-94",
+      "x": 7180,
+      "y": 800,
+      "width": 374.4,
+      "height": 60,
+      "text": "Containers start with NO configuration.\nNo IPs, no OSPF, no BGP.\nEverything gets built from Nautobot.",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "frame",
+      "id": "el-95",
+      "x": 8480,
+      "y": 0,
+      "width": 1920,
+      "height": 1080,
+      "name": "Scene 5 \u2014 Demo Pipeline",
+      "strokeColor": "#495057",
+      "strokeWidth": 1
+    },
+    {
+      "type": "text",
+      "id": "el-96",
+      "x": 8580,
+      "y": 60,
+      "width": 831.6,
+      "height": 46,
+      "text": "SOT-to-Validated-Network Pipeline",
+      "fontSize": 42,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-97",
+      "x": 8560,
+      "y": 200,
+      "width": 380,
+      "height": 300,
+      "strokeColor": "#c92a2a",
+      "backgroundColor": "#fff5f5",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-98",
+      "x": 8580,
+      "y": 215,
+      "width": 58.8,
+      "height": 18,
+      "text": "Phase 1",
+      "fontSize": 14,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#c92a2a"
+    },
+    {
+      "type": "text",
+      "id": "el-99",
+      "x": 8580,
+      "y": 240,
+      "width": 144.0,
+      "height": 28,
+      "text": "Deploy Lab",
+      "fontSize": 24,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#c92a2a"
+    },
+    {
+      "type": "text",
+      "id": "el-100",
+      "x": 8580,
+      "y": 285,
+      "width": 201.6,
+      "height": 80,
+      "text": "ContainerLab spins up\n6 FRR containers\n\nAll routers: BLANK",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "line",
+      "id": "el-101",
+      "x": 8950,
+      "y": 350,
+      "width": 40,
+      "height": 0,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          40,
+          0
+        ]
+      ],
+      "strokeColor": "#1e1e1e",
+      "strokeWidth": 2,
+      "endArrowhead": "arrow"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-102",
+      "x": 9000,
+      "y": 200,
+      "width": 380,
+      "height": 300,
+      "strokeColor": "#1971c2",
+      "backgroundColor": "#e7f5ff",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-103",
+      "x": 9020,
+      "y": 215,
+      "width": 58.8,
+      "height": 18,
+      "text": "Phase 2",
+      "fontSize": 14,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1971c2"
+    },
+    {
+      "type": "text",
+      "id": "el-104",
+      "x": 9020,
+      "y": 240,
+      "width": 172.79999999999998,
+      "height": 28,
+      "text": "Populate SOT",
+      "fontSize": 24,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1971c2"
+    },
+    {
+      "type": "text",
+      "id": "el-105",
+      "x": 9020,
+      "y": 285,
+      "width": 211.2,
+      "height": 80,
+      "text": "Design Job creates:\n\u2022 Devices + Interfaces\n\u2022 IPs + Cables\n\u2022 BGP + OSPF models",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "line",
+      "id": "el-106",
+      "x": 9390,
+      "y": 350,
+      "width": 40,
+      "height": 0,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          40,
+          0
+        ]
+      ],
+      "strokeColor": "#1e1e1e",
+      "strokeWidth": 2,
+      "endArrowhead": "arrow"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-107",
+      "x": 9440,
+      "y": 200,
+      "width": 380,
+      "height": 300,
+      "strokeColor": "#2f9e44",
+      "backgroundColor": "#ebfbee",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-108",
+      "x": 9460,
+      "y": 215,
+      "width": 58.8,
+      "height": 18,
+      "text": "Phase 3",
+      "fontSize": 14,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#2f9e44"
+    },
+    {
+      "type": "text",
+      "id": "el-109",
+      "x": 9460,
+      "y": 240,
+      "width": 144.0,
+      "height": 28,
+      "text": "Gen + Push",
+      "fontSize": 24,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#2f9e44"
+    },
+    {
+      "type": "text",
+      "id": "el-110",
+      "x": 9460,
+      "y": 285,
+      "width": 182.4,
+      "height": 100,
+      "text": "For each device:\n1. GraphQL query\n2. Build FRR config\n3. Push via vtysh\n(dependency order)",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "line",
+      "id": "el-111",
+      "x": 9830,
+      "y": 350,
+      "width": 40,
+      "height": 0,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          40,
+          0
+        ]
+      ],
+      "strokeColor": "#1e1e1e",
+      "strokeWidth": 2,
+      "endArrowhead": "arrow"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-112",
+      "x": 9880,
+      "y": 200,
+      "width": 380,
+      "height": 300,
+      "strokeColor": "#862e9c",
+      "backgroundColor": "#f8f0fc",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-113",
+      "x": 9900,
+      "y": 215,
+      "width": 58.8,
+      "height": 18,
+      "text": "Phase 4",
+      "fontSize": 14,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#862e9c"
+    },
+    {
+      "type": "text",
+      "id": "el-114",
+      "x": 9900,
+      "y": 240,
+      "width": 115.19999999999999,
+      "height": 28,
+      "text": "Validate",
+      "fontSize": 24,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#862e9c"
+    },
+    {
+      "type": "text",
+      "id": "el-115",
+      "x": 9900,
+      "y": 285,
+      "width": 230.39999999999998,
+      "height": 80,
+      "text": "\u2713 OSPF neighbors FULL\n\u2713 BGP Established\n\u2713 All 6 loopbacks in RIB\n\u2713 Route propagation OK",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-116",
+      "x": 8560,
+      "y": 580,
+      "width": 1760,
+      "height": 120,
+      "strokeColor": "#e8590c",
+      "backgroundColor": "#fff4e6",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-117",
+      "x": 8600,
+      "y": 600,
+      "width": 588.0,
+      "height": 32,
+      "text": "The AI Agent IS the Template Engine",
+      "fontSize": 28,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#e8590c"
+    },
+    {
+      "type": "text",
+      "id": "el-118",
+      "x": 8600,
+      "y": 645,
+      "width": 1017.5999999999999,
+      "height": 60,
+      "text": "No Jinja2. No Ansible. No hand-written Python.\nIt reads structured data from Nautobot, understands protocol semantics, and generates vendor-specific CLI.\nChange the data model \u2192 the config follows automatically.",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-119",
+      "x": 8560,
+      "y": 750,
+      "width": 1760,
+      "height": 200,
+      "strokeColor": "#495057",
+      "backgroundColor": "#f8f9fa",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 1
+    },
+    {
+      "type": "text",
+      "id": "el-120",
+      "x": 8600,
+      "y": 770,
+      "width": 528.0,
+      "height": 26,
+      "text": "For Advanced Viewers \u2014 Design Principles",
+      "fontSize": 22,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "text",
+      "id": "el-121",
+      "x": 8600,
+      "y": 810,
+      "width": 837.0,
+      "height": 95,
+      "text": "\u2460 Data-driven, not template-driven \u2014 derive config from data model semantics\n\u2461 Protocol-aware ordering \u2014 push sequence respects convergence dependencies (OSPF before BGP)\n\u2462 Idempotent intent \u2014 re-run produces same result; FRR merges additive config\n\u2463 SOT-first, always \u2014 never hardcode device facts; always query the source of truth\n\u2464 Validate, don't trust \u2014 match expected state against actual state after every change",
+      "fontSize": 15,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "frame",
+      "id": "el-122",
+      "x": 10600,
+      "y": 0,
+      "width": 1920,
+      "height": 1080,
+      "name": "Scene 6 \u2014 Protocol Participation",
+      "strokeColor": "#495057",
+      "strokeWidth": 1
+    },
+    {
+      "type": "text",
+      "id": "el-123",
+      "x": 10700,
+      "y": 60,
+      "width": 720.0,
+      "height": 52,
+      "text": "NetClaw Joins the Network",
+      "fontSize": 48,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-124",
+      "x": 10700,
+      "y": 120,
+      "width": 624.0,
+      "height": 24,
+      "text": "From operator to participant \u2014 the agent IS a router",
+      "fontSize": 20,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#868e96"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-125",
+      "x": 10680,
+      "y": 220,
+      "width": 400,
+      "height": 350,
+      "strokeColor": "#c92a2a",
+      "backgroundColor": "#fff5f5",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 3
+    },
+    {
+      "type": "text",
+      "id": "el-126",
+      "x": 10720,
+      "y": 240,
+      "width": 264.0,
+      "height": 26,
+      "text": "\ud83e\udd9e NetClaw (AS 65001)",
+      "fontSize": 22,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#c92a2a"
+    },
+    {
+      "type": "text",
+      "id": "el-127",
+      "x": 10720,
+      "y": 280,
+      "width": 192.0,
+      "height": 20,
+      "text": "Router-ID: 10.0.99.1",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-128",
+      "x": 10720,
+      "y": 320,
+      "width": 240.0,
+      "height": 20,
+      "text": "OSPFv2 Speaker (RFC 2328)",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#2f9e44"
+    },
+    {
+      "type": "text",
+      "id": "el-129",
+      "x": 10740,
+      "y": 345,
+      "width": 218.4,
+      "height": 54,
+      "text": "\u2022 FULL adjacency with P2\n\u2022 Learns complete LSDB\n\u2022 Discovers all router-IDs",
+      "fontSize": 14,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-130",
+      "x": 10720,
+      "y": 420,
+      "width": 211.2,
+      "height": 20,
+      "text": "BGP Speaker (RFC 4271)",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#862e9c"
+    },
+    {
+      "type": "text",
+      "id": "el-131",
+      "x": 10740,
+      "y": 445,
+      "width": 243.6,
+      "height": 72,
+      "text": "\u2022 eBGP to RR1 loopback\n\u2022 Injects / withdraws routes\n\u2022 Queries remote RIB\n\u2022 Manipulates path attributes",
+      "fontSize": 14,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "line",
+      "id": "el-132",
+      "x": 11080,
+      "y": 400,
+      "width": 120,
+      "height": 0,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          120,
+          0
+        ]
+      ],
+      "strokeColor": "#c92a2a",
+      "strokeWidth": 3,
+      "strokeStyle": "dashed"
+    },
+    {
+      "type": "text",
+      "id": "el-133",
+      "x": 11090,
+      "y": 410,
+      "width": 100,
+      "height": 32,
+      "text": "veth pair\n10.0.99.1/30",
+      "fontSize": 12,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#c92a2a"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-134",
+      "x": 11200,
+      "y": 220,
+      "width": 700,
+      "height": 350,
+      "strokeColor": "#868e96",
+      "backgroundColor": "#f8f9fa",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 1
+    },
+    {
+      "type": "text",
+      "id": "el-135",
+      "x": 11450,
+      "y": 230,
+      "width": 200,
+      "height": 22,
+      "text": "SP Core \u2014 AS 65000",
+      "fontSize": 18,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-136",
+      "x": 11220,
+      "y": 370,
+      "width": 100,
+      "height": 50,
+      "strokeColor": "#495057",
+      "backgroundColor": "#b2f2bb",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-137",
+      "x": 11230,
+      "y": 385,
+      "width": 80,
+      "height": 20,
+      "text": "P2",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-138",
+      "x": 11380,
+      "y": 370,
+      "width": 100,
+      "height": 50,
+      "strokeColor": "#495057",
+      "backgroundColor": "#b2f2bb",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-139",
+      "x": 11390,
+      "y": 385,
+      "width": 80,
+      "height": 20,
+      "text": "P1",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-140",
+      "x": 11540,
+      "y": 370,
+      "width": 100,
+      "height": 50,
+      "strokeColor": "#495057",
+      "backgroundColor": "#ffec99",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-141",
+      "x": 11550,
+      "y": 385,
+      "width": 80,
+      "height": 20,
+      "text": "RR1",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-142",
+      "x": 11700,
+      "y": 370,
+      "width": 100,
+      "height": 50,
+      "strokeColor": "#495057",
+      "backgroundColor": "#b2f2bb",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-143",
+      "x": 11710,
+      "y": 385,
+      "width": 80,
+      "height": 20,
+      "text": "PE1",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-144",
+      "x": 11220,
+      "y": 480,
+      "width": 100,
+      "height": 50,
+      "strokeColor": "#495057",
+      "backgroundColor": "#b2f2bb",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-145",
+      "x": 11230,
+      "y": 495,
+      "width": 80,
+      "height": 20,
+      "text": "P4",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-146",
+      "x": 11380,
+      "y": 480,
+      "width": 100,
+      "height": 50,
+      "strokeColor": "#495057",
+      "backgroundColor": "#b2f2bb",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-147",
+      "x": 11390,
+      "y": 495,
+      "width": 80,
+      "height": 20,
+      "text": "P3",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "line",
+      "id": "el-148",
+      "x": 10880,
+      "y": 220,
+      "width": 700,
+      "height": 0,
+      "points": [
+        [
+          0,
+          170
+        ],
+        [
+          700,
+          170
+        ]
+      ],
+      "strokeColor": "#862e9c",
+      "strokeWidth": 2,
+      "strokeStyle": "dashed"
+    },
+    {
+      "type": "text",
+      "id": "el-149",
+      "x": 11150,
+      "y": 180,
+      "width": 300,
+      "height": 18,
+      "text": "eBGP session (AS 65001 \u2194 65000)",
+      "fontSize": 14,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#862e9c"
+    },
+    {
+      "type": "text",
+      "id": "el-150",
+      "x": 10700,
+      "y": 630,
+      "width": 237.6,
+      "height": 26,
+      "text": "What This Enables:",
+      "fontSize": 22,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-151",
+      "x": 10700,
+      "y": 670,
+      "width": 400,
+      "height": 80,
+      "strokeColor": "#1971c2",
+      "backgroundColor": "#e7f5ff",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-152",
+      "x": 10715,
+      "y": 680,
+      "width": 201.6,
+      "height": 20,
+      "text": "\ud83d\udd04 Convergence Testing",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1971c2"
+    },
+    {
+      "type": "text",
+      "id": "el-153",
+      "x": 10715,
+      "y": 710,
+      "width": 296.4,
+      "height": 17,
+      "text": "Inject/withdraw, measure reconvergence",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-154",
+      "x": 11130,
+      "y": 670,
+      "width": 400,
+      "height": 80,
+      "strokeColor": "#1971c2",
+      "backgroundColor": "#e7f5ff",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-155",
+      "x": 11145,
+      "y": 680,
+      "width": 172.79999999999998,
+      "height": 20,
+      "text": "\ud83e\uddea What-If Analysis",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1971c2"
+    },
+    {
+      "type": "text",
+      "id": "el-156",
+      "x": 11145,
+      "y": 710,
+      "width": 397.8,
+      "height": 17,
+      "text": "Advertise with different attrs, watch traffic shift",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-157",
+      "x": 11560,
+      "y": 670,
+      "width": 400,
+      "height": 80,
+      "strokeColor": "#1971c2",
+      "backgroundColor": "#e7f5ff",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-158",
+      "x": 11575,
+      "y": 680,
+      "width": 211.2,
+      "height": 20,
+      "text": "\ud83c\udf10 Cross-Domain Peering",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1971c2"
+    },
+    {
+      "type": "text",
+      "id": "el-159",
+      "x": 11575,
+      "y": 710,
+      "width": 312.0,
+      "height": 17,
+      "text": "Two NetClaws peer over ngrok (IXP model)",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-160",
+      "x": 11990,
+      "y": 670,
+      "width": 400,
+      "height": 80,
+      "strokeColor": "#1971c2",
+      "backgroundColor": "#e7f5ff",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-161",
+      "x": 12005,
+      "y": 680,
+      "width": 201.6,
+      "height": 20,
+      "text": "\ud83d\udea8 Incident Simulation",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1971c2"
+    },
+    {
+      "type": "text",
+      "id": "el-162",
+      "x": 12005,
+      "y": 710,
+      "width": 273.0,
+      "height": 17,
+      "text": "Flap a prefix, measure blast radius",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "text",
+      "id": "el-163",
+      "x": 11100,
+      "y": 800,
+      "width": 900,
+      "height": 24,
+      "text": "The agent doesn't just READ the routing table \u2014 it CONTRIBUTES to it.",
+      "fontSize": 20,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#c92a2a"
+    },
+    {
+      "type": "frame",
+      "id": "el-164",
+      "x": 12720,
+      "y": 0,
+      "width": 1920,
+      "height": 1080,
+      "name": "Scene 7 \u2014 MCP Ecosystem",
+      "strokeColor": "#495057",
+      "strokeWidth": 1
+    },
+    {
+      "type": "text",
+      "id": "el-165",
+      "x": 12820,
+      "y": 60,
+      "width": 835.1999999999999,
+      "height": 52,
+      "text": "MCP: Universal Tool Interface",
+      "fontSize": 48,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-166",
+      "x": 12820,
+      "y": 120,
+      "width": 888.0,
+      "height": 24,
+      "text": "Model Context Protocol \u2014 one spec, 66 integrations, infinite composability",
+      "fontSize": 20,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#868e96"
+    },
+    {
+      "type": "ellipse",
+      "id": "el-167",
+      "x": 13530,
+      "y": 380,
+      "width": 300,
+      "height": 300,
+      "strokeColor": "#c92a2a",
+      "backgroundColor": "#fff5f5",
+      "fillStyle": "solid",
+      "strokeWidth": 3
+    },
+    {
+      "type": "text",
+      "id": "el-168",
+      "x": 13600,
+      "y": 490,
+      "width": 160,
+      "height": 48,
+      "text": "\ud83e\udd9e NetClaw\n66 MCP Servers",
+      "fontSize": 20,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#c92a2a"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-169",
+      "x": 12820,
+      "y": 200,
+      "width": 320,
+      "height": 100,
+      "strokeColor": "#2f9e44",
+      "backgroundColor": "#b2f2bb",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-170",
+      "x": 12835,
+      "y": 210,
+      "width": 182.4,
+      "height": 20,
+      "text": "\ud83d\udda7 Device Automation",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#2f9e44"
+    },
+    {
+      "type": "text",
+      "id": "el-171",
+      "x": 12835,
+      "y": 240,
+      "width": 156.0,
+      "height": 34,
+      "text": "pyATS \u2022 gNMI \u2022 JunOS\nArista \u2022 F5 \u2022 NSO",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-172",
+      "x": 12820,
+      "y": 380,
+      "width": 320,
+      "height": 100,
+      "strokeColor": "#1971c2",
+      "backgroundColor": "#a5d8ff",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-173",
+      "x": 12835,
+      "y": 390,
+      "width": 163.2,
+      "height": 20,
+      "text": "\ud83d\udccb Source of Truth",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1971c2"
+    },
+    {
+      "type": "text",
+      "id": "el-174",
+      "x": 12835,
+      "y": 420,
+      "width": 148.2,
+      "height": 34,
+      "text": "Nautobot \u2022 NetBox\nInfrahub \u2022 Infoblox",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-175",
+      "x": 12820,
+      "y": 560,
+      "width": 320,
+      "height": 100,
+      "strokeColor": "#e8590c",
+      "backgroundColor": "#ffec99",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-176",
+      "x": 12835,
+      "y": 570,
+      "width": 144.0,
+      "height": 20,
+      "text": "\ud83c\udfab ITSM & DevOps",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#e8590c"
+    },
+    {
+      "type": "text",
+      "id": "el-177",
+      "x": 12835,
+      "y": 600,
+      "width": 202.79999999999998,
+      "height": 34,
+      "text": "ServiceNow \u2022 Jira \u2022 GitHub\nGitLab \u2022 Jenkins",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-178",
+      "x": 12820,
+      "y": 740,
+      "width": 320,
+      "height": 100,
+      "strokeColor": "#862e9c",
+      "backgroundColor": "#e5dbff",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-179",
+      "x": 12835,
+      "y": 750,
+      "width": 144.0,
+      "height": 20,
+      "text": "\ud83d\udcca Observability",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#862e9c"
+    },
+    {
+      "type": "text",
+      "id": "el-180",
+      "x": 12835,
+      "y": 780,
+      "width": 226.2,
+      "height": 34,
+      "text": "Grafana \u2022 Prometheus \u2022 Splunk\nDatadog \u2022 Kubeshark",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-181",
+      "x": 14120,
+      "y": 200,
+      "width": 320,
+      "height": 100,
+      "strokeColor": "#c92a2a",
+      "backgroundColor": "#ffc9c9",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-182",
+      "x": 14135,
+      "y": 210,
+      "width": 96.0,
+      "height": 20,
+      "text": "\ud83d\udd12 Security",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#c92a2a"
+    },
+    {
+      "type": "text",
+      "id": "el-183",
+      "x": 14135,
+      "y": 240,
+      "width": 187.2,
+      "height": 51,
+      "text": "Check Point (15 MCPs)\nFMC \u2022 Panorama \u2022 Zscaler\nCloudflare \u2022 FortiMgr",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-184",
+      "x": 14120,
+      "y": 380,
+      "width": 320,
+      "height": 100,
+      "strokeColor": "#1971c2",
+      "backgroundColor": "#d0ebff",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-185",
+      "x": 14135,
+      "y": 390,
+      "width": 163.2,
+      "height": 20,
+      "text": "\u2601\ufe0f Cloud & SD-WAN",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1971c2"
+    },
+    {
+      "type": "text",
+      "id": "el-186",
+      "x": 14135,
+      "y": 420,
+      "width": 171.6,
+      "height": 51,
+      "text": "AWS (27 tools) \u2022 Azure\nGCP \u2022 Meraki \u2022 Prisma\nCisco SD-WAN",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-187",
+      "x": 14120,
+      "y": 560,
+      "width": 320,
+      "height": 100,
+      "strokeColor": "#2f9e44",
+      "backgroundColor": "#ebfbee",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-188",
+      "x": 14135,
+      "y": 570,
+      "width": 172.79999999999998,
+      "height": 20,
+      "text": "\ud83e\uddea Lab & Simulation",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#2f9e44"
+    },
+    {
+      "type": "text",
+      "id": "el-189",
+      "x": 14135,
+      "y": 600,
+      "width": 187.2,
+      "height": 34,
+      "text": "Cisco CML \u2022 ContainerLab\nGNS3 \u2022 EVE-NG \u2022 Batfish",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-190",
+      "x": 14120,
+      "y": 740,
+      "width": 320,
+      "height": 100,
+      "strokeColor": "#495057",
+      "backgroundColor": "#e9ecef",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-191",
+      "x": 14135,
+      "y": 750,
+      "width": 144.0,
+      "height": 20,
+      "text": "\ud83d\udcd0 Visualization",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "text",
+      "id": "el-192",
+      "x": 14135,
+      "y": 780,
+      "width": 195.0,
+      "height": 34,
+      "text": "Draw.io \u2022 Markmap \u2022 Kroki\nCanvas A2UI \u2022 Blender 3D",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-193",
+      "x": 13020,
+      "y": 900,
+      "width": 1300,
+      "height": 80,
+      "strokeColor": "#e8590c",
+      "backgroundColor": "#fff4e6",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-194",
+      "x": 13070,
+      "y": 915,
+      "width": 1200,
+      "height": 24,
+      "text": "Think of MCP like USB for AI: one standard \u2192 any tool plugs in \u2192 agent uses it immediately",
+      "fontSize": 20,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#e8590c"
+    },
+    {
+      "type": "text",
+      "id": "el-195",
+      "x": 13070,
+      "y": 950,
+      "width": 1200,
+      "height": 20,
+      "text": "Add a new MCP server \u2192 zero code changes to the agent \u2192 new capability unlocked",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "frame",
+      "id": "el-196",
+      "x": 14840,
+      "y": 0,
+      "width": 1920,
+      "height": 1080,
+      "name": "Scene 8 \u2014 Safety and Audit",
+      "strokeColor": "#495057",
+      "strokeWidth": 1
+    },
+    {
+      "type": "text",
+      "id": "el-197",
+      "x": 14940,
+      "y": 60,
+      "width": 720.0,
+      "height": 52,
+      "text": "Trust Through Constraints",
+      "fontSize": 48,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-198",
+      "x": 14940,
+      "y": 120,
+      "width": 420.0,
+      "height": 24,
+      "text": "How NetClaw earns production access",
+      "fontSize": 20,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#868e96"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-199",
+      "x": 14920,
+      "y": 180,
+      "width": 800,
+      "height": 380,
+      "strokeColor": "#c92a2a",
+      "backgroundColor": "#fff5f5",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-200",
+      "x": 14940,
+      "y": 195,
+      "width": 356.4,
+      "height": 26,
+      "text": "Non-Negotiable Safety Rules",
+      "fontSize": 22,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#c92a2a"
+    },
+    {
+      "type": "text",
+      "id": "el-201",
+      "x": 14960,
+      "y": 240,
+      "width": 576.0,
+      "height": 20,
+      "text": "\u2716 Never guess device state \u2014 always run a show command first",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-202",
+      "x": 14960,
+      "y": 290,
+      "width": 480.0,
+      "height": 20,
+      "text": "\u2716 Never apply config without a pre-change baseline",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-203",
+      "x": 14960,
+      "y": 340,
+      "width": 595.1999999999999,
+      "height": 20,
+      "text": "\u2716 Never run destructive commands (write erase, reload, format)",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-204",
+      "x": 14960,
+      "y": 390,
+      "width": 614.4,
+      "height": 20,
+      "text": "\u2716 Never skip the Change Request \u2014 ServiceNow CR must be Approved",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-205",
+      "x": 14960,
+      "y": 440,
+      "width": 604.8,
+      "height": 20,
+      "text": "\u2716 Always verify after changes \u2014 if verification fails, escalate",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-206",
+      "x": 14960,
+      "y": 490,
+      "width": 585.6,
+      "height": 20,
+      "text": "\u2716 Always commit to GAIT \u2014 immutable audit trail every session",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-207",
+      "x": 15790,
+      "y": 180,
+      "width": 700,
+      "height": 200,
+      "strokeColor": "#495057",
+      "backgroundColor": "#dee2e6",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-208",
+      "x": 15810,
+      "y": 195,
+      "width": 369.59999999999997,
+      "height": 26,
+      "text": "GAIT \u2014 Git-based AI Tracking",
+      "fontSize": 22,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "text",
+      "id": "el-209",
+      "x": 15810,
+      "y": 240,
+      "width": 468.0,
+      "height": 152,
+      "text": "Every session records:\n\u2022 What was asked\n\u2022 What data was collected (and from where)\n\u2022 What was changed (and on what device)\n\u2022 What the verification result was\n\u2022 What tickets were created\n\n\u2192 \"What did the AI do and why?\" always has an answer",
+      "fontSize": 15,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-210",
+      "x": 15790,
+      "y": 420,
+      "width": 700,
+      "height": 200,
+      "strokeColor": "#862e9c",
+      "backgroundColor": "#f8f0fc",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-211",
+      "x": 15810,
+      "y": 435,
+      "width": 528.0,
+      "height": 24,
+      "text": "DefenseClaw \u2014 Enterprise Security (Optional)",
+      "fontSize": 20,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#862e9c"
+    },
+    {
+      "type": "text",
+      "id": "el-212",
+      "x": 15810,
+      "y": 475,
+      "width": 420.0,
+      "height": 108,
+      "text": "Ring 1: NVIDIA OpenShell (container isolation)\nRing 2: Cisco DefenseClaw (runtime guardrails)\nRing 3: NetClaw agent (constrained by both)\n\nLLM inspection \u2022 Tool call filtering \u2022 SIEM export\nSecret exfiltration prevention \u2022 Audit logging",
+      "fontSize": 14,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-213",
+      "x": 14920,
+      "y": 680,
+      "width": 1560,
+      "height": 100,
+      "strokeColor": "#2f9e44",
+      "backgroundColor": "#ebfbee",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-214",
+      "x": 14960,
+      "y": 700,
+      "width": 1036.8,
+      "height": 28,
+      "text": "Production-Grade AI Automation = Capability + Constraints + Auditability",
+      "fontSize": 24,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#2f9e44"
+    },
+    {
+      "type": "text",
+      "id": "el-215",
+      "x": 14960,
+      "y": 740,
+      "width": 787.1999999999999,
+      "height": 20,
+      "text": "The agent CAN do powerful things. The safety model ensures it does them CORRECTLY.",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "frame",
+      "id": "el-216",
+      "x": 16960,
+      "y": 0,
+      "width": 1920,
+      "height": 1080,
+      "name": "Scene 9 \u2014 Get Started",
+      "strokeColor": "#495057",
+      "strokeWidth": 1
+    },
+    {
+      "type": "text",
+      "id": "el-217",
+      "x": 17420,
+      "y": 150,
+      "width": 1000,
+      "height": 68,
+      "text": "Get Started",
+      "fontSize": 64,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "rectangle",
+      "id": "el-218",
+      "x": 17320,
+      "y": 280,
+      "width": 1200,
+      "height": 200,
+      "strokeColor": "#1971c2",
+      "backgroundColor": "#e7f5ff",
+      "fillStyle": "solid",
+      "roundness": {
+        "type": 3
+      },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "el-219",
+      "x": 17340,
+      "y": 300,
+      "width": 720.0,
+      "height": 24,
+      "text": "git clone https://github.com/automateyournetwork/netclaw.git",
+      "fontSize": 20,
+      "fontFamily": 3,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-220",
+      "x": 17340,
+      "y": 340,
+      "width": 408.0,
+      "height": 24,
+      "text": "cd netclaw && ./scripts/install.sh",
+      "fontSize": 20,
+      "fontFamily": 3,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-221",
+      "x": 17340,
+      "y": 400,
+      "width": 615.6,
+      "height": 22,
+      "text": "That's it. 163 skills, 66 MCP integrations, setup wizard.",
+      "fontSize": 18,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "text",
+      "id": "el-222",
+      "x": 17340,
+      "y": 430,
+      "width": 734.4,
+      "height": 22,
+      "text": "Works with Anthropic Claude, OpenAI, AWS Bedrock, 30+ LLM providers.",
+      "fontSize": 18,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#495057"
+    },
+    {
+      "type": "text",
+      "id": "el-223",
+      "x": 17320,
+      "y": 550,
+      "width": 84.0,
+      "height": 32,
+      "text": "Links",
+      "fontSize": 28,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "el-224",
+      "x": 17320,
+      "y": 600,
+      "width": 572.4,
+      "height": 22,
+      "text": "NetClaw:       github.com/automateyournetwork/netclaw",
+      "fontSize": 18,
+      "fontFamily": 3,
+      "textAlign": "left",
+      "strokeColor": "#1971c2"
+    },
+    {
+      "type": "text",
+      "id": "el-225",
+      "x": 17320,
+      "y": 635,
+      "width": 464.4,
+      "height": 22,
+      "text": "OpenClaw:      github.com/openclaw/openclaw",
+      "fontSize": 18,
+      "fontFamily": 3,
+      "textAlign": "left",
+      "strokeColor": "#1971c2"
+    },
+    {
+      "type": "text",
+      "id": "el-226",
+      "x": 17320,
+      "y": 670,
+      "width": 410.4,
+      "height": 22,
+      "text": "MCP Spec:      modelcontextprotocol.io",
+      "fontSize": 18,
+      "fontFamily": 3,
+      "textAlign": "left",
+      "strokeColor": "#1971c2"
+    },
+    {
+      "type": "text",
+      "id": "el-227",
+      "x": 17320,
+      "y": 705,
+      "width": 334.8,
+      "height": 22,
+      "text": "ContainerLab:  containerlab.dev",
+      "fontSize": 18,
+      "fontFamily": 3,
+      "textAlign": "left",
+      "strokeColor": "#1971c2"
+    },
+    {
+      "type": "text",
+      "id": "el-228",
+      "x": 17320,
+      "y": 740,
+      "width": 442.8,
+      "height": 22,
+      "text": "NetGru Blog:   blogs.cisco.com/tag/netgru",
+      "fontSize": 18,
+      "fontFamily": 3,
+      "textAlign": "left",
+      "strokeColor": "#1971c2"
+    },
+    {
+      "type": "text",
+      "id": "el-229",
+      "x": 17320,
+      "y": 775,
+      "width": 810.0,
+      "height": 22,
+      "text": "NetGru Live:   youtube.com/playlist?list=PL2k86RlAekM-Vv4pLLFYsQ6Re9BBIj4dt",
+      "fontSize": 18,
+      "fontFamily": 3,
+      "textAlign": "left",
+      "strokeColor": "#1971c2"
+    },
+    {
+      "type": "text",
+      "id": "el-230",
+      "x": 17420,
+      "y": 880,
+      "width": 1000,
+      "height": 40,
+      "text": "NetClaw \u2014 Reach. Grab. Execute. \ud83e\udd9e",
+      "fontSize": 36,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#c92a2a"
+    }
+  ],
+  "appState": {
+    "viewBackgroundColor": "#ffffff",
+    "gridSize": 20
+  }
+}

@@ -1,0 +1,399 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "netclaw-demo",
+  "elements": [
+    {
+      "type": "text",
+      "id": "title",
+      "x": 200,
+      "y": 30,
+      "width": 700,
+      "height": 45,
+      "text": "NetClaw Demo — SOT-to-Validated-Network Pipeline",
+      "fontSize": 30,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "x": 200,
+      "y": 75,
+      "width": 700,
+      "height": 22,
+      "text": "Intent → Source of Truth → Config Generation → Device Push → Validation",
+      "fontSize": 14,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#868e96"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "phase1-box",
+      "x": 50,
+      "y": 130,
+      "width": 200,
+      "height": 180,
+      "strokeColor": "#c92a2a",
+      "backgroundColor": "#fff5f5",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "phase1-header",
+      "x": 60,
+      "y": 138,
+      "width": 180,
+      "height": 25,
+      "text": "Phase 1: Deploy Lab",
+      "fontSize": 14,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#c92a2a"
+    },
+    {
+      "type": "text",
+      "id": "phase1-content",
+      "x": 60,
+      "y": 168,
+      "width": 180,
+      "height": 130,
+      "text": "ContainerLab deploys\n6 FRR containers\n\n┌──────────────┐\n│ PE1 P1 P2 RR1 │\n│     P3 P4     │\n└──────────────┘\n\nAll routers: BLANK\n(no config yet)",
+      "fontSize": 11,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "line",
+      "id": "arrow-1-2",
+      "x": 250,
+      "y": 220,
+      "width": 50,
+      "height": 0,
+      "points": [[0, 0], [50, 0]],
+      "strokeColor": "#1e1e1e",
+      "strokeWidth": 2,
+      "endArrowhead": "arrow"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "phase2-box",
+      "x": 300,
+      "y": 130,
+      "width": 200,
+      "height": 180,
+      "strokeColor": "#1971c2",
+      "backgroundColor": "#e7f5ff",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "phase2-header",
+      "x": 310,
+      "y": 138,
+      "width": 180,
+      "height": 25,
+      "text": "Phase 2: Populate SOT",
+      "fontSize": 14,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#1971c2"
+    },
+    {
+      "type": "text",
+      "id": "phase2-content",
+      "x": 310,
+      "y": 168,
+      "width": 180,
+      "height": 130,
+      "text": "Nautobot Design Job\ncreates:\n\n• 6 devices\n• All interfaces\n• All IP addresses\n• BGP peerings\n• OSPF configs\n• Cables\n\n→ One API call",
+      "fontSize": 11,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "line",
+      "id": "arrow-2-3",
+      "x": 500,
+      "y": 220,
+      "width": 50,
+      "height": 0,
+      "points": [[0, 0], [50, 0]],
+      "strokeColor": "#1e1e1e",
+      "strokeWidth": 2,
+      "endArrowhead": "arrow"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "phase3-box",
+      "x": 550,
+      "y": 130,
+      "width": 200,
+      "height": 180,
+      "strokeColor": "#2f9e44",
+      "backgroundColor": "#ebfbee",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "phase3-header",
+      "x": 560,
+      "y": 138,
+      "width": 180,
+      "height": 25,
+      "text": "Phase 3: Gen + Push",
+      "fontSize": 14,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#2f9e44"
+    },
+    {
+      "type": "text",
+      "id": "phase3-content",
+      "x": 560,
+      "y": 168,
+      "width": 180,
+      "height": 130,
+      "text": "For each device:\n\n1. GraphQL query\n   (get intended state)\n\n2. Build FRR config\n   (AI = template engine)\n\n3. vtysh push\n   (dependency order:\n    core → edge → RR)",
+      "fontSize": 11,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "line",
+      "id": "arrow-3-4",
+      "x": 750,
+      "y": 220,
+      "width": 50,
+      "height": 0,
+      "points": [[0, 0], [50, 0]],
+      "strokeColor": "#1e1e1e",
+      "strokeWidth": 2,
+      "endArrowhead": "arrow"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "phase4-box",
+      "x": 800,
+      "y": 130,
+      "width": 200,
+      "height": 180,
+      "strokeColor": "#862e9c",
+      "backgroundColor": "#f8f0fc",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "phase4-header",
+      "x": 810,
+      "y": 138,
+      "width": 180,
+      "height": 25,
+      "text": "Phase 4: Validate",
+      "fontSize": 14,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#862e9c"
+    },
+    {
+      "type": "text",
+      "id": "phase4-content",
+      "x": 810,
+      "y": 168,
+      "width": 180,
+      "height": 130,
+      "text": "Verify protocol state:\n\n✓ OSPF neighbors FULL\n✓ BGP peers Established\n✓ All 6 loopbacks in RIB\n✓ Route propagation\n  via route reflector\n\n→ Expected matches actual\n→ Network is OPERATIONAL",
+      "fontSize": 11,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "detail-section",
+      "x": 50,
+      "y": 360,
+      "width": 950,
+      "height": 280,
+      "strokeColor": "#dee2e6",
+      "backgroundColor": "#f8f9fa",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 },
+      "strokeWidth": 1
+    },
+    {
+      "type": "text",
+      "id": "detail-title",
+      "x": 70,
+      "y": 370,
+      "width": 300,
+      "height": 22,
+      "text": "Phase 3 Deep Dive: Data Flow",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "strokeColor": "#1e1e1e"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "nautobot-detail",
+      "x": 80,
+      "y": 410,
+      "width": 200,
+      "height": 90,
+      "strokeColor": "#1971c2",
+      "backgroundColor": "#a5d8ff",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 }
+    },
+    {
+      "type": "text",
+      "id": "nautobot-detail-label",
+      "x": 90,
+      "y": 420,
+      "width": 180,
+      "height": 70,
+      "text": "Nautobot GraphQL\n\ndevices { interfaces {\n  ip_addresses }}\nbgp_routing_instances\nospf_interface_configs",
+      "fontSize": 11,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "line",
+      "id": "detail-arrow-1",
+      "x": 280,
+      "y": 455,
+      "width": 80,
+      "height": 0,
+      "points": [[0, 0], [80, 0]],
+      "strokeColor": "#1e1e1e",
+      "strokeWidth": 2,
+      "endArrowhead": "arrow"
+    },
+    {
+      "type": "text",
+      "id": "detail-arrow-1-label",
+      "x": 285,
+      "y": 435,
+      "width": 70,
+      "height": 18,
+      "text": "JSON data",
+      "fontSize": 11,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#868e96"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "agent-brain",
+      "x": 360,
+      "y": 410,
+      "width": 220,
+      "height": 90,
+      "strokeColor": "#e8590c",
+      "backgroundColor": "#fff4e6",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 }
+    },
+    {
+      "type": "text",
+      "id": "agent-brain-label",
+      "x": 370,
+      "y": 420,
+      "width": 200,
+      "height": 70,
+      "text": "🦞 NetClaw Reasoning\n\n• Interprets data model\n• Applies protocol knowledge\n• Builds vendor-specific CLI\n• Orders by dependency",
+      "fontSize": 11,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "line",
+      "id": "detail-arrow-2",
+      "x": 580,
+      "y": 455,
+      "width": 80,
+      "height": 0,
+      "points": [[0, 0], [80, 0]],
+      "strokeColor": "#1e1e1e",
+      "strokeWidth": 2,
+      "endArrowhead": "arrow"
+    },
+    {
+      "type": "text",
+      "id": "detail-arrow-2-label",
+      "x": 585,
+      "y": 435,
+      "width": 70,
+      "height": 18,
+      "text": "FRR config",
+      "fontSize": 11,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#868e96"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "device-push",
+      "x": 660,
+      "y": 410,
+      "width": 200,
+      "height": 90,
+      "strokeColor": "#2f9e44",
+      "backgroundColor": "#b2f2bb",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 }
+    },
+    {
+      "type": "text",
+      "id": "device-push-label",
+      "x": 670,
+      "y": 420,
+      "width": 180,
+      "height": 70,
+      "text": "docker exec vtysh\n\ninterface lo\n ip address 10.255.255.2/32\nrouter ospf\n ospf router-id 10.255.255.2\nrouter bgp 65000\n neighbor ... remote-as ...",
+      "fontSize": 10,
+      "fontFamily": 3,
+      "textAlign": "left"
+    },
+
+    {
+      "type": "text",
+      "id": "key-insight",
+      "x": 80,
+      "y": 530,
+      "width": 900,
+      "height": 90,
+      "text": "KEY INSIGHT: No templates exist. No Jinja2. No Ansible playbooks.\nThe AI agent IS the template engine — it reads structured data, understands protocol semantics,\nand generates vendor-specific configuration. Change the data model, the config follows automatically.",
+      "fontSize": 14,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#c92a2a"
+    }
+  ],
+  "appState": {
+    "viewBackgroundColor": "#ffffff",
+    "gridSize": 20
+  }
+}

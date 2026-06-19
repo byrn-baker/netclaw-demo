@@ -1,0 +1,444 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "netclaw-demo",
+  "elements": [
+    {
+      "type": "text",
+      "id": "title",
+      "x": 300,
+      "y": 30,
+      "width": 500,
+      "height": 45,
+      "text": "How NetClaw Works",
+      "fontSize": 36,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "x": 300,
+      "y": 80,
+      "width": 500,
+      "height": 25,
+      "text": "Three-Layer Agent Architecture",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#868e96"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "human-box",
+      "x": 60,
+      "y": 150,
+      "width": 180,
+      "height": 100,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "#ffc9c9",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "human-label",
+      "x": 70,
+      "y": 165,
+      "width": 160,
+      "height": 70,
+      "text": "👤 Human\n\nSlack / WebEx / TUI\n\"Deploy the SP core\"",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "line",
+      "id": "arrow-human-to-agent",
+      "x": 240,
+      "y": 200,
+      "width": 80,
+      "height": 0,
+      "points": [[0, 0], [80, 0]],
+      "strokeColor": "#1e1e1e",
+      "strokeWidth": 2,
+      "endArrowhead": "arrow"
+    },
+    {
+      "type": "text",
+      "id": "arrow-label-intent",
+      "x": 245,
+      "y": 178,
+      "width": 70,
+      "height": 20,
+      "text": "Intent",
+      "fontSize": 12,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#868e96"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "agent-box",
+      "x": 320,
+      "y": 130,
+      "width": 280,
+      "height": 460,
+      "strokeColor": "#1971c2",
+      "backgroundColor": "#e7f5ff",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 },
+      "strokeWidth": 2
+    },
+    {
+      "type": "text",
+      "id": "agent-title",
+      "x": 340,
+      "y": 140,
+      "width": 240,
+      "height": 30,
+      "text": "🦞 NetClaw Agent",
+      "fontSize": 20,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#1971c2"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "soul-box",
+      "x": 340,
+      "y": 180,
+      "width": 240,
+      "height": 80,
+      "strokeColor": "#862e9c",
+      "backgroundColor": "#f3d9fa",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 }
+    },
+    {
+      "type": "text",
+      "id": "soul-label",
+      "x": 350,
+      "y": 188,
+      "width": 220,
+      "height": 65,
+      "text": "SOUL.md — Identity\n\nCCIE expertise, 12 rules,\nprotocol knowledge, personality",
+      "fontSize": 12,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "skills-box",
+      "x": 340,
+      "y": 280,
+      "width": 240,
+      "height": 80,
+      "strokeColor": "#2f9e44",
+      "backgroundColor": "#d8f5a2",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 }
+    },
+    {
+      "type": "text",
+      "id": "skills-label",
+      "x": 350,
+      "y": 288,
+      "width": 220,
+      "height": 65,
+      "text": "Skills — Procedures\n\n163 structured workflows\n(runbooks the agent executes)",
+      "fontSize": 12,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "mcp-box",
+      "x": 340,
+      "y": 380,
+      "width": 240,
+      "height": 80,
+      "strokeColor": "#e8590c",
+      "backgroundColor": "#fff4e6",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 }
+    },
+    {
+      "type": "text",
+      "id": "mcp-label",
+      "x": 350,
+      "y": 388,
+      "width": 220,
+      "height": 65,
+      "text": "MCP Servers — Capabilities\n\n66 integrations (APIs wrapped\nas stateless tool calls)",
+      "fontSize": 12,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "gait-box",
+      "x": 340,
+      "y": 480,
+      "width": 240,
+      "height": 80,
+      "strokeColor": "#495057",
+      "backgroundColor": "#dee2e6",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 }
+    },
+    {
+      "type": "text",
+      "id": "gait-label",
+      "x": 350,
+      "y": 488,
+      "width": 220,
+      "height": 65,
+      "text": "GAIT — Audit Trail\n\nImmutable Git record of\nevery action + decision",
+      "fontSize": 12,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "line",
+      "id": "arrow-agent-to-infra",
+      "x": 600,
+      "y": 350,
+      "width": 80,
+      "height": 0,
+      "points": [[0, 0], [80, 0]],
+      "strokeColor": "#1e1e1e",
+      "strokeWidth": 2,
+      "endArrowhead": "arrow"
+    },
+    {
+      "type": "text",
+      "id": "arrow-label-tools",
+      "x": 605,
+      "y": 328,
+      "width": 70,
+      "height": 20,
+      "text": "Tool Calls",
+      "fontSize": 12,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#868e96"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "infra-group",
+      "x": 680,
+      "y": 130,
+      "width": 260,
+      "height": 460,
+      "strokeColor": "#868e96",
+      "backgroundColor": "#f8f9fa",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 },
+      "strokeWidth": 1
+    },
+    {
+      "type": "text",
+      "id": "infra-title",
+      "x": 700,
+      "y": 140,
+      "width": 220,
+      "height": 25,
+      "text": "Infrastructure",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "strokeColor": "#495057"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "sot-box",
+      "x": 700,
+      "y": 175,
+      "width": 220,
+      "height": 55,
+      "strokeColor": "#1971c2",
+      "backgroundColor": "#a5d8ff",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 }
+    },
+    {
+      "type": "text",
+      "id": "sot-label",
+      "x": 710,
+      "y": 185,
+      "width": 200,
+      "height": 40,
+      "text": "📋 Source of Truth\nNautobot / NetBox / Infrahub",
+      "fontSize": 12,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "devices-box",
+      "x": 700,
+      "y": 245,
+      "width": 220,
+      "height": 55,
+      "strokeColor": "#2f9e44",
+      "backgroundColor": "#b2f2bb",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 }
+    },
+    {
+      "type": "text",
+      "id": "devices-label",
+      "x": 710,
+      "y": 255,
+      "width": 200,
+      "height": 40,
+      "text": "🖧 Network Devices\npyATS / gNMI / NETCONF",
+      "fontSize": 12,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "itsm-box",
+      "x": 700,
+      "y": 315,
+      "width": 220,
+      "height": 55,
+      "strokeColor": "#e8590c",
+      "backgroundColor": "#ffec99",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 }
+    },
+    {
+      "type": "text",
+      "id": "itsm-label",
+      "x": 710,
+      "y": 325,
+      "width": 200,
+      "height": 40,
+      "text": "🎫 ITSM\nServiceNow / Jira",
+      "fontSize": 12,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "observ-box",
+      "x": 700,
+      "y": 385,
+      "width": 220,
+      "height": 55,
+      "strokeColor": "#862e9c",
+      "backgroundColor": "#e5dbff",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 }
+    },
+    {
+      "type": "text",
+      "id": "observ-label",
+      "x": 710,
+      "y": 395,
+      "width": 200,
+      "height": 40,
+      "text": "📊 Observability\nGrafana / Prometheus / Splunk",
+      "fontSize": 12,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "cloud-box",
+      "x": 700,
+      "y": 455,
+      "width": 220,
+      "height": 55,
+      "strokeColor": "#1971c2",
+      "backgroundColor": "#d0ebff",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 }
+    },
+    {
+      "type": "text",
+      "id": "cloud-label",
+      "x": 710,
+      "y": 465,
+      "width": 200,
+      "height": 40,
+      "text": "☁️ Cloud / Security\nAWS / Azure / Check Point",
+      "fontSize": 12,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "rectangle",
+      "id": "collab-box",
+      "x": 700,
+      "y": 525,
+      "width": 220,
+      "height": 55,
+      "strokeColor": "#495057",
+      "backgroundColor": "#e9ecef",
+      "fillStyle": "solid",
+      "roundness": { "type": 3 }
+    },
+    {
+      "type": "text",
+      "id": "collab-label",
+      "x": 710,
+      "y": 535,
+      "width": 200,
+      "height": 40,
+      "text": "💬 Collaboration\nSlack / WebEx / Teams / GitHub",
+      "fontSize": 12,
+      "fontFamily": 1,
+      "textAlign": "center"
+    },
+
+    {
+      "type": "text",
+      "id": "principle-1",
+      "x": 60,
+      "y": 320,
+      "width": 200,
+      "height": 20,
+      "text": "Key Principles:",
+      "fontSize": 14,
+      "fontFamily": 1,
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "type": "text",
+      "id": "principle-list",
+      "x": 60,
+      "y": 345,
+      "width": 240,
+      "height": 200,
+      "text": "① Identity defines behavior\n   (SOUL.md = system prompt)\n\n② Skills constrain actions\n   (runbooks, not freestyle)\n\n③ MCP = pluggable tools\n   (swap without rewrite)\n\n④ GAIT = trust through\n   auditability",
+      "fontSize": 12,
+      "fontFamily": 1,
+      "strokeColor": "#495057"
+    }
+  ],
+  "appState": {
+    "viewBackgroundColor": "#ffffff",
+    "gridSize": 20
+  }
+}
