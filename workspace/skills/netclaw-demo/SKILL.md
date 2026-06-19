@@ -152,25 +152,56 @@ This creates all devices, interfaces, IPs, cables, BGP models, OSPF models, and 
 
 ## Phase 3: Populate BGP Address Family Extra Attributes
 
-The design job creates PeerGroup and PeerEndpoint objects but does **not** populate the `extra_attributes` on their address family records. These attributes drive address-family-level config like `route-reflector-client`, `next-hop-self`, and `network` statements.
+### Understanding the Nautobot BGP Object Hierarchy
 
-After the design job completes, populate these attributes using the Nautobot REST API via `nautobot_graphql` and REST PATCH calls.
+The BGP Models plugin has MULTIPLE objects that each have an `extra_attributes` field. They are NOT interchangeable. You must understand which object maps to which FRR config scope:
 
-**Step 1: Find the PeerGroupAddressFamily IDs and set extra_attributes**
-
-Query the peer group address families:
 ```
-nautobot_graphql(query: "{ bgp_routing_instances { device { name } peer_groups { name id address_families { id afi_safi extra_attributes } } } }")
-```
-
-**Step 2: PATCH the RR1 IBGP peer group address family**
-
-For RR1's "IBGP" peer group address family (afi_safi = `ipv4_unicast`), set:
-```json
-{"extra_attributes": {"route-reflector-client": true}}
+RoutingInstance (one per device)
+  └── AddressFamily (RoutingInstanceAF)          ← global "address-family ipv4 unicast" scope
+       └── extra_attributes: DO NOT USE for this demo
+  └── PeerGroup (e.g., "IBGP" on RR1)
+       └── PeerGroupAddressFamily                ← "address-family ipv4 unicast" commands applied to ALL group members
+            └── extra_attributes: ✅ PUT route-reflector-client HERE (RR1 only)
+  └── PeerEndpoint (one per peering direction)
+       └── PeerEndpointAddressFamily             ← per-peer AF overrides (only if different from group)
+            └── extra_attributes: DO NOT USE for this demo
 ```
 
-Use a REST PATCH call:
+**In this demo topology, the ONLY object that needs extra_attributes is:**
+- RR1 → IBGP PeerGroup → PeerGroupAddressFamily (ipv4_unicast) → `{"route-reflector-client": true}`
+
+**Everything else stays empty/null.** Do NOT set extra_attributes on:
+- Routing Instance Address Families (the global AF objects)
+- Peer Endpoint Address Families (per-peer AFs on RR1 or spokes)
+- Spoke-side anything (spokes don't configure RR knobs)
+- The PeerEndpoint or PeerGroup objects themselves (those have their own extra_attributes field but it's for non-AF stuff)
+
+---
+
+### The ONE Change to Make
+
+The design job creates PeerGroup and PeerEndpoint objects but does **not** populate the `extra_attributes` on their address family records.
+
+After the design job completes, you must set **exactly ONE extra_attribute on exactly ONE object**. Nothing else.
+
+**The ONLY change to make:**
+
+Set `extra_attributes` = `{"route-reflector-client": true}` on **RR1's IBGP PeerGroupAddressFamily** (afi_safi = `ipv4_unicast`).
+
+That's it. No other object gets extra_attributes. Period.
+
+**Step 1: Find the RR1 IBGP PeerGroupAddressFamily ID**
+
+```
+nautobot_graphql(query: "{ bgp_routing_instances(device: \"RR1\") { peer_groups { name id address_families { id afi_safi extra_attributes } } } }")
+```
+
+Look for the peer group named "IBGP" and its address family with `afi_safi = "ipv4_unicast"`. Copy the address family `id`.
+
+**Step 2: PATCH (or POST) only that one object**
+
+If the address family record exists, PATCH it:
 ```
 curl -X PATCH http://localhost:8080/api/plugins/bgp/peer-group-address-families/<RR1_IBGP_AF_ID>/ \
   -H "Authorization: Token ${NAUTOBOT_TOKEN}" \
@@ -178,50 +209,34 @@ curl -X PATCH http://localhost:8080/api/plugins/bgp/peer-group-address-families/
   -d '{"extra_attributes": {"route-reflector-client": true}}'
 ```
 
-**Step 3: PATCH all non-RR peer endpoint address families with network-loopback**
-
-Query peer endpoint address families for non-RR devices (PE1, P1, P2, P3, P4):
-```
-nautobot_graphql(query: "{ bgp_routing_instances { device { name } endpoints { id source_ip { address } address_families { id afi_safi extra_attributes } } } }")
-```
-
-For each non-RR device's endpoint address family (afi_safi = `ipv4_unicast`), set:
-```json
-{"extra_attributes": {"network-loopback": true}}
-```
-
-Use REST PATCH for each:
-```
-curl -X PATCH http://localhost:8080/api/plugins/bgp/peer-endpoint-address-families/<ENDPOINT_AF_ID>/ \
-  -H "Authorization: Token ${NAUTOBOT_TOKEN}" \
-  -H "Content-Type: application/json" \
-  -d '{"extra_attributes": {"network-loopback": true}}'
-```
-
-**Summary of extra_attributes to populate:**
-
-| Device | Object | extra_attributes |
-|--------|--------|-----------------|
-| RR1 | PeerGroupAddressFamily (IBGP, ipv4_unicast) | `{"route-reflector-client": true}` |
-| PE1, P1, P2, P3, P4 | PeerEndpointAddressFamily (ipv4_unicast) | `{"network-loopback": true}` |
-
-**Note:** The RR does NOT get `next-hop-self` — it reflects routes with original next-hop intact. Only client endpoints need it.
-
-**Important:** If the address family records don't exist yet (the design job may not create them), create them first:
+If it doesn't exist yet, create it:
 ```
 curl -X POST http://localhost:8080/api/plugins/bgp/peer-group-address-families/ \
   -H "Authorization: Token ${NAUTOBOT_TOKEN}" \
   -H "Content-Type: application/json" \
-  -d '{"peer_group": "<PEER_GROUP_ID>", "afi_safi": "ipv4_unicast", "extra_attributes": {"route-reflector-client": true}}'
+  -d '{"peer_group": "<RR1_IBGP_PEER_GROUP_ID>", "afi_safi": "ipv4_unicast", "extra_attributes": {"route-reflector-client": true}}'
 ```
 
-Similarly for endpoint address families:
+**Step 3: Verify — confirm no other objects have extra_attributes**
+
+Query all address families and confirm only the one RR1 peer-group AF has extra_attributes set:
 ```
-curl -X POST http://localhost:8080/api/plugins/bgp/peer-endpoint-address-families/ \
-  -H "Authorization: Token ${NAUTOBOT_TOKEN}" \
-  -H "Content-Type: application/json" \
-  -d '{"peer_endpoint": "<ENDPOINT_ID>", "afi_safi": "ipv4_unicast", "extra_attributes": {"network-loopback": true}}'
+nautobot_graphql(query: "{ bgp_routing_instances { device { name } peer_groups { name address_families { id afi_safi extra_attributes } } endpoints { source_ip { address } address_families { id afi_safi extra_attributes } } } }")
 ```
+
+Expected: ONLY `RR1 → IBGP → ipv4_unicast` has `{"route-reflector-client": true}`. Everything else should be `null` or `{}`.
+
+---
+
+**WHY only this one object?**
+
+`route-reflector-client` is configured on the **route reflector**, under its **peer-group**, in the **address-family**. It tells the RR "reflect routes to all members of this group." The spoke routers (PE1, P1–P4) configure NOTHING about route reflection — they just peer with the RR and receive reflected routes automatically.
+
+**DO NOT set extra_attributes on any of these:**
+- ❌ Spoke (PE1, P1, P2, P3, P4) PeerEndpointAddressFamily — spokes don't configure RR knobs
+- ❌ RR1 per-peer PeerEndpointAddressFamily — redundant, the peer-group AF already covers all members
+- ❌ Any object's `extra_attributes` field directly (the routing instance or endpoint `extra_attributes`) — only the **address family** object gets it
+- ❌ `next-hop-self` anywhere — not needed in this topology (full IGP mesh means all next-hops are reachable via OSPF)
 
 ---
 
@@ -345,7 +360,6 @@ The `extra_attributes` JSON on `PeerGroupAddressFamily` or `PeerEndpointAddressF
 |---------------------|-------------|
 | `"route-reflector-client": true` | `neighbor <name> route-reflector-client` |
 | `"next-hop-self": true` | `neighbor <name> next-hop-self` |
-| `"network-loopback": true` | `network <device_loopback_ip>` |
 | `"send-community": true` | `neighbor <name> send-community` |
 | `"soft-reconfiguration-inbound": true` | `neighbor <name> soft-reconfiguration inbound` |
 | `"default-originate": true` | `neighbor <name> default-originate` |
@@ -354,7 +368,7 @@ Where `<name>` is the peer-group name (if the attribute is on a PeerGroupAddress
 
 **If an extra_attribute is not present, do NOT emit the command.** The model is the authority.
 
-**Network statements:** Only emit `network <loopback_ip>` if the device's endpoint or peer-group address-family `extra_attributes` contains `"network-loopback": true`. If the attribute is absent, do NOT advertise the loopback into BGP.
+**Network statements:** Non-RR devices (those that do NOT have `route-reflector-client` in their peer-group address-family) advertise their loopback into BGP with `network <loopback_ip>`. This is a convention: spoke routers advertise their loopback so the RR can reflect it to all other peers. The RR itself does NOT need a network statement — its loopback is reachable via OSPF.
 
 **How to derive values from GraphQL response:**
 - `loopback_ip` → from `interfaces` where `name == "lo"`, take `ip_addresses[0].address`
@@ -457,7 +471,7 @@ docker exec clab-netclaw-demo-pe1 vtysh -c "show bgp ipv4 unicast"
 **Expected results:**
 - OSPF: All neighbors FULL (P1 has 3, P2 has 3, P3 has 2, P4 has 2, PE1 has 1, RR1 has 1)
 - BGP: 5 peers Established on RR1
-- Routes: All 6 loopback /32s reachable on every device. On non-RR devices, 5 client loopbacks appear as BGP routes (reflected by RR1); RR1's loopback is reachable via OSPF only (no BGP network statement on RR1)
+- Routes: All 6 loopback /32s reachable on every device. Non-RR devices advertise their loopbacks into BGP via `network` statements; the RR reflects them to all clients. RR1's own loopback is reachable via OSPF.
 
 ---
 
@@ -622,10 +636,11 @@ docker exec clab-netclaw-demo-<node> vtysh \
 2. **Design job populates Nautobot** — do NOT manually create devices/interfaces/IPs via MCP tools
 3. **OSPF lives in IGP models** — queried via `ospf_interface_configurations` in GraphQL
 4. **BGP lives in BGP models** — queried via `bgp_routing_instances` and `bgp_peerings` in GraphQL
-5. **Address-family config is entirely data-driven** — `route-reflector-client`, `next-hop-self`, `network` statements, etc. are ONLY emitted if expressed in `extra_attributes` on the address family objects. If an attribute is not present in the model, do NOT emit the command.
-6. **Config context provides supplemental data** — `network_type: point-to-point` from `config_context`
-7. **Never hardcode behavior by device role** — do not assume a device needs specific BGP commands based on its name or function. The model is the authority.
-8. **Config push via vtysh** — `docker exec clab-netclaw-demo-<node> vtysh`
-9. **Validate after pushing** — always show proof the network is working
-10. **Explain as you go** — this is a demo for an audience
-11. **Stay in scope** — refuse anything outside the demo
+5. **Address-family config from extra_attributes** — commands like `route-reflector-client` are ONLY emitted if expressed in `extra_attributes` on the PeerGroupAddressFamily. If not present, do NOT emit.
+6. **extra_attributes placement** — `route-reflector-client` belongs ONLY on the RR's peer-group address family. Spoke endpoint address families get NO extra_attributes. Do NOT put RR-side knobs on spoke-side objects.
+7. **Network statement convention** — spoke routers (non-RR) advertise their loopback with `network <ip>` under address-family. The RR does NOT need a network statement.
+8. **Config context provides supplemental data** — `network_type: point-to-point` from `config_context`
+9. **Config push via vtysh** — `docker exec clab-netclaw-demo-<node> vtysh`
+10. **Validate after pushing** — always show proof the network is working
+11. **Explain as you go** — this is a demo for an audience
+12. **Stay in scope** — refuse anything outside the demo
