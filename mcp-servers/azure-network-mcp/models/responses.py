@@ -25,8 +25,8 @@ def to_json(obj) -> str:
     else:
         data = to_dict(obj)
     try:
-        from utils.toon_helper import toon_dumps
-        return toon_dumps(data)
+        from utils.gcf_helper import gcf_dumps
+        return gcf_dumps(data)
     except Exception:
         return json.dumps(data, indent=2)
 

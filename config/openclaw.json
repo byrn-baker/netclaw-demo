@@ -16,7 +16,7 @@
   "tokenOptimization": {
     "enabled": true,
     "libraryPath": "src/netclaw_tokens",
-    "toonSerializationDefault": true,
+    "gcfSerializationDefault": true,
     "footerDisplay": "always",
     "sessionTracking": true,
     "pricingOverrideEnvVar": "NETCLAW_TOKEN_PRICING_OVERRIDE"
@@ -329,6 +329,196 @@
         "NETCLAW_OSPF_IP": "${NETCLAW_OSPF_IP:-10.0.99.1}",
         "NETCLAW_OSPF_MASK": "${NETCLAW_OSPF_MASK:-255.255.255.252}",
         "NETCLAW_OSPF_AREA": "${NETCLAW_OSPF_AREA:-0.0.0.0}"
+      }
+    },
+    "chkp-management": {
+      "command": "node",
+      "args": [
+        "mcp-servers/checkpoint-mcp-servers/packages/management/dist/index.js"
+      ],
+      "env": {
+        "MANAGEMENT_HOST": "${CHKP_MGMT_HOST}",
+        "PORT": "${CHKP_MGMT_PORT:-443}",
+        "API_KEY": "${CHKP_MGMT_API_KEY}",
+        "USERNAME": "${CHKP_MGMT_USERNAME}",
+        "PASSWORD": "${CHKP_MGMT_PASSWORD}",
+        "DOMAIN": "${CHKP_MGMT_DOMAIN}",
+        "TELEMETRY_DISABLED": "${CHKP_TELEMETRY_DISABLED:-true}"
+      }
+    },
+    "chkp-management-logs": {
+      "command": "node",
+      "args": [
+        "mcp-servers/checkpoint-mcp-servers/packages/management-logs/dist/index.js"
+      ],
+      "env": {
+        "MANAGEMENT_HOST": "${CHKP_MGMT_HOST}",
+        "PORT": "${CHKP_MGMT_PORT:-443}",
+        "API_KEY": "${CHKP_MGMT_API_KEY}",
+        "USERNAME": "${CHKP_MGMT_USERNAME}",
+        "PASSWORD": "${CHKP_MGMT_PASSWORD}",
+        "DOMAIN": "${CHKP_MGMT_DOMAIN}",
+        "TELEMETRY_DISABLED": "${CHKP_TELEMETRY_DISABLED:-true}"
+      }
+    },
+    "chkp-threat-prevention": {
+      "command": "node",
+      "args": [
+        "mcp-servers/checkpoint-mcp-servers/packages/threat-prevention/dist/index.js"
+      ],
+      "env": {
+        "MANAGEMENT_HOST": "${CHKP_MGMT_HOST}",
+        "PORT": "${CHKP_MGMT_PORT:-443}",
+        "API_KEY": "${CHKP_MGMT_API_KEY}",
+        "USERNAME": "${CHKP_MGMT_USERNAME}",
+        "PASSWORD": "${CHKP_MGMT_PASSWORD}",
+        "DOMAIN": "${CHKP_MGMT_DOMAIN}",
+        "TELEMETRY_DISABLED": "${CHKP_TELEMETRY_DISABLED:-true}"
+      }
+    },
+    "chkp-https-inspection": {
+      "command": "node",
+      "args": [
+        "mcp-servers/checkpoint-mcp-servers/packages/https-inspection/dist/index.js"
+      ],
+      "env": {
+        "MANAGEMENT_HOST": "${CHKP_MGMT_HOST}",
+        "PORT": "${CHKP_MGMT_PORT:-443}",
+        "API_KEY": "${CHKP_MGMT_API_KEY}",
+        "USERNAME": "${CHKP_MGMT_USERNAME}",
+        "PASSWORD": "${CHKP_MGMT_PASSWORD}",
+        "DOMAIN": "${CHKP_MGMT_DOMAIN}",
+        "TELEMETRY_DISABLED": "${CHKP_TELEMETRY_DISABLED:-true}"
+      }
+    },
+    "chkp-harmony-sase": {
+      "command": "node",
+      "args": [
+        "mcp-servers/checkpoint-mcp-servers/packages/harmony-sase/dist/index.js"
+      ],
+      "env": {
+        "API_KEY": "${CHKP_SASE_API_KEY}",
+        "MANAGEMENT_HOST": "${CHKP_SASE_MGMT_HOST}",
+        "ORIGIN": "${CHKP_SASE_ORIGIN}",
+        "TELEMETRY_DISABLED": "${CHKP_TELEMETRY_DISABLED:-true}"
+      }
+    },
+    "chkp-reputation-service": {
+      "command": "node",
+      "args": [
+        "mcp-servers/checkpoint-mcp-servers/packages/reputation-service/dist/index.js"
+      ],
+      "env": {
+        "API_KEY": "${CHKP_REPUTATION_API_KEY}",
+        "TELEMETRY_DISABLED": "${CHKP_TELEMETRY_DISABLED:-true}"
+      }
+    },
+    "chkp-quantum-gw-cli": {
+      "command": "node",
+      "args": [
+        "mcp-servers/checkpoint-mcp-servers/packages/gw-cli/dist/index.js"
+      ],
+      "env": {
+        "MANAGEMENT_HOST": "${CHKP_MGMT_HOST}",
+        "PORT": "${CHKP_MGMT_PORT:-443}",
+        "API_KEY": "${CHKP_MGMT_API_KEY}",
+        "USERNAME": "${CHKP_MGMT_USERNAME}",
+        "PASSWORD": "${CHKP_MGMT_PASSWORD}",
+        "DOMAIN": "${CHKP_MGMT_DOMAIN}",
+        "TELEMETRY_DISABLED": "${CHKP_TELEMETRY_DISABLED:-true}"
+      }
+    },
+    "chkp-gw-connection-analysis": {
+      "command": "node",
+      "args": [
+        "mcp-servers/checkpoint-mcp-servers/packages/gw-cli-connection-analysis/dist/index.js"
+      ],
+      "env": {
+        "MANAGEMENT_HOST": "${CHKP_MGMT_HOST}",
+        "PORT": "${CHKP_MGMT_PORT:-443}",
+        "API_KEY": "${CHKP_MGMT_API_KEY}",
+        "USERNAME": "${CHKP_MGMT_USERNAME}",
+        "PASSWORD": "${CHKP_MGMT_PASSWORD}",
+        "DOMAIN": "${CHKP_MGMT_DOMAIN}",
+        "TELEMETRY_DISABLED": "${CHKP_TELEMETRY_DISABLED:-true}"
+      }
+    },
+    "chkp-threat-emulation": {
+      "command": "node",
+      "args": [
+        "mcp-servers/checkpoint-mcp-servers/packages/threat-emulation/dist/index.js"
+      ],
+      "env": {
+        "API_KEY": "${CHKP_TE_API_KEY}",
+        "TELEMETRY_DISABLED": "${CHKP_TELEMETRY_DISABLED:-true}"
+      }
+    },
+    "chkp-quantum-gaia": {
+      "command": "node",
+      "args": [
+        "mcp-servers/checkpoint-mcp-servers/packages/gaia/dist/index.js"
+      ],
+      "env": {
+        "MANAGEMENT_HOST": "${CHKP_MGMT_HOST}",
+        "PORT": "${CHKP_MGMT_PORT:-443}",
+        "API_KEY": "${CHKP_MGMT_API_KEY}",
+        "USERNAME": "${CHKP_MGMT_USERNAME}",
+        "PASSWORD": "${CHKP_MGMT_PASSWORD}",
+        "DOMAIN": "${CHKP_MGMT_DOMAIN}",
+        "TELEMETRY_DISABLED": "${CHKP_TELEMETRY_DISABLED:-true}"
+      }
+    },
+    "chkp-documentation": {
+      "command": "node",
+      "args": [
+        "mcp-servers/checkpoint-mcp-servers/packages/documentation-tool/dist/index.js"
+      ],
+      "env": {
+        "TELEMETRY_DISABLED": "${CHKP_TELEMETRY_DISABLED:-true}"
+      }
+    },
+    "chkp-spark-management": {
+      "command": "node",
+      "args": [
+        "mcp-servers/checkpoint-mcp-servers/packages/spark-management/dist/index.js"
+      ],
+      "env": {
+        "API_KEY": "${CHKP_SPARK_API_KEY}",
+        "TELEMETRY_DISABLED": "${CHKP_TELEMETRY_DISABLED:-true}"
+      }
+    },
+    "chkp-cpinfo-analysis": {
+      "command": "node",
+      "args": [
+        "mcp-servers/checkpoint-mcp-servers/packages/cpinfo-analysis/dist/index.js"
+      ],
+      "env": {
+        "TELEMETRY_DISABLED": "${CHKP_TELEMETRY_DISABLED:-true}"
+      }
+    },
+    "chkp-argos-erm": {
+      "command": "node",
+      "args": [
+        "mcp-servers/checkpoint-mcp-servers/packages/argos-erm/dist/index.js"
+      ],
+      "env": {
+        "API_KEY": "${CHKP_ARGOS_API_KEY}",
+        "TELEMETRY_DISABLED": "${CHKP_TELEMETRY_DISABLED:-true}"
+      }
+    },
+    "chkp-policy-insights": {
+      "command": "node",
+      "args": [
+        "mcp-servers/checkpoint-mcp-servers/packages/policy-insights/dist/index.js"
+      ],
+      "env": {
+        "MANAGEMENT_HOST": "${CHKP_MGMT_HOST}",
+        "PORT": "${CHKP_MGMT_PORT:-443}",
+        "API_KEY": "${CHKP_MGMT_API_KEY}",
+        "USERNAME": "${CHKP_MGMT_USERNAME}",
+        "PASSWORD": "${CHKP_MGMT_PASSWORD}",
+        "DOMAIN": "${CHKP_MGMT_DOMAIN}",
+        "TELEMETRY_DISABLED": "${CHKP_TELEMETRY_DISABLED:-true}"
       }
     }
   }

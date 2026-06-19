@@ -90,6 +90,7 @@ const INTEGRATION_CATALOG = [
   { id: 'vault', name: 'HashiCorp Vault', category: 'Security', prefixes: ['vault-'], color: '#000000', transport: 'http', toolEstimate: 35, description: 'Secrets management — KV secrets, PKI certificates, transit encryption, authentication methods, and audit logging.' },
   { id: 'zscaler', name: 'Zscaler', category: 'Security', prefixes: ['zscaler-'], color: '#0090d4', transport: 'http', toolEstimate: 300, description: 'Zero Trust security — ZIA (SWG), ZPA (ZTNA), ZDX (DEM), identity management, and security insights.' },
   { id: 'cloudflare', name: 'Cloudflare', category: 'Edge Platform', prefixes: ['cloudflare-'], color: '#f48120', transport: 'http', toolEstimate: 50, description: 'Edge platform — DNS analytics, WAF/DDoS security, Zero Trust access, traffic analytics, and Workers compute.' },
+  { id: 'checkpoint', name: 'Check Point', category: 'Security', prefixes: ['checkpoint-', 'chkp-'], color: '#e21d38', transport: 'stdio', toolEstimate: 60, description: 'Enterprise security — 15 MCPs for policy management, threat intelligence, gateway diagnostics, SASE, threat prevention, malware analysis, HTTPS inspection, and exposure management.' },
 ];
 
 // ── ENV variable mapping per integration ────────────────────────────
@@ -401,6 +402,11 @@ const ENV_MAP = {
     env: ['CLOUDFLARE_API_TOKEN', 'CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_ZONE_ID'],
     files: [],
     notes: 'Cloudflare MCP Servers (5 domain-specific). API token from Cloudflare dashboard. Account ID required, Zone ID optional.',
+  },
+  checkpoint: {
+    env: ['CHKP_MGMT_HOST', 'CHKP_MGMT_PORT', 'CHKP_MGMT_API_KEY', 'CHKP_MGMT_USERNAME', 'CHKP_MGMT_PASSWORD', 'CHKP_MGMT_DOMAIN', 'CHKP_S1C_API_KEY', 'CHKP_S1C_URL', 'CHKP_REPUTATION_API_KEY', 'CHKP_SASE_API_KEY', 'CHKP_SASE_MGMT_HOST', 'CHKP_TE_API_KEY', 'CHKP_SPARK_API_KEY', 'CHKP_ARGOS_API_KEY', 'CHKP_TELEMETRY_DISABLED', 'CHKP_LOG_LEVEL'],
+    files: ['mcp-servers/checkpoint-mcp-servers/'],
+    notes: 'Check Point Security (15 MCPs). Management Server requires CHKP_MGMT_HOST + API key or username/password. Additional keys for SASE, Threat Emulation, Reputation, Spark, Argos. Enable with ./scripts/checkpoint-enable.sh',
   },
 };
 
@@ -1351,7 +1357,14 @@ function resolveActivations(message, graph) {
     'topology': ['pyats'],
     'security': ['ise', 'nmap', 'nvd', 'fmc'],
     'audit': ['pyats', 'nvd', 'gait'],
-    'firewall': ['asa', 'fmc', 'paloalto', 'fortimanager'],
+    'firewall': ['asa', 'fmc', 'paloalto', 'fortimanager', 'checkpoint'],
+    'check point': ['checkpoint'],
+    'checkpoint': ['checkpoint'],
+    'threat emulation': ['checkpoint'],
+    'sandblast': ['checkpoint'],
+    'harmony sase': ['checkpoint'],
+    'clusterxl': ['checkpoint'],
+    'smartconsole': ['checkpoint'],
     'vpn': ['asa', 'sdwan', 'meraki'],
     'change': ['servicenow', 'gait'],
     'diagram': ['drawio', 'uml', 'markmap'],

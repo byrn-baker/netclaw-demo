@@ -4,7 +4,7 @@
 
 # NetClaw
 
-A CCIE-level AI network engineering coworker. Built on [OpenClaw](https://github.com/openclaw/openclaw) with Anthropic Claude, 112 skills, and 51 MCP integrations for complete network automation with ITSM gating, source-of-truth reconciliation, immutable audit trails, gNMI streaming telemetry, Canvas/A2UI inline network visualizations, packet capture analysis, GitHub config-as-code, GitLab DevOps (issues, merge requests, pipelines, repositories, wikis), Jenkins CI/CD (job monitoring, build triggering, log analysis, SCM tracking), Cisco CML lab simulation, ContainerLab containerized network labs, Cisco NSO orchestration, Cisco SD-WAN vManage monitoring, Grafana observability (dashboards, Prometheus, Loki, alerting, incidents), Prometheus direct PromQL monitoring, Kubeshark Kubernetes traffic analysis, Cisco Meraki Dashboard management, Cisco ThousandEyes network intelligence, AWS cloud networking, Cisco Secure Firewall policy auditing, Itential network orchestration, Juniper JunOS device automation, Arista CloudVision Portal monitoring, F5 BIG-IP pyATS iControl REST coverage, Infoblox DDI, Palo Alto Panorama, FortiManager, Batfish offline configuration analysis, UML diagram generation, EVPN/VXLAN fabric workflows, live BGP/OSPF control-plane participation, nmap network scanning, gtrace path analysis and IP enrichment, Slack-native operations, Cisco WebEx-native operations, Microsoft 365 integration, and MemPalace persistent AI memory.
+A CCIE-level AI network engineering coworker. Built on [OpenClaw](https://github.com/openclaw/openclaw) with Anthropic Claude, 113 skills, and 66 MCP integrations for complete network automation with ITSM gating, source-of-truth reconciliation, immutable audit trails, gNMI streaming telemetry, Canvas/A2UI inline network visualizations, packet capture analysis, GitHub config-as-code, GitLab DevOps (issues, merge requests, pipelines, repositories, wikis), Jenkins CI/CD (job monitoring, build triggering, log analysis, SCM tracking), Cisco CML lab simulation, ContainerLab containerized network labs, Cisco NSO orchestration, Cisco SD-WAN vManage monitoring, Grafana observability (dashboards, Prometheus, Loki, alerting, incidents), Prometheus direct PromQL monitoring, Kubeshark Kubernetes traffic analysis, Cisco Meraki Dashboard management, Cisco ThousandEyes network intelligence, AWS cloud networking, Cisco Secure Firewall policy auditing, Check Point Security (15 MCPs: policy, threat intel, gateway, SASE, malware), Itential network orchestration, Juniper JunOS device automation, Arista CloudVision Portal monitoring, F5 BIG-IP pyATS iControl REST coverage, Infoblox DDI, Palo Alto Panorama, FortiManager, Batfish offline configuration analysis, UML diagram generation, EVPN/VXLAN fabric workflows, live BGP/OSPF control-plane participation, nmap network scanning, gtrace path analysis and IP enrichment, Slack-native operations, Cisco WebEx-native operations, Microsoft 365 integration, and MemPalace persistent AI memory.
 
 ---
 
@@ -16,7 +16,7 @@ cd netclaw
 ./scripts/install.sh          # installs everything, then launches the setup wizard
 ```
 
-That's it. The installer deploys 112 skills, installs bundled MCP dependencies, and prepares configuration for 51 MCP integrations, then launches a two-phase setup:
+That's it. The installer deploys 113 skills, installs bundled MCP dependencies, and prepares configuration for 66 MCP integrations, then launches a two-phase setup:
 
 **Phase 1: `openclaw onboard`** (OpenClaw's built-in wizard)
 - Pick your AI provider (Anthropic, OpenAI, Bedrock, Vertex, 30+ options)
@@ -208,6 +208,46 @@ defenseclaw alerts                 # View security alerts
 
 ---
 
+## Check Point Security Integration
+
+NetClaw integrates with Check Point's enterprise security platform through **15 official MCP servers**, providing AI-powered automation for firewall policies, threat intelligence, gateway diagnostics, SASE management, and malware analysis.
+
+| Domain | MCP Servers | Capabilities |
+|--------|-------------|--------------|
+| **Policy Management** | management, policy-insights | Audit rules, suggest optimizations, NAT review |
+| **Threat Intelligence** | reputation-service | IP/URL/file reputation lookups |
+| **Gateway Diagnostics** | quantum-gw-cli, gw-connection-analysis | Health, ClusterXL, connection debug |
+| **Threat Prevention** | threat-prevention | IPS signatures, IOC feeds, profiles |
+| **SASE** | harmony-sase | Cloud-delivered security regions and apps |
+| **Malware Analysis** | threat-emulation | File sandboxing and verdicts |
+| **HTTPS Inspection** | https-inspection | SSL/TLS decryption policies |
+| **More** | gaia, docs, spark, cpinfo, argos, logs | OS mgmt, docs search, MSP, diagnostics, ERM |
+
+### Enable Check Point Integration
+
+```bash
+# During installation
+./scripts/install.sh
+# Answer "y" to "Enable Check Point Security Integration?"
+
+# Or enable for existing installation
+./scripts/checkpoint-enable.sh
+```
+
+### Example Queries
+
+```
+/checkpoint show me all firewall policies
+/checkpoint check reputation of IP 185.220.101.1
+/checkpoint show gateway health status
+/checkpoint what IPS protections are available for CVE-2024-1234
+/checkpoint cross-reference firewall rules with my CML lab topology
+```
+
+**Full documentation:** [docs/CHECKPOINT.md](docs/CHECKPOINT.md) | [Skill Definition](workspace/skills/checkpoint/SKILL.md)
+
+---
+
 ## Architecture
 
 ```
@@ -250,6 +290,7 @@ Human (Slack / WebEx / WebChat) --> NetClaw (CCIE Agent on OpenClaw)
                                 |
                                 |-- FIREWALL SECURITY:
                                 |     MCP: Cisco FMC          --> Access policy search, FTD targeting, multi-FMC
+                                |     MCP: Check Point (15)   --> Policy, threat intel, gateway, SASE, malware (40+ tools)
                                 |
                                 |-- CLOUD-MANAGED NETWORKING:
                                 |     MCP: Cisco Meraki       --> Dashboard API (~804 endpoints): wireless, switching, security, cameras
