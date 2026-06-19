@@ -150,7 +150,82 @@ This creates all devices, interfaces, IPs, cables, BGP models, OSPF models, and 
 
 ---
 
-## Phase 3: Generate and Push Configs
+## Phase 3: Populate BGP Address Family Extra Attributes
+
+The design job creates PeerGroup and PeerEndpoint objects but does **not** populate the `extra_attributes` on their address family records. These attributes drive address-family-level config like `route-reflector-client`, `next-hop-self`, and `network` statements.
+
+After the design job completes, populate these attributes using the Nautobot REST API via `nautobot_graphql` and REST PATCH calls.
+
+**Step 1: Find the PeerGroupAddressFamily IDs and set extra_attributes**
+
+Query the peer group address families:
+```
+nautobot_graphql(query: "{ bgp_routing_instances { device { name } peer_groups { name id address_families { id afi_safi extra_attributes } } } }")
+```
+
+**Step 2: PATCH the RR1 IBGP peer group address family**
+
+For RR1's "IBGP" peer group address family (afi_safi = `ipv4_unicast`), set:
+```json
+{"extra_attributes": {"route-reflector-client": true}}
+```
+
+Use a REST PATCH call:
+```
+curl -X PATCH http://localhost:8080/api/plugins/bgp/peer-group-address-families/<RR1_IBGP_AF_ID>/ \
+  -H "Authorization: Token ${NAUTOBOT_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{"extra_attributes": {"route-reflector-client": true}}'
+```
+
+**Step 3: PATCH all non-RR peer endpoint address families with network-loopback**
+
+Query peer endpoint address families for non-RR devices (PE1, P1, P2, P3, P4):
+```
+nautobot_graphql(query: "{ bgp_routing_instances { device { name } endpoints { id source_ip { address } address_families { id afi_safi extra_attributes } } } }")
+```
+
+For each non-RR device's endpoint address family (afi_safi = `ipv4_unicast`), set:
+```json
+{"extra_attributes": {"network-loopback": true}}
+```
+
+Use REST PATCH for each:
+```
+curl -X PATCH http://localhost:8080/api/plugins/bgp/peer-endpoint-address-families/<ENDPOINT_AF_ID>/ \
+  -H "Authorization: Token ${NAUTOBOT_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{"extra_attributes": {"network-loopback": true}}'
+```
+
+**Summary of extra_attributes to populate:**
+
+| Device | Object | extra_attributes |
+|--------|--------|-----------------|
+| RR1 | PeerGroupAddressFamily (IBGP, ipv4_unicast) | `{"route-reflector-client": true}` |
+| PE1, P1, P2, P3, P4 | PeerEndpointAddressFamily (ipv4_unicast) | `{"network-loopback": true}` |
+
+**Note:** The RR does NOT get `next-hop-self` — it reflects routes with original next-hop intact. Only client endpoints need it.
+
+**Important:** If the address family records don't exist yet (the design job may not create them), create them first:
+```
+curl -X POST http://localhost:8080/api/plugins/bgp/peer-group-address-families/ \
+  -H "Authorization: Token ${NAUTOBOT_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{"peer_group": "<PEER_GROUP_ID>", "afi_safi": "ipv4_unicast", "extra_attributes": {"route-reflector-client": true}}'
+```
+
+Similarly for endpoint address families:
+```
+curl -X POST http://localhost:8080/api/plugins/bgp/peer-endpoint-address-families/ \
+  -H "Authorization: Token ${NAUTOBOT_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{"peer_endpoint": "<ENDPOINT_ID>", "afi_safi": "ipv4_unicast", "extra_attributes": {"network-loopback": true}}'
+```
+
+---
+
+## Phase 4: Generate and Push Configs
 
 For each device, query Nautobot via GraphQL then push config via vtysh.
 
@@ -172,10 +247,23 @@ Use `nautobot_graphql` with this query (substitute the device name):
   bgp_routing_instances(device: "<DEVICE>") {
     autonomous_system { asn }
     router_id { address }
+    extra_attributes
     peer_groups {
       name
       autonomous_system { asn }
       source_interface { name }
+      address_families {
+        afi_safi
+        extra_attributes
+      }
+    }
+    endpoints {
+      source_ip { address }
+      peer_group { name }
+      address_families {
+        afi_safi
+        extra_attributes
+      }
     }
   }
   bgp_peerings {
@@ -194,7 +282,9 @@ Use `nautobot_graphql` with this query (substitute the device name):
 
 ### Step 2: Build the FRR config from query results
 
-For a **non-RR device** (PE1, P1, P2, P3, P4):
+The config is **entirely data-driven**. Do NOT hardcode any address-family behavior by device name or role. Render only what the Nautobot model expresses.
+
+**Base config (all devices):**
 
 ```
 hostname <device_name_lowercase>
@@ -203,61 +293,68 @@ interface lo
  ip address <loopback_ip>
  ip ospf area 0
 !
+<for each ethX interface with an IP>
 interface <ethX>
  ip address <p2p_ip>
  ip ospf area 0
  ip ospf network point-to-point
 !
+<end for>
 router ospf
  ospf router-id <router_id_without_mask>
  passive-interface lo
 !
+```
+
+**BGP config — derived from the model:**
+
+```
 router bgp <asn>
  bgp router-id <router_id_without_mask>
  no bgp ebgp-requires-policy
- neighbor <rr1_loopback_without_mask> remote-as <asn>
- neighbor <rr1_loopback_without_mask> update-source lo
+ <if device has peer_groups>
+ <for each peer_group>
+ neighbor <peer_group_name> peer-group
+ neighbor <peer_group_name> remote-as <peer_group.autonomous_system.asn>
+ neighbor <peer_group_name> update-source <peer_group.source_interface.name>
+ <end for>
+ <for each peering endpoint where this device is a participant>
+ neighbor <remote_peer_ip_without_mask> peer-group <endpoint.peer_group.name>
+ <end for>
+ </if>
+ <if device has NO peer_groups (direct neighbor statements)>
+ <for each peering endpoint where this device is a participant>
+ neighbor <remote_peer_ip_without_mask> remote-as <remote_asn>
+ neighbor <remote_peer_ip_without_mask> update-source lo
+ <end for>
+ </if>
  !
  address-family ipv4 unicast
-  network <loopback_ip>
-  neighbor <rr1_loopback_without_mask> next-hop-self
+  <for each extra_attribute on the peer_group address_family or endpoint address_family>
+  <render the attribute as FRR config>
+  </for>
  exit-address-family
 !
 ```
 
-For **RR1** (has peer-group and route-reflector-client):
+**Rendering extra_attributes under address-family ipv4 unicast:**
 
-```
-hostname rr1
-!
-interface lo
- ip address <loopback_ip>
- ip ospf area 0
-!
-interface eth1
- ip address <p2p_ip>
- ip ospf area 0
- ip ospf network point-to-point
-!
-router ospf
- ospf router-id <router_id_without_mask>
- passive-interface lo
-!
-router bgp <asn>
- bgp router-id <router_id_without_mask>
- no bgp ebgp-requires-policy
- neighbor IBGP peer-group
- neighbor IBGP remote-as <asn>
- neighbor IBGP update-source lo
- <for each peer endpoint on RR1's peerings>
- neighbor <peer_loopback_without_mask> peer-group IBGP
- !
- address-family ipv4 unicast
-  network <loopback_ip>
-  neighbor IBGP route-reflector-client
- exit-address-family
-!
-```
+The `extra_attributes` JSON on `PeerGroupAddressFamily` or `PeerEndpointAddressFamily` maps directly to FRR address-family commands:
+
+| extra_attributes key | FRR command |
+|---------------------|-------------|
+| `"route-reflector-client": true` | `neighbor <name> route-reflector-client` |
+| `"next-hop-self": true` | `neighbor <name> next-hop-self` |
+| `"network-loopback": true` | `network <device_loopback_ip>` |
+| `"send-community": true` | `neighbor <name> send-community` |
+| `"soft-reconfiguration-inbound": true` | `neighbor <name> soft-reconfiguration inbound` |
+| `"default-originate": true` | `neighbor <name> default-originate` |
+
+Where `<name>` is the peer-group name (if the attribute is on a PeerGroupAddressFamily) or the specific neighbor IP (if on a PeerEndpointAddressFamily).
+
+**If an extra_attribute is not present, do NOT emit the command.** The model is the authority.
+
+**Network statements:** Only emit `network <loopback_ip>` if the device's endpoint or peer-group address-family `extra_attributes` contains `"network-loopback": true`. If the attribute is absent, do NOT advertise the loopback into BGP.
 
 **How to derive values from GraphQL response:**
 - `loopback_ip` → from `interfaces` where `name == "lo"`, take `ip_addresses[0].address`
@@ -266,11 +363,44 @@ router bgp <asn>
 - `p2p_ip` → from `interfaces` where `name == "ethX"`, take `ip_addresses[0].address`
 - `ospf area` → from `ospf_interface_configurations` where `interface.device.name == device` and `interface.name == iface_name`, take `area`
 - `network_type` → from `config_context.igp.ospf.network_type` (only on non-loopback interfaces)
-- `rr1_loopback` → find the peering where this device is an endpoint, the other endpoint's `source_ip.address` stripped of mask
-- For RR1: iterate all peerings where RR1 is an endpoint, collect all remote peer IPs
+- `peer_group` → from `bgp_routing_instances[0].peer_groups[]` — name, ASN, source_interface
+- `peer neighbors` → from `bgp_peerings` — find all peerings where this device is an endpoint, collect remote peer IPs
+- `address-family commands` → from `peer_groups[].address_families[].extra_attributes` or `endpoints[].address_families[].extra_attributes` — render each key as the corresponding FRR command
 
 ### Step 3: Push config to each device
 
+The vtysh commands are constructed from the config built in Step 2. Example for a device with a peer-group:
+
+```bash
+docker exec clab-netclaw-demo-<node> vtysh -c "configure terminal" \
+  -c "hostname <name>" \
+  -c "interface lo" \
+  -c "ip address <loopback_ip>" \
+  -c "ip ospf area 0" \
+  -c "exit" \
+  -c "interface <ethX>" \
+  -c "ip address <ip>" \
+  -c "ip ospf area 0" \
+  -c "ip ospf network point-to-point" \
+  -c "exit" \
+  -c "router ospf" \
+  -c "ospf router-id <rid>" \
+  -c "passive-interface lo" \
+  -c "exit" \
+  -c "router bgp <asn>" \
+  -c "bgp router-id <rid>" \
+  -c "no bgp ebgp-requires-policy" \
+  -c "neighbor <group_name> peer-group" \
+  -c "neighbor <group_name> remote-as <asn>" \
+  -c "neighbor <group_name> update-source lo" \
+  -c "neighbor <peer1_ip> peer-group <group_name>" \
+  -c "neighbor <peer2_ip> peer-group <group_name>" \
+  -c "address-family ipv4 unicast" \
+  -c "<each command derived from extra_attributes>" \
+  -c "exit-address-family"
+```
+
+Example for a device with direct neighbor statements (no peer-group):
 ```bash
 docker exec clab-netclaw-demo-<node> vtysh -c "configure terminal" \
   -c "hostname <name>" \
@@ -293,10 +423,11 @@ docker exec clab-netclaw-demo-<node> vtysh -c "configure terminal" \
   -c "neighbor <peer_ip> remote-as <asn>" \
   -c "neighbor <peer_ip> update-source lo" \
   -c "address-family ipv4 unicast" \
-  -c "network <loopback>" \
-  -c "neighbor <peer_ip> next-hop-self" \
+  -c "<each command derived from extra_attributes>" \
   -c "exit-address-family"
 ```
+
+**The address-family commands come entirely from `extra_attributes` in the model. Do NOT add commands that are not expressed in the data.**
 
 **Push order:** Configure all devices before expecting BGP to come up (OSPF needs to converge first for iBGP loopback reachability).
 
@@ -304,7 +435,7 @@ Recommended order: P1, P2, P3, P4 (core first for OSPF paths), then PE1, then RR
 
 ---
 
-## Phase 4: Validate
+## Phase 5: Validate
 
 ```bash
 # OSPF - all neighbors should be in FULL state
@@ -326,11 +457,11 @@ docker exec clab-netclaw-demo-pe1 vtysh -c "show bgp ipv4 unicast"
 **Expected results:**
 - OSPF: All neighbors FULL (P1 has 3, P2 has 3, P3 has 2, P4 has 2, PE1 has 1, RR1 has 1)
 - BGP: 5 peers Established on RR1
-- Routes: All 6 loopback /32s visible on every device
+- Routes: All 6 loopback /32s reachable on every device. On non-RR devices, 5 client loopbacks appear as BGP routes (reflected by RR1); RR1's loopback is reachable via OSPF only (no BGP network statement on RR1)
 
 ---
 
-## Phase 5: Protocol Participation (Optional)
+## Phase 6: Protocol Participation (Optional)
 
 NetClaw can join the lab's OSPF topology and establish a BGP peering with RR1 using the protocol-mcp server.
 
@@ -412,6 +543,65 @@ To remove all demo data, decommission the deployment via the Design Builder UI o
 
 ---
 
+## Workflow: Add Loopback Interfaces
+
+FRR running in ContainerLab containers does **not** create loopback interfaces on its own (unlike Cisco IOS). The default `lo` already exists, but any additional loopbacks (lo1, lo2, etc.) must be created at the Linux level first, then configured in FRR.
+
+**Both steps are required — FRR config alone will NOT work.**
+
+### Step 1: Create the dummy interface in Linux
+
+```bash
+docker exec clab-netclaw-demo-<node> ip link add <loopback_name> type dummy
+docker exec clab-netclaw-demo-<node> ip link set <loopback_name> up
+```
+
+Example:
+```bash
+docker exec clab-netclaw-demo-p1 ip link add lo1 type dummy
+docker exec clab-netclaw-demo-p1 ip link set lo1 up
+```
+
+**Why `dummy` type?** Linux doesn't support multiple `loopback` type interfaces. The `dummy` kernel module creates interfaces that behave identically to loopbacks for routing purposes — always up, no link dependency.
+
+### Step 2: Configure the interface in FRR
+
+```bash
+docker exec clab-netclaw-demo-<node> vtysh \
+  -c "configure terminal" \
+  -c "interface <loopback_name>" \
+  -c "ip address <ip_address>/32" \
+  -c "ip ospf area 0" \
+  -c "exit"
+```
+
+### Step 3 (optional): Advertise via BGP
+
+If the loopback should be reachable via BGP (not just OSPF):
+```bash
+docker exec clab-netclaw-demo-<node> vtysh \
+  -c "configure terminal" \
+  -c "router bgp <asn>" \
+  -c "address-family ipv4 unicast" \
+  -c "network <ip_address>/32" \
+  -c "exit-address-family"
+```
+
+### Reachability requirements
+
+- **For ping across the lab**: The loopback MUST have `ip ospf area 0` so OSPF advertises it to all other routers. Without this, only the local device has a route to it.
+- **For BGP use cases**: Add a `network` statement under the BGP address-family if you want the prefix reflected by the RR to all peers.
+- **OSPF alone is usually sufficient** for basic reachability in this lab since all devices are in area 0.
+
+### Common mistakes to avoid
+
+1. **Skipping the Linux interface creation** — FRR will accept the config but no traffic flows because the interface doesn't exist in the kernel
+2. **Forgetting `ip link set up`** — the dummy interface defaults to down
+3. **Forgetting `ip ospf area 0`** — the address won't be advertised, other devices can't reach it
+4. **Using `loopback` type instead of `dummy`** — Linux only allows one loopback interface (`lo`)
+
+---
+
 ## MCP Tools Available
 
 - `nautobot_graphql(query)` — run any GraphQL query against Nautobot
@@ -429,11 +619,13 @@ To remove all demo data, decommission the deployment via the Design Builder UI o
 ## Important Rules
 
 1. **Nautobot is the source of truth** — configs come from GraphQL queries, never hardcoded
-2. **Design job populates Nautobot** — do NOT manually create objects via MCP tools
+2. **Design job populates Nautobot** — do NOT manually create devices/interfaces/IPs via MCP tools
 3. **OSPF lives in IGP models** — queried via `ospf_interface_configurations` in GraphQL
 4. **BGP lives in BGP models** — queried via `bgp_routing_instances` and `bgp_peerings` in GraphQL
-5. **Config context provides supplemental data** — `network_type: point-to-point` from `config_context`
-6. **Config push via vtysh** — `docker exec clab-netclaw-demo-<node> vtysh`
-7. **Validate after pushing** — always show proof the network is working
-8. **Explain as you go** — this is a demo for an audience
-9. **Stay in scope** — refuse anything outside the demo
+5. **Address-family config is entirely data-driven** — `route-reflector-client`, `next-hop-self`, `network` statements, etc. are ONLY emitted if expressed in `extra_attributes` on the address family objects. If an attribute is not present in the model, do NOT emit the command.
+6. **Config context provides supplemental data** — `network_type: point-to-point` from `config_context`
+7. **Never hardcode behavior by device role** — do not assume a device needs specific BGP commands based on its name or function. The model is the authority.
+8. **Config push via vtysh** — `docker exec clab-netclaw-demo-<node> vtysh`
+9. **Validate after pushing** — always show proof the network is working
+10. **Explain as you go** — this is a demo for an audience
+11. **Stay in scope** — refuse anything outside the demo
