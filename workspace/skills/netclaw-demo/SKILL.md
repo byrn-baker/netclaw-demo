@@ -172,8 +172,7 @@ This creates all devices, interfaces, IPs, cables, BGP models, OSPF models, and 
 | Infrastructure | 6 devices (PE1, P1, P2, P3, P4, RR1), loopback + ethX interfaces, all IPs, cables between peers |
 | BGP | AS 65000, routing instance per device, ipv4_unicast address family per routing instance, RR1's IBGP peer group + peer group address family |
 | BGP Peerings | 5 peerings (PE1↔RR1, P1↔RR1, P2↔RR1, P3↔RR1, P4↔RR1), with TWO peer endpoints per peering (10 endpoints total — one local side, one remote side) |
-| OSPF | IGP routing instance per device, OSPF process 1 per device, interface configurations for lo + all ethX on every device (all area 0.0.0.0) |
-| Config Context | "OSPF P2P Network Type" applied to all three roles (PE-Router, P-Router, Route-Reflector) |
+| OSPF | IGP routing instance per device, OSPF process 1 per device, interface configurations for lo + all ethX on every device (all area 0.0.0.0, ethX interfaces get `network_type: point-to-point`) |
 
 **Understanding the BGP peering structure in the model:**
 
@@ -305,7 +304,6 @@ Use `nautobot_graphql` with this query (substitute the device name):
 {
   devices(name: "<DEVICE>") {
     name
-    config_context
     interfaces {
       name
       type
@@ -344,6 +342,7 @@ Use `nautobot_graphql` with this query (substitute the device name):
   ospf_interface_configurations {
     interface { name device { name } }
     area
+    network_type
   }
 }
 ```
@@ -429,7 +428,7 @@ Where `<name>` is the peer-group name (if the attribute is on a PeerGroupAddress
 - `asn` → from `bgp_routing_instances[0].autonomous_system.asn`
 - `p2p_ip` → from `interfaces` where `name == "ethX"`, take `ip_addresses[0].address`
 - `ospf area` → from `ospf_interface_configurations` where `interface.device.name == device` and `interface.name == iface_name`, take `area`
-- `network_type` → from `config_context.igp.ospf.network_type` (only on non-loopback interfaces)
+- `network_type` → from `ospf_interface_configurations` where `interface.device.name == device` and `interface.name == iface_name`, take `network_type` (e.g., "point-to-point"). Only emit `ip ospf network point-to-point` if the field is non-empty.
 - `peer_group` → from `bgp_routing_instances[0].peer_groups[]` — name, ASN, source_interface
 - `peer neighbors` → from `bgp_peerings` — find all peerings where this device is an endpoint, collect remote peer IPs
 - `address-family commands` → from `peer_groups[].address_families[].extra_attributes` or `endpoints[].address_families[].extra_attributes` — render each key as the corresponding FRR command
@@ -707,7 +706,7 @@ These tools manage Nautobot jobs (finding, enabling, running, checking results):
 5. **Address-family config from extra_attributes** — commands like `route-reflector-client` are ONLY emitted if expressed in `extra_attributes` on the PeerGroupAddressFamily. If not present, do NOT emit.
 6. **extra_attributes placement** — `route-reflector-client` belongs ONLY on the RR's peer-group address family. Spoke endpoint address families get NO extra_attributes. Do NOT put RR-side knobs on spoke-side objects.
 7. **Network statement convention** — spoke routers (non-RR) advertise their loopback with `network <ip>` under address-family. The RR does NOT need a network statement.
-8. **Config context provides supplemental data** — `network_type: point-to-point` from `config_context`
+6. **OSPF network_type from IGP models** — `network_type` is stored directly on each `ospf_interface_configuration` object (not in config_context). Query it via GraphQL and emit `ip ospf network <type>` only when the field is non-empty.
 9. **Config push via vtysh** — `docker exec clab-netclaw-demo-<node> vtysh`
 10. **Validate after pushing** — always show proof the network is working
 11. **Explain as you go** — this is a demo for an audience
