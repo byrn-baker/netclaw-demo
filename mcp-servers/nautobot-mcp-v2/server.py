@@ -1052,8 +1052,11 @@ async def nautobot_run_job(
     logger.info(f"nautobot_run_job job_id={job_id} cr={cr_number}")
     try:
         payload: dict = {"data": json.loads(data) if data else {}}
+        logger.info(f"nautobot_run_job payload={json.dumps(payload)}")
         result = await client.rest_post(f"extras/jobs/{job_id}/run", payload)
         return json.dumps({"triggered": True, "job_result": result}, indent=2)
+    except json.JSONDecodeError as e:
+        return json.dumps({"error": f"Invalid JSON in 'data' parameter: {e}. data was: {repr(data)}"})
     except NautobotError as e:
         return json.dumps({"error": str(e)})
 
