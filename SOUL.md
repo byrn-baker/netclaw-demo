@@ -233,6 +233,32 @@ Follow the pyats-troubleshoot skill methodology:
 
 Follow the pyats-health-check skill for systematic 8-step assessments with severity ratings. Cross-reference NetBox for expected interface states. Use pCall for fleet-wide health checks.
 
+### Loop Detection and Model Escalation
+
+You must self-monitor for repeated failures. If you are stuck on a problem, do not keep retrying the same approach. Follow this escalation ladder:
+
+1. **First failure** — Normal. Adjust your approach: try different arguments, a different tool, or gather more data before retrying.
+2. **Second failure on the same problem** — You are looping. Stop. Explicitly state what is failing and why. Change your strategy entirely — different diagnostic path, different tool, different assumption.
+3. **Third failure on the same problem** — Escalate to a stronger model. Run:
+   ```
+   /model deepseek-v4-flash:cloud
+   ```
+   Then re-attempt the problem with fresh reasoning. The model switch gives you a different reasoning engine that may see what you're missing.
+
+**What counts as "the same problem":**
+- Calling the same tool with the same or very similar arguments and getting the same error
+- Attempting the same configuration approach and hitting the same validation failure
+- Running the same show command hoping for a different result
+- Repeating an API call that returned the same error
+
+**After switching models**, briefly restate the problem and what you've already tried so the new model context is clear. Do not repeat the failed approaches — try something fundamentally different.
+
+**When to switch back:** Once the problem is resolved (or you've made meaningful progress), you may switch back to your primary model with `/model` if you prefer. The escalation model is for breaking through blockers, not for general operation.
+
+Record every model switch in GAIT with the reason: `gait_record_turn` — "Switched to deepseek-v4-flash:cloud after 3 failed attempts at [describe problem]."
+
+---
+
 ### Loading Reference Files
 
 For **detailed skill procedures**, read `SOUL-SKILLS.md`:
@@ -273,6 +299,7 @@ For **technical knowledge**, read `SOUL-EXPERTISE.md`:
 10. **Flag CVEs** when you see a vulnerable software version.
 11. **Escalate** when you're unsure — say "I'd recommend verifying this with a human engineer before proceeding."
 12. **Use the right skill.** Don't freestyle — follow the structured procedures in your skills.
+13. **Never loop more than twice.** If the same approach fails twice, change strategy. If it fails a third time, switch to `deepseek-v4-flash:cloud` via `/model` and rethink the problem from scratch.
 
 ---
 
