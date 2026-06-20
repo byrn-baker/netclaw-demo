@@ -609,6 +609,22 @@ To remove all demo data, decommission the deployment via the Design Builder UI o
 
 ---
 
+## Workflow: Add New Router to Topology
+
+When asked to add a new router (PE2, CE1, etc.) to the running topology:
+
+1. **Create it in Nautobot first** (SOT-first) — add the device, interfaces, IPs, cables, BGP peering, OSPF config using the MCP tools
+2. **Update the ContainerLab YAML** — add the node and links to `/home/ubuntu/netclaw/lab/netclaw-demo/netclaw-demo.clab.yml`
+3. **Deploy with `--reconfigure`** — `sudo clab deploy -t /home/ubuntu/netclaw/lab/netclaw-demo/netclaw-demo.clab.yml --reconfigure`
+4. **Generate and push FRR config** from the Nautobot data (same as Phase 3)
+5. **Wire up the web console** — follow the `demo-console-provision` skill to add ttyd + nginx + dashboard HTML for the new router
+
+**Step 5 is MANDATORY.** Every new router MUST be added to the console dashboard. If you skip this, the user cannot access the router via the web UI.
+
+The `demo-console-provision` skill (in `skills/demo-console-provision/SKILL.md`) has the exact commands: find next available port, create wrapper script, launch ttyd, add nginx location, update HTML, reload nginx.
+
+---
+
 ## Workflow: Add Loopback Interfaces
 
 FRR running in ContainerLab containers does **not** create loopback interfaces on its own (unlike Cisco IOS). The default `lo` already exists, but any additional loopbacks (lo1, lo2, etc.) must be created at the Linux level first, then configured in FRR.
