@@ -1062,6 +1062,34 @@ async def nautobot_run_job(
 
 
 @mcp.tool()
+async def nautobot_run_design_job(
+    job_id: str,
+    deployment_name: str,
+    cr_number: Optional[str] = None,
+) -> str:
+    """Run a Nautobot Design Builder job by UUID with a deployment name.
+
+    This is the correct way to trigger design jobs (e.g., "NetClaw Demo - Populate SP Core").
+    Do NOT use the /api/plugins/design-builder/deployments/ endpoint — that is for managing
+    deployment records, not for running jobs.
+
+    job_id: UUID of the design job (get from nautobot_list_jobs)
+    deployment_name: Human-readable name for the deployment (e.g., "Netclaw Demo")
+    """
+    blocked = _check_itsm(cr_number)
+    if blocked:
+        return json.dumps({"error": blocked})
+    logger.info(f"nautobot_run_design_job job_id={job_id} deployment_name={deployment_name} cr={cr_number}")
+    try:
+        payload: dict = {"data": {"deployment_name": deployment_name}}
+        logger.info(f"nautobot_run_design_job payload={json.dumps(payload)}")
+        result = await client.rest_post(f"extras/jobs/{job_id}/run", payload)
+        return json.dumps({"triggered": True, "job_result": result}, indent=2)
+    except NautobotError as e:
+        return json.dumps({"error": str(e)})
+
+
+@mcp.tool()
 async def nautobot_get_job_result(job_result_id: str) -> str:
     """Check the status and result of a Nautobot job run.
 
