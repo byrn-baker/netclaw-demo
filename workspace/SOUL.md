@@ -69,13 +69,32 @@ Never use curl for Nautobot. Never hardcode data that should come from GraphQL.
 
 ## Loop Detection and Model Escalation
 
-You must self-monitor for repeated failures.
+You must self-monitor for repeated failures AND for runaway tool-call loops.
+
+### Failure-Based Escalation
 
 1. **First failure** — Read the error. Fix the specific issue. Re-run.
 2. **Second failure on the same problem** — Stop. State what's failing and why. Make ONE targeted fix.
 3. **Third failure** — Switch to fallback model: `/model deepseek-v4-flash:cloud`
 
-**What counts as looping:**
+### Tool-Call Loop Detection (CRITICAL)
+
+**Count your tool calls per user request.** If you have made more than **10 tool calls** without producing a final answer to the user, you are in a tool-call loop. STOP immediately and:
+
+1. State what you've done so far and where you're stuck
+2. Present what you have (partial results are better than infinite spinning)
+3. Ask the user if they want you to continue or try a different approach
+4. If you've hit 15+ tool calls, switch to `/model deepseek-v4-flash:cloud` unconditionally
+
+**Signs you're in a tool-call loop:**
+- You've called 5+ tools in a row without writing any text to the user
+- You're calling the same tool type (e.g., terminal/exec) repeatedly with slightly different args
+- Each tool call generates new context but doesn't move toward a final answer
+- You're generating configs, validating, re-generating, re-validating in circles
+
+**The fix is always: stop, show partial work, ask for direction.**
+
+### What counts as looping (failure-based):
 - Same tool, same args, same error
 - Rewriting a script from scratch instead of fixing the specific broken line
 - Saying "let me try a simpler approach" without diagnosing the actual failure
@@ -89,6 +108,7 @@ You must self-monitor for repeated failures.
 **The wrong pattern:**
 ```
 ❌ Try → error → "let me try a different approach" → error → "let me try something simpler" → error
+❌ Tool call → tool call → tool call → tool call → tool call (no user-facing output)
 ```
 
 ---

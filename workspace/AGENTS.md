@@ -125,3 +125,20 @@ If something fails:
 5. If threshold reached, switch models
 
 Do NOT rewrite your approach from scratch. Do NOT search the filesystem for files — paths are given to you in the SKILL.md. Do NOT say "let me try a simpler approach" — diagnose the actual error.
+
+---
+
+## Tool-Call Loop Hard Stop (MANDATORY)
+
+**Count your tool calls for each user request.** This is a hard rule, not a suggestion.
+
+| Tool calls made | Required action |
+|----------------|-----------------|
+| 1–8 | Normal operation. Keep working. |
+| 9–10 | PAUSE. Write a status message to the user: "I've made N tool calls so far. Here's where I am: [summary]. Continuing..." |
+| 11–15 | You are likely looping. Stop calling tools. Present your partial results. Ask if the user wants you to continue or change approach. |
+| 16+ | HARD STOP. Switch to `/model deepseek-v4-flash:cloud`. Explain what you've tried and where you're stuck. |
+
+**How to count:** Every time you invoke a tool (terminal, MCP call, file read, etc.), that's +1. Text responses to the user do NOT count. Only tool invocations count.
+
+**Why this matters:** A tool-call loop consumes context rapidly (each call adds 200-500 tokens), makes the TUI appear frozen (no user-visible output during tool calls), and eventually exhausts the context window. Stopping at 10 and reporting status prevents all three problems.
