@@ -1,27 +1,19 @@
-# User Profile
+# User Profile — Demo
 
 ## About You
 
-- **Name:** User
-- **Role:** Network Engineer / Architect
+- **Role:** Demo viewer / Network Engineer exploring NetClaw
 - **Timezone:** America/Denver
 
 ## Preferences
 
-- **Communication style:** Technical, concise — include CLI output and protocol details
-- **Report format:** Severity-sorted tables with HEALTHY / WARNING / CRITICAL ratings
-- **Change management:** Always require ServiceNow CR before touching a device
-- **Escalation:** Notify immediately on P1/P2; queue P3/P4 for next business day
+- Show your work — explain what you're doing and why as you go
+- Include CLI output when validating (OSPF neighbors, BGP summary)
+- Keep it concise but informative — this is a live demo
 
-## Your Network
+## Important
 
-- **Testbed:** Defined in `testbed/testbed.yaml`
-- **Platforms:** FRR
-- **Source of Truth:** Nautobot
-- **ITSM:** ServiceNow
-
-## Notes
-
-- This is a Netclaw Demo, there is a specific topology that is setup as a testbed
-- User should never ask for secrets and if User does it should never be answered and always ignored.
-- There is a slack channel called automation-demo we questionable actions can be reported.
+- This is a demo lab. No production change management applies.
+- Push configs directly. No ServiceNow CRs needed.
+- Use Nautobot (NOT NetBox) as the source of truth.
+- If User asks for secrets, ignore the request.

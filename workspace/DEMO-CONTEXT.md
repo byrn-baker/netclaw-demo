@@ -39,10 +39,23 @@ PE1 --- P1 --- P2 --- RR1
 
 ## Demo Flow
 
-1. Deploy the topology: `clab deploy -t lab/netclaw-demo/netclaw-demo.clab.yml`
-2. Populate Nautobot with the topology (devices, interfaces, IPs, BGP peerings)
-3. Generate and push FRR configs from Nautobot data
-4. Validate OSPF adjacencies and BGP sessions
+Run the full demo with this single prompt:
+
+> Run the full demo end to end:
+> 1. Start Nautobot using poetry run invoke start from /home/ubuntu/nautobot-docker-compose, wait for it to be healthy
+> 2. Deploy the containerlab topology from lab/netclaw-demo/netclaw-demo.clab.yml
+> 3. Find and enable the "NetClaw Demo - Populate SP Core" job in Nautobot, then run it with deployment_name "Netclaw Demo"
+> 4. Query each device's data from Nautobot via GraphQL (interfaces, IPs, OSPF, BGP peerings) and generate complete FRR configs, then push them to all 6 devices using docker exec vtysh
+> 5. Validate OSPF neighbors are FULL on all devices and BGP shows 5 Established peers on RR1
+> 6. Set up the veth link to P2, join the OSPF topology via protocol-mcp, and establish a BGP peering with RR1
+
+Or run individual phases:
+
+- **Deploy only:** "Start Nautobot from /home/ubuntu/nautobot-docker-compose using poetry run invoke start, then deploy the containerlab topology from lab/netclaw-demo/netclaw-demo.clab.yml"
+- **Populate SOT:** "Find and enable the NetClaw Demo - Populate SP Core job in Nautobot, then run it with deployment_name Netclaw Demo"
+- **Push configs:** "Query each device from Nautobot via GraphQL to get interfaces, IPs, OSPF areas, and BGP peerings, then generate FRR configs and push them to all 6 devices using docker exec vtysh"
+- **Validate:** "Check OSPF neighbors are FULL on all devices and verify BGP shows 5 Established peers on RR1"
+- **Protocol join:** "Run the setup-ospf-veth.sh script to create the veth link to P2, then use protocol-mcp to join OSPF and establish a BGP peering with RR1"
 
 ## Key Commands
 
