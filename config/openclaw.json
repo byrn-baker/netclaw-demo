@@ -134,6 +134,20 @@
         "GNS3_TOKEN_TTL": "${GNS3_TOKEN_TTL:-3000}"
       }
     },
+    "containerlab-mcp": {
+      "command": "python3",
+      "args": [
+        "-u",
+        "mcp-servers/containerlab-mcp/containerlab_mcp_server.py"
+      ],
+      "env": {
+        "CLAB_MCP_TOPOLOGY_PATHS": "${CLAB_MCP_TOPOLOGY_PATHS:-.}",
+        "CLAB_MCP_LOG_LEVEL": "${CLAB_MCP_LOG_LEVEL:-info}",
+        "CLAB_MCP_REMOTE": "${CLAB_MCP_REMOTE}",
+        "CLAB_MCP_SSH_KEY_PATH": "${CLAB_MCP_SSH_KEY_PATH}",
+        "CLAB_MCP_SSH_PORT": "${CLAB_MCP_SSH_PORT:-22}"
+      }
+    },
     "prisma-sdwan-mcp": {
       "command": "python3",
       "args": [
