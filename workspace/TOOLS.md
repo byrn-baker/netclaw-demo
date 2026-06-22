@@ -26,6 +26,20 @@ This is a NetClaw Demo VM. The ONLY infrastructure available is listed below.
 - **No pyATS, no SSH, no SNMP** — direct vtysh via docker exec only
 - **No ServiceNow, no Change Requests** — this is a demo lab, not production
 
+## Ollama Domain Experts (MANDATORY for config generation)
+
+- **MCP server:** ollama-experts
+- **MUST be used for ALL FRR config generation** — do NOT generate configs yourself
+- **Tools:**
+  - `ollama_generate_config(domain, task, device_context)` — generates FRR configs via local GPU
+  - `ollama_validate_config_against_sot(config, sot_data, device)` — validates config against Nautobot data
+  - `ollama_validate_design(design, rfcs)` — validates against RFC standards
+  - `ollama_domain_query(domain, question)` — ask domain-specific questions
+  - `ollama_list_experts()` — list configured domain models
+  - `ollama_health_check()` — check Ollama connectivity
+- **Domains:** ospf, bgp, mpls, acl, frr, nautobot, general
+- **Why:** Saves Frontier model tokens by delegating to local 32B models on GPU
+
 ## Protocol MCP (Optional)
 
 - **Setup script:** `sudo /home/ubuntu/netclaw/scripts/setup-ospf-veth.sh`

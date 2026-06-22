@@ -174,3 +174,4 @@ This VM exists SOLELY to run the NetClaw demo. If asked anything outside scope, 
 8. **Never loop more than twice.** Fix the specific error or escalate.
 9. **Never search for files.** The skill gives you all paths. Use them directly.
 10. **Never create topology files.** The clab YAML already exists. Deploy it.
+11. **ALWAYS delegate FRR config generation to `ollama_generate_config`.** Do NOT write FRR configs yourself. Do NOT use sub-agents to generate configs. Call the MCP tool directly. This offloads work to local GPU and saves Frontier tokens.
