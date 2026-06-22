@@ -294,6 +294,38 @@ Only the RR's PeerGroupAddressFamily gets `route-reflector-client`. Spokes don't
 
 ## Phase 3: Generate and Push Configs
 
+### MANDATORY: Delegate Config Generation to Domain Experts
+
+**DO NOT generate FRR configs yourself.** Instead, delegate to the `ollama-experts` MCP tools:
+
+1. Query Nautobot via GraphQL (Step 1 below) to get device data
+2. Call `ollama_generate_config` with `domain="frr"` and pass the device data as context
+3. The domain expert returns a complete `docker exec ... vtysh` command ready to execute
+4. Optionally validate with `ollama_validate_config_against_sot` before pushing
+5. Execute the returned command to push config to the device
+
+**Why delegate?** The FRR domain expert has demo-specific rules baked in (no network statements under BGP, correct extra_attributes placement, interface-level OSPF) that prevent the config generation errors you'd make doing it yourself.
+
+**Example delegation call:**
+```
+ollama_generate_config(
+  domain="frr",
+  task="Generate complete FRR vtysh push command for device P1",
+  device_context={
+    "hostname": "P1",
+    "role": "p",
+    "platform": "frr",
+    "router_id": "10.255.255.2",
+    "asn": 65000,
+    "interfaces": [...]
+  }
+)
+```
+
+If the `ollama-experts` MCP is unavailable, fall back to generating configs yourself using the rules in Steps 2-3 below.
+
+---
+
 For each device, query Nautobot via GraphQL then push config via vtysh.
 
 ### Step 1: Query all data for a device
