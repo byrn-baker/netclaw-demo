@@ -214,6 +214,46 @@ Virtual server, pool, persistence, iRule, SSL, and performance troubleshooting:
 
 ---
 
+## Memory Skills
+
+### memory-facts
+Record and recall network facts with temporal validity:
+- `memory_record_fact(entity, key, value, metadata)` — store fact about entity (auto-supersedes existing)
+- `memory_get_facts(entity, key)` — retrieve current facts for entity
+- `memory_invalidate(fact_id, reason)` — explicitly invalidate outdated fact
+- `memory_timeline(entity, after, before, key)` — view historical facts including invalidated
+
+Facts are normalized (lowercase entities) and timestamped. Superseded facts remain in timeline for audit.
+
+### memory-semantic
+Semantic search across past sessions:
+- `memory_store_session(summary, entities, topics)` — store session summary with embeddings
+- `memory_recall(query, top_k, min_score)` — natural language search for similar sessions
+
+Uses ChromaDB + all-MiniLM-L6-v2 (384 dimensions). Graceful degradation if embeddings unavailable.
+
+### memory-decisions
+Decision log with full context for audit:
+- `memory_record_decision(context, decision, rationale, entities, cr_number)` — log operational decision
+- `memory_get_decisions(entity, after, before)` — query decisions by entity or time range
+
+Include ServiceNow CR number (CHG format) when available. Links to GAIT for full audit trail.
+
+### memory-graph
+Entity relationship tracking:
+- `memory_link_entities(subject, predicate, object)` — create relationship between entities
+- `memory_query_graph(entity, direction, predicate, depth)` — traverse relationships
+
+Standard predicates: `peers_with`, `depends_on`, `connects_to`, `managed_by`, `caused`, `fixed_by`, `learned_from`.
+
+**Use memory to:**
+1. Remember device states across sessions
+2. Recall similar troubleshooting sessions
+3. Audit why decisions were made
+4. Track topology relationships
+
+---
+
 ## Domain Skills
 
 ### netbox-reconcile
@@ -560,6 +600,34 @@ Cisco Secure Firewall policy search via FMC (4 read-only tools):
 - `find_rules_by_ip_or_fqdn` — search within specific access policy
 - `find_rules_for_target` — resolve FTD devices to assigned policies
 - `search_access_rules` — FMC-wide search with network/identity indicators
+
+---
+
+## Claroty OT Security Skills
+
+### claroty-asset-inventory
+OT / IoT / IoMT asset discovery and Purdue Model classification via Claroty xDome (4 tools, 2 ITSM-gated):
+- `list_devices(site_id?, purdue_level?, device_purpose?, name_contains?)` — paginated device inventory
+- `get_device_details` — full record for one device
+- `set_device_purdue_level(device_id, purdue_level, cr_number)` — assign Purdue layer (ITSM-gated)
+- `set_device_custom_attribute(device_id, key, value, cr_number)` — set metadata (ITSM-gated)
+- Cross-reference with `nautobot-sot` or `netbox-reconcile` to surface SoT drift.
+
+### claroty-risk-triage
+Unified alert + vulnerability triage in OT environments (8 tools, 4 ITSM-gated):
+- `list_alerts(severity?, status?, site_id?, assignee?)` and `get_alert_with_devices(alert_id)` for blast radius
+- `list_vulnerabilities(severity?, cvss_min?, cve_contains?)` and `get_vulnerable_devices(vulnerability_id)`
+- `acknowledge_alert(alert_id, resolution, cr_number)` — set resolution state (ITSM-gated)
+- `set_vulnerability_relevance(device_id, vuln_id, relevant, cr_number)` — suppress CVE on a device (ITSM-gated)
+- `label_alerts(alert_ids, labels, cr_number)` and `assign_alerts(alert_ids, assignee, cr_number)` (ITSM-gated)
+- Correlate with `nvd-cve` MCP for CVSS vector decomposition; hand off to `ise-incident-response` for endpoint quarantine.
+
+### claroty-ot-topology
+OT communication map and segmentation visualisation (3 read-only tools):
+- `get_device_communication_map(device_id? | site_id?)` — device-to-device edges
+- `list_organization_zones()` — segmentation zones with device counts
+- `list_ot_activity_events(device_id?, start?, end?)` — activity timeline
+- Hand off to `canvas-network-viz` for inline Canvas/A2UI render or `drawio-` for exportable diagrams.
 
 ---
 
@@ -1271,3 +1339,51 @@ GNS3 snapshot management:
 - `delete_snapshot` — remove snapshot
 
 Always snapshot before major topology changes.
+
+---
+
+## IP Fabric Network Assurance Skills
+
+### ipfabric-assurance
+IP Fabric network assurance and path analysis (10 tools):
+
+**Health Assessment:**
+- `ipf_network_health_assess` — Comprehensive network health overview (snapshot freshness, intent verification, device issues, routing stability)
+
+**Path Lookups:**
+- `ipf_pathlookup_unicast` — Trace unicast path between two IPs
+- `ipf_pathlookup_host-to-gateway` — Trace host to default gateway
+- `ipf_pathlookup_multicast` — Trace multicast distribution path
+
+**Path Diagrams (PNG):**
+- `ipf_png_pathlookup_unicast` — Unicast path as visual diagram
+- `ipf_png_pathlookup_host-to-gateway` — Host-to-gateway path diagram
+- `ipf_png_pathlookup_multicast` — Multicast path diagram
+
+**API Discovery:**
+- `ipf_api_endpoint_search` — Find API endpoints using natural language
+- `ipf_api_endpoint_details` — Get endpoint parameters and response schema
+- `api_invoke` — Execute arbitrary API calls with parameters
+
+**Workflow:**
+1. Start with `ipf_network_health_assess` for overall health
+2. Use `ipf_pathlookup_unicast` for connectivity troubleshooting
+3. Add `ipf_png_pathlookup_*` for visual diagrams
+4. Use API discovery tools for custom queries
+
+**Snapshot Handling:**
+- Default to `$last` (most recent completed snapshot)
+- Specify by name: "using snapshot 'Pre-Change'"
+- Specify by UUID for precise targeting
+
+**VRF-Aware Queries:**
+- Add `vrf` parameter for VRF-specific path analysis
+- Default queries use global routing table
+
+**Diagram Delivery:**
+- CLI: Saved to `~/.openclaw/workspace/diagrams/ipfabric/`
+- Slack/Teams/WebEx: Attached as file to message
+
+**Credentials:** `IPFABRIC_HOST`, `IPFABRIC_API_TOKEN`
+
+Developed in collaboration with **Daren Fulwell** (Field CTO, IP Fabric) and **John Capobianco** (Creator, NetClaw).

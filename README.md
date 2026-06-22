@@ -4,7 +4,7 @@
 
 # NetClaw
 
-A CCIE-level AI network engineering coworker. Built on [OpenClaw](https://github.com/openclaw/openclaw) with Anthropic Claude, 113 skills, and 66 MCP integrations for complete network automation with ITSM gating, source-of-truth reconciliation, immutable audit trails, gNMI streaming telemetry, Canvas/A2UI inline network visualizations, packet capture analysis, GitHub config-as-code, GitLab DevOps (issues, merge requests, pipelines, repositories, wikis), Jenkins CI/CD (job monitoring, build triggering, log analysis, SCM tracking), Cisco CML lab simulation, ContainerLab containerized network labs, Cisco NSO orchestration, Cisco SD-WAN vManage monitoring, Grafana observability (dashboards, Prometheus, Loki, alerting, incidents), Prometheus direct PromQL monitoring, Kubeshark Kubernetes traffic analysis, Cisco Meraki Dashboard management, Cisco ThousandEyes network intelligence, AWS cloud networking, Cisco Secure Firewall policy auditing, Check Point Security (15 MCPs: policy, threat intel, gateway, SASE, malware), Itential network orchestration, Juniper JunOS device automation, Arista CloudVision Portal monitoring, F5 BIG-IP pyATS iControl REST coverage, Infoblox DDI, Palo Alto Panorama, FortiManager, Batfish offline configuration analysis, UML diagram generation, EVPN/VXLAN fabric workflows, live BGP/OSPF control-plane participation, nmap network scanning, gtrace path analysis and IP enrichment, Slack-native operations, Cisco WebEx-native operations, Microsoft 365 integration, and MemPalace persistent AI memory.
+A CCIE-level AI network engineering coworker. Built on [OpenClaw](https://github.com/openclaw/openclaw) with Anthropic Claude, 113 skills, and 67 MCP integrations for complete network automation with ITSM gating, source-of-truth reconciliation, immutable audit trails, gNMI streaming telemetry, Canvas/A2UI inline network visualizations, packet capture analysis, GitHub config-as-code, GitLab DevOps (issues, merge requests, pipelines, repositories, wikis), Jenkins CI/CD (job monitoring, build triggering, log analysis, SCM tracking), Cisco CML lab simulation, ContainerLab containerized network labs, Cisco NSO orchestration, Cisco SD-WAN vManage monitoring, Grafana observability (dashboards, Prometheus, Loki, alerting, incidents), Prometheus direct PromQL monitoring, Kubeshark Kubernetes traffic analysis, Cisco Meraki Dashboard management, Cisco ThousandEyes network intelligence, AWS cloud networking, Cisco Secure Firewall policy auditing, Check Point Security (15 MCPs: policy, threat intel, gateway, SASE, malware), Itential network orchestration, Juniper JunOS device automation, Arista CloudVision Portal monitoring, F5 BIG-IP pyATS iControl REST coverage, Infoblox DDI, Palo Alto Panorama, FortiManager, Batfish offline configuration analysis, UML diagram generation, EVPN/VXLAN fabric workflows, live BGP/OSPF control-plane participation, nmap network scanning, gtrace path analysis and IP enrichment, Slack-native operations, Cisco WebEx-native operations, Microsoft 365 integration, and MemPalace persistent AI memory.
 
 ---
 
@@ -16,7 +16,7 @@ cd netclaw
 ./scripts/install.sh          # installs everything, then launches the setup wizard
 ```
 
-That's it. The installer deploys 113 skills, installs bundled MCP dependencies, and prepares configuration for 66 MCP integrations, then launches a two-phase setup:
+That's it. The installer deploys 113 skills, installs bundled MCP dependencies, and prepares configuration for 67 MCP integrations, then launches a two-phase setup:
 
 **Phase 1: `openclaw onboard`** (OpenClaw's built-in wizard)
 - Pick your AI provider (Anthropic, OpenAI, Bedrock, Vertex, 30+ options)
@@ -167,8 +167,9 @@ NetClaw is an autonomous network engineering agent powered by Claude that can:
 - **Audit** every action in an immutable Git-based trail (GAIT) — there is always an answer to "what did the AI do and why"
 - **Track** token consumption and cost in real-time — every interaction displays input/output tokens, USD cost, and TOON savings. Session-level tracking with per-tool breakdown. Powered by Anthropic's `count_tokens()` API with local estimation fallback
 - **Optimize** token usage with TOON serialization — all MCP server responses use TOON format (Tabular Object Oriented Notation) for 40-60% token savings on tabular network data (route tables, interface lists, BGP peers). Automatic JSON fallback on errors
-- **Remember** across sessions with [MemPalace](https://github.com/milla-jovovich/mempalace) — semantic search across all past sessions, temporal knowledge graph for network facts (upgrades, peer changes, maintenance windows) with validity windows, cross-domain navigation between wings, and per-agent diaries. Complements OpenClaw's file-based daily logs (`memory/YYYY-MM-DD.md`) with structured, searchable long-term memory — *"GAIT records what happened. MemPalace remembers why."*
+- **Remember** across sessions with native Memory MCP — hybrid persistent memory combining structured facts with temporal validity (SQLite), semantic session search (ChromaDB + MiniLM embeddings), decision audit log with rationale, and entity relationship graph. All data stored locally in `~/.openclaw/memory/`. No external dependencies. Also supports [MemPalace](https://github.com/milla-jovovich/mempalace) for structured knowledge palaces with cross-domain navigation. Complements OpenClaw's file-based daily logs (`memory/YYYY-MM-DD.md`) with structured, searchable long-term memory — *"GAIT records what happened. Memory remembers why."*
 - **Secure** production deployments with [DefenseClaw](https://github.com/cisco-ai-defense/defenseclaw) — Cisco AI Defense enterprise security: OpenShell kernel-level sandbox (Landlock, seccomp, namespaces), component scanning before execution, CodeGuard static analysis, LLM prompt/completion inspection, runtime guardrails, SQLite audit logging with SIEM export (Splunk HEC, OTLP) for SOC2/PCI-DSS/HIPAA compliance
+- **Discover and protect** OT / IoT / IoMT environments via Claroty xDome (21 tools: 15 read + 6 ITSM-gated writes) — asset inventory with Purdue Model classification, device communication-map topology, alert and vulnerability triage with blast-radius (`get_vulnerable_devices`), ITSM-gated alert acknowledgement / labelling / assignment, vulnerability relevance triage, OT activity timelines, organisation zone audit, and Claroty audit-log access
 
 ---
 
@@ -248,6 +249,44 @@ NetClaw integrates with Check Point's enterprise security platform through **15 
 
 ---
 
+## IP Fabric Network Assurance Integration
+
+NetClaw integrates with IP Fabric's network assurance platform through **10 MCP tools**, providing AI-powered network health assessment, path analysis with visual diagrams, inventory queries, and intent validation.
+
+> Developed in collaboration with **Daren Fulwell** (Field CTO, IP Fabric) and **John Capobianco** (Creator, NetClaw), representing nearly a decade of professional partnership.
+
+| Capability | Tools | Description |
+|------------|-------|-------------|
+| **Health Assessment** | `ipf_network_health_assess` | Snapshot freshness, intent verification, routing stability |
+| **Path Analysis** | `ipf_pathlookup_*` (3) | Unicast, host-to-gateway, multicast path tracing |
+| **Visual Diagrams** | `ipf_png_pathlookup_*` (3) | PNG network path visualizations |
+| **API Discovery** | `ipf_api_endpoint_*`, `api_invoke` (3) | Find and invoke custom API endpoints |
+
+### Enable IP Fabric Integration
+
+```bash
+# During installation
+./scripts/install.sh
+# Answer "y" to "Enable IP Fabric Integration?"
+
+# Or enable for existing installation
+./scripts/ipfabric-enable.sh
+```
+
+### Example Queries
+
+```
+/ipfabric check network health
+/ipfabric show path from 10.0.1.5 to 10.0.2.10 with diagram
+/ipfabric show BGP neighbors not in Established state
+/ipfabric are there any intent violations
+/ipfabric show all Cisco devices in site HQ
+```
+
+**Full documentation:** [docs/IPFABRIC.md](docs/IPFABRIC.md) | [Skill Definition](workspace/skills/ipfabric/SKILL.md)
+
+---
+
 ## Architecture
 
 ```
@@ -296,6 +335,7 @@ Human (Slack / WebEx / WebChat) --> NetClaw (CCIE Agent on OpenClaw)
                                 |     MCP: Cisco Meraki       --> Dashboard API (~804 endpoints): wireless, switching, security, cameras
                                 |
                                 |-- NETWORK INTELLIGENCE:
+                                |     MCP: IP Fabric          --> Network assurance, path analysis, diagrams, intent (10 tools, remote HTTP)
                                 |     MCP: ThousandEyes (community) --> Tests, agents, path vis, dashboards (9 tools, stdio)
                                 |     MCP: ThousandEyes (official)  --> Alerts, outages, BGP, instant tests, endpoints (~20 tools, remote HTTP)
                                 |
@@ -372,7 +412,7 @@ NetClaw ships with the full set of OpenClaw workspace markdown files. These are 
 
 ---
 
-## MCP Servers (72)
+## MCP Servers (74)
 
 | # | MCP Server | Repository | Transport | Function |
 |---|------------|------------|-----------|----------|
@@ -444,8 +484,10 @@ NetClaw ships with the full set of OpenClaw workspace markdown files. These are 
 | 70 | Aruba CX | [slientnight/aruba-cx-mcp-server](https://github.com/slientnight/aruba-cx-mcp-server) | stdio (Python) | HPE Aruba CX switch management — system info, interfaces, VLANs, configs, routing, LLDP, MAC table, DOM diagnostics, ISSU, VSF topology. 11 read-only + 5 ITSM-gated write tools (16 tools) |
 | 71 | DevNet Content Search | [CiscoDevNet/devnet-content-search-mcp](https://github.com/CiscoDevNet/devnet-content-search-mcp) | Remote HTTP | Cisco DevNet documentation search — Meraki API doc search, Catalyst Center API doc search, Meraki operation ID lookup. No auth required (3 tools) |
 | 72 | HumanRail | [prime001/humanrail-mcp-server](https://github.com/prime001/humanrail-mcp-server) | Streamable HTTP (Python) | Human-in-the-loop escalation — route low-confidence decisions, pre-destructive operation approvals, and ambiguous incident tickets to human engineers; workers paid via Lightning Network. Free while in beta. (7 tools) |
+| 73 | Memory MCP | Built-in | stdio (Python) | Hybrid persistent memory — structured facts with temporal validity (SQLite), semantic session search (ChromaDB + MiniLM embeddings), decision audit log with rationale, entity relationship graph. No external dependencies, offline-capable (10 tools) |
+| 74 | Claroty xDome | Built-in (`mcp-servers/claroty-mcp/`) | stdio (Python) | OT / IoT / IoMT visibility — asset discovery + Purdue classification, alert and vulnerability triage with blast-radius, communication-map topology, OT activity timelines, organisation zone audit. 15 read-only + 6 ITSM-gated writes via the Claroty xDome REST API with sliding-window rate gating (default 2000/min) and Bearer auth (21 tools) |
 
-HumanRail MCP runs via FastMCP streamable HTTP (Python) on port 8100 (`git clone` + `pip install "mcp[cli]>=1.0.0" httpx` + `python3 server.py`). Auth via `HUMANRAIL_API_KEY` Bearer token. Public hosted endpoint also available at `https://humanrail.dev/mcp` — set `HUMANRAIL_MCP_URL=https://humanrail.dev/mcp` to skip local install. Get a free API key at [humanrail.dev](https://humanrail.dev). All MCP servers communicate via stdio (JSON-RPC 2.0) through `scripts/mcp-call.py`. GitHub MCP runs via Docker. CML MCP is pip-installed (`cml-mcp`). NSO MCP is pip-installed (`cisco-nso-mcp-server`). FMC MCP runs as an HTTP server on port 8000. Meraki Magic MCP runs via FastMCP stdio (~804 Dashboard API endpoints). ThousandEyes community MCP runs via stdio (9 read-only tools); ThousandEyes official MCP is a remote HTTP endpoint hosted by Cisco at `https://api.thousandeyes.com/mcp` (~20 tools via `npx mcp-remote`). RADKit MCP runs via FastMCP stdio with certificate-based cloud relay auth (5 tools for remote device access). Nautobot MCP runs via MCP SDK stdio (5 IPAM tools, alternative to NetBox). Infrahub MCP runs via stdio (10 tools for schema-driven SoT, GraphQL queries, and versioned branches). Itential MCP is pip-installed (`itential-mcp`) and runs via stdio (65+ tools for network automation orchestration). JunOS MCP runs via stdio (10 tools for PyEZ/NETCONF device automation). Arista CVP MCP runs via uv/stdio (4 tools for CloudVision Portal device inventory, events, connectivity monitoring, and tag management). UML MCP runs via stdio (2 tools for 27+ diagram types via Kroki multi-engine rendering). Protocol MCP runs via stdio (10 tools for live BGP/OSPF/GRE control-plane participation using scapy-based protocol speakers). ContainerLab MCP runs via stdio (6 tools for containerized network lab lifecycle management via ContainerLab API). SD-WAN MCP runs via stdio (12 read-only tools for Cisco SD-WAN vManage fabric monitoring). Grafana MCP runs via `uvx mcp-grafana` (75+ tools for dashboards, Prometheus, Loki, alerting, incidents, OnCall). Prometheus MCP is pip-installed (`prometheus-mcp-server`) and runs via stdio (6 tools for direct PromQL queries, metric discovery, and scrape target health). Kubeshark MCP is a remote HTTP endpoint running inside a Kubernetes cluster (6 tools for L4/L7 traffic capture, pcap export, flow analysis, and TLS decryption via eBPF; access via `kubectl port-forward svc/kubeshark-hub 8898:8898`). nmap MCP runs via FastMCP stdio (14 tools for host discovery, port scanning, service/OS detection, NSE scripts, and vulnerability scanning with CIDR scope enforcement and audit logging). gtrace MCP runs via `gtrace mcp` stdio (6 tools for advanced traceroute with MPLS/ECMP/NAT detection, MTR continuous monitoring, GlobalPing distributed probes, ASN lookup, geolocation, and reverse DNS). AWS MCPs run via `uvx` (uv tool runner). GCP MCPs are remote HTTP endpoints hosted by Google (OAuth 2.0 auth). AAP Enterprise MCP provides 4 independent servers via `uv run` stdio: Controller (45 tools for inventories, jobs, projects, ad-hoc commands, Galaxy), EDA (12 tools for event-driven activations, rulebooks, decision environments), ansible-lint (9 tools for playbook/role validation and best practices), and Red Hat Docs (documentation search with domain validation). fwrule MCP runs via `uv run fwrule-mcp` stdio (3 tools for multi-vendor firewall rule overlap, shadowing, conflict, and duplication analysis across 9 vendors using 6-dimensional set intersection). SuzieQ MCP runs via stdio (5 read-only tools for network state queries, assertions, summaries, unique value discovery, and path tracing across 20+ network tables via the SuzieQ REST API). GNS3 MCP runs via FastMCP stdio (26 tools for GNS3 network lab management — projects, nodes, links, packet capture, and snapshots via REST API v3). No persistent connections, no port management.
+Memory MCP runs via FastMCP stdio (10 tools for persistent network memory — `memory_record_fact`, `memory_get_facts`, `memory_invalidate`, `memory_timeline` for structured facts; `memory_store_session`, `memory_recall` for semantic search; `memory_record_decision`, `memory_get_decisions` for audit; `memory_link_entities`, `memory_query_graph` for entity relationships). Data stored locally in `~/.openclaw/memory/` (SQLite + ChromaDB). HumanRail MCP runs via FastMCP streamable HTTP (Python) on port 8100 (`git clone` + `pip install "mcp[cli]>=1.0.0" httpx` + `python3 server.py`). Auth via `HUMANRAIL_API_KEY` Bearer token. Public hosted endpoint also available at `https://humanrail.dev/mcp` — set `HUMANRAIL_MCP_URL=https://humanrail.dev/mcp` to skip local install. Get a free API key at [humanrail.dev](https://humanrail.dev). All MCP servers communicate via stdio (JSON-RPC 2.0) through `scripts/mcp-call.py`. GitHub MCP runs via Docker. CML MCP is pip-installed (`cml-mcp`). NSO MCP is pip-installed (`cisco-nso-mcp-server`). FMC MCP runs as an HTTP server on port 8000. Meraki Magic MCP runs via FastMCP stdio (~804 Dashboard API endpoints). ThousandEyes community MCP runs via stdio (9 read-only tools); ThousandEyes official MCP is a remote HTTP endpoint hosted by Cisco at `https://api.thousandeyes.com/mcp` (~20 tools via `npx mcp-remote`). RADKit MCP runs via FastMCP stdio with certificate-based cloud relay auth (5 tools for remote device access). Nautobot MCP runs via MCP SDK stdio (5 IPAM tools, alternative to NetBox). Infrahub MCP runs via stdio (10 tools for schema-driven SoT, GraphQL queries, and versioned branches). Itential MCP is pip-installed (`itential-mcp`) and runs via stdio (65+ tools for network automation orchestration). JunOS MCP runs via stdio (10 tools for PyEZ/NETCONF device automation). Arista CVP MCP runs via uv/stdio (4 tools for CloudVision Portal device inventory, events, connectivity monitoring, and tag management). UML MCP runs via stdio (2 tools for 27+ diagram types via Kroki multi-engine rendering). Protocol MCP runs via stdio (10 tools for live BGP/OSPF/GRE control-plane participation using scapy-based protocol speakers). ContainerLab MCP runs via stdio (6 tools for containerized network lab lifecycle management via ContainerLab API). SD-WAN MCP runs via stdio (12 read-only tools for Cisco SD-WAN vManage fabric monitoring). Grafana MCP runs via `uvx mcp-grafana` (75+ tools for dashboards, Prometheus, Loki, alerting, incidents, OnCall). Prometheus MCP is pip-installed (`prometheus-mcp-server`) and runs via stdio (6 tools for direct PromQL queries, metric discovery, and scrape target health). Kubeshark MCP is a remote HTTP endpoint running inside a Kubernetes cluster (6 tools for L4/L7 traffic capture, pcap export, flow analysis, and TLS decryption via eBPF; access via `kubectl port-forward svc/kubeshark-hub 8898:8898`). nmap MCP runs via FastMCP stdio (14 tools for host discovery, port scanning, service/OS detection, NSE scripts, and vulnerability scanning with CIDR scope enforcement and audit logging). gtrace MCP runs via `gtrace mcp` stdio (6 tools for advanced traceroute with MPLS/ECMP/NAT detection, MTR continuous monitoring, GlobalPing distributed probes, ASN lookup, geolocation, and reverse DNS). AWS MCPs run via `uvx` (uv tool runner). GCP MCPs are remote HTTP endpoints hosted by Google (OAuth 2.0 auth). AAP Enterprise MCP provides 4 independent servers via `uv run` stdio: Controller (45 tools for inventories, jobs, projects, ad-hoc commands, Galaxy), EDA (12 tools for event-driven activations, rulebooks, decision environments), ansible-lint (9 tools for playbook/role validation and best practices), and Red Hat Docs (documentation search with domain validation). fwrule MCP runs via `uv run fwrule-mcp` stdio (3 tools for multi-vendor firewall rule overlap, shadowing, conflict, and duplication analysis across 9 vendors using 6-dimensional set intersection). SuzieQ MCP runs via stdio (5 read-only tools for network state queries, assertions, summaries, unique value discovery, and path tracing across 20+ network tables via the SuzieQ REST API). GNS3 MCP runs via FastMCP stdio (26 tools for GNS3 network lab management — projects, nodes, links, packet capture, and snapshots via REST API v3). No persistent connections, no port management.
 
 ---
 
