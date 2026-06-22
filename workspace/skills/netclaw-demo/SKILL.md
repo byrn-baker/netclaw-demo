@@ -420,7 +420,7 @@ Where `<name>` is the peer-group name (if the attribute is on a PeerGroupAddress
 
 **If an extra_attribute is not present, do NOT emit the command.** The model is the authority.
 
-**Network statements:** Non-RR devices (those that do NOT have `route-reflector-client` in their peer-group address-family) advertise their loopback into BGP with `network <loopback_ip>`. This is a convention: spoke routers advertise their loopback so the RR can reflect it to all other peers. The RR itself does NOT need a network statement — its loopback is reachable via OSPF.
+**Network statements:** Do NOT add any `network` statements to BGP. Loopback reachability is handled entirely by OSPF (IGP). BGP in this design is used ONLY for route reflection of customer/external prefixes — NOT for advertising infrastructure loopbacks. Adding `network <loopback>/32` under BGP is incorrect and will cause next-hop resolution issues on the route reflector.
 
 **How to derive values from GraphQL response:**
 - `loopback_ip` → from `interfaces` where `name == "lo"`, take `ip_addresses[0].address`
@@ -523,7 +523,7 @@ docker exec clab-netclaw-demo-pe1 vtysh -c "show bgp ipv4 unicast"
 **Expected results:**
 - OSPF: All neighbors FULL (P1 has 3, P2 has 3, P3 has 2, P4 has 2, PE1 has 1, RR1 has 1)
 - BGP: 5 peers Established on RR1
-- Routes: All 6 loopback /32s reachable on every device. Non-RR devices advertise their loopbacks into BGP via `network` statements; the RR reflects them to all clients. RR1's own loopback is reachable via OSPF.
+- Routes: All 6 loopback /32s reachable on every device via OSPF. BGP sessions are established for future customer/external route exchange — no `network` statements are needed for infrastructure loopbacks since OSPF handles that.
 
 ---
 
@@ -657,9 +657,10 @@ docker exec clab-netclaw-demo-<node> vtysh \
   -c "exit"
 ```
 
-### Step 3 (optional): Advertise via BGP
+### Step 3 (optional): Advertise via BGP for customer/external prefixes
 
-If the loopback should be reachable via BGP (not just OSPF):
+Only use this for **customer-facing loopbacks** or **service loopbacks** that need to be advertised to eBGP peers. Do NOT use this for SP core infrastructure loopbacks — those are reachable via OSPF.
+
 ```bash
 docker exec clab-netclaw-demo-<node> vtysh \
   -c "configure terminal" \
@@ -721,7 +722,7 @@ These tools manage Nautobot jobs (finding, enabling, running, checking results):
 4. **BGP lives in BGP models** — queried via `bgp_routing_instances` and `bgp_peerings` in GraphQL
 5. **Address-family config from extra_attributes** — commands like `route-reflector-client` are ONLY emitted if expressed in `extra_attributes` on the PeerGroupAddressFamily. If not present, do NOT emit.
 6. **extra_attributes placement** — `route-reflector-client` belongs ONLY on the RR's peer-group address family. Spoke endpoint address families get NO extra_attributes. Do NOT put RR-side knobs on spoke-side objects.
-7. **Network statement convention** — spoke routers (non-RR) advertise their loopback with `network <ip>` under address-family. The RR does NOT need a network statement.
+7. **No network statements for infrastructure loopbacks** — OSPF handles all loopback reachability within the SP core. Do NOT add `network <loopback>/32` under BGP for any SP core device. BGP network statements are ONLY used for customer/external prefixes advertised via eBGP.
 6. **OSPF network_type from IGP models** — `network_type` is stored directly on each `ospf_interface_configuration` object (not in config_context). Query it via GraphQL and emit `ip ospf network <type>` only when the field is non-empty.
 9. **Config push via vtysh** — `docker exec clab-netclaw-demo-<node> vtysh`
 10. **Validate after pushing** — always show proof the network is working

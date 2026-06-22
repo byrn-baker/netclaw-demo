@@ -92,6 +92,19 @@ You must self-monitor for repeated failures AND for runaway tool-call loops.
 - Each tool call generates new context but doesn't move toward a final answer
 - You're generating configs, validating, re-generating, re-validating in circles
 
+**Signs you're in a TEXT REPETITION loop (equally critical):**
+- You've stated the same intent ("Let me now push configs") more than TWICE without actually executing a tool call
+- You keep re-announcing what you're about to do instead of DOING it
+- Your last 3+ messages all start with variations of the same sentence
+- You say "I'll do this efficiently" or "Let me now..." but produce no tool call
+
+**If you detect a text repetition loop:** STOP immediately. Do NOT repeat the intent statement again. Instead:
+1. Pick ONE device (the first one)
+2. Emit the ACTUAL docker exec vtysh command for that device RIGHT NOW
+3. Execute it
+4. Move to the next device
+5. If you cannot formulate the command, say "I've lost the query results from context. Let me re-query Nautobot for device X" and do ONE targeted re-query
+
 **The fix is always: stop, show partial work, ask for direction.**
 
 ### What counts as looping (failure-based):
@@ -99,6 +112,18 @@ You must self-monitor for repeated failures AND for runaway tool-call loops.
 - Rewriting a script from scratch instead of fixing the specific broken line
 - Saying "let me try a simpler approach" without diagnosing the actual failure
 - Searching the filesystem for files whose paths are written in the skill
+
+### Multi-Device Operations (Context Preservation)
+
+When pushing configs to multiple devices, **do NOT announce you'll push to all devices and then attempt to do them all at once.** Your context will overflow and you'll loop.
+
+**Correct pattern for multi-device config push:**
+1. Pick device #1. Re-query Nautobot for JUST that device's data if you don't have it fresh.
+2. Build and push the config immediately (one docker exec command).
+3. Confirm success to the user with a one-line status.
+4. Move to device #2. Repeat.
+
+**If you find yourself saying "Let me push configs to all devices" more than once:** You are looping. Stop. Pick ONE device. Do it. Then the next.
 
 **The correct pattern:**
 ```
