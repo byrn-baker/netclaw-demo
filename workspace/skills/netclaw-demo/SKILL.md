@@ -294,39 +294,33 @@ Only the RR's PeerGroupAddressFamily gets `route-reflector-client`. Spokes don't
 
 ## Phase 3: Generate and Push Configs
 
-### MANDATORY: Delegate Config Generation to Domain Experts
+### ⚠️ MANDATORY DELEGATION — DO NOT SKIP THIS SECTION ⚠️
 
-**DO NOT generate FRR configs yourself.** Instead, delegate to the `ollama-experts` MCP tools:
+**You MUST use the `ollama_generate_config` tool for ALL FRR config generation.** This is not optional. Do NOT write FRR configs yourself under any circumstances when this tool is available.
+
+**Workflow for EACH device:**
 
 1. Query Nautobot via GraphQL (Step 1 below) to get device data
-2. Call `ollama_generate_config` with `domain="frr"` and pass the device data as context
-3. The domain expert returns a complete `docker exec ... vtysh` command ready to execute
-4. Optionally validate with `ollama_validate_config_against_sot` before pushing
-5. Execute the returned command to push config to the device
+2. Call `ollama_generate_config(domain="frr", task="Generate complete FRR vtysh push command for <device>", device_context={...})` with the GraphQL data summarized
+3. The tool returns a complete `docker exec clab-netclaw-demo-<node> vtysh -c ...` command string
+4. Execute that command directly — do NOT modify the returned config
+5. If the tool returns an error, THEN AND ONLY THEN use the fallback rules in the "Manual Fallback" section below
 
-**Why delegate?** The FRR domain expert has demo-specific rules baked in (no network statements under BGP, correct extra_attributes placement, interface-level OSPF) that prevent the config generation errors you'd make doing it yourself.
+**Also use these delegation tools:**
+- `ollama_domain_query(domain="nautobot", question="...")` — when unsure how to query Nautobot or where data lives
+- `ollama_validate_config_against_sot(config=..., sot_data=..., device=...)` — to validate before pushing
+- `ollama_domain_query(domain="bgp", question="...")` — for BGP design questions
 
-**Example delegation call:**
+**Example:**
 ```
 ollama_generate_config(
   domain="frr",
-  task="Generate complete FRR vtysh push command for device P1",
-  device_context={
-    "hostname": "P1",
-    "role": "p",
-    "platform": "frr",
-    "router_id": "10.255.255.2",
-    "asn": 65000,
-    "interfaces": [...]
-  }
+  task="Generate complete FRR vtysh push command for device RR1. Interfaces: lo (10.255.255.6/32), eth1 (10.0.4.2/30). OSPF: all area 0.0.0.0, eth1 point-to-point. BGP: AS 65000, peer group IBGP with 5 peers, extra_attributes: route-reflector-client.",
+  device_context={"hostname": "RR1", "role": "rr", "platform": "frr", "router_id": "10.255.255.6", "asn": 65000}
 )
 ```
 
-If the `ollama-experts` MCP is unavailable, fall back to generating configs yourself using the rules in Steps 2-3 below.
-
 ---
-
-For each device, query Nautobot via GraphQL then push config via vtysh.
 
 ### Step 1: Query all data for a device
 
@@ -379,7 +373,7 @@ Use `nautobot_graphql` with this query (substitute the device name):
 }
 ```
 
-### Step 2: Build the FRR config from query results
+### Step 2: Build the FRR config from query results (⚠️ MANUAL FALLBACK ONLY — use ollama_generate_config first)
 
 The config is **entirely data-driven**. Do NOT hardcode any address-family behavior by device name or role. Render only what the Nautobot model expresses.
 
