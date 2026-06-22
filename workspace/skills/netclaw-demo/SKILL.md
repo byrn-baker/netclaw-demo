@@ -373,153 +373,30 @@ Use `nautobot_graphql` with this query (substitute the device name):
 }
 ```
 
-### Step 2: Build the FRR config from query results (⚠️ MANUAL FALLBACK ONLY — use ollama_generate_config first)
+### Step 2: Generate config via ollama_generate_config (NO MANUAL GENERATION)
 
-The config is **entirely data-driven**. Do NOT hardcode any address-family behavior by device name or role. Render only what the Nautobot model expresses.
+**You do NOT have a manual config template. The ONLY way to generate FRR configs is via the `ollama_generate_config` tool.**
 
-**Base config (all devices):**
-
-```
-hostname <device_name_lowercase>
-!
-interface lo
- ip address <loopback_ip>
- ip ospf area 0
-!
-<for each ethX interface with an IP>
-interface <ethX>
- ip address <p2p_ip>
- ip ospf area 0
- ip ospf network point-to-point
-!
-<end for>
-router ospf
- ospf router-id <router_id_without_mask>
- passive-interface lo
-!
-```
-
-**BGP config — derived from the model:**
+Call the tool with the GraphQL data from Step 1 summarized into the `task` and `device_context` parameters:
 
 ```
-router bgp <asn>
- bgp router-id <router_id_without_mask>
- no bgp ebgp-requires-policy
- <if device has peer_groups>
- <for each peer_group>
- neighbor <peer_group_name> peer-group
- neighbor <peer_group_name> remote-as <peer_group.autonomous_system.asn>
- neighbor <peer_group_name> update-source <peer_group.source_interface.name>
- <end for>
- <for each peering endpoint where this device is a participant>
- neighbor <remote_peer_ip_without_mask> peer-group <endpoint.peer_group.name>
- <end for>
- </if>
- <if device has NO peer_groups (direct neighbor statements)>
- <for each peering endpoint where this device is a participant>
- neighbor <remote_peer_ip_without_mask> remote-as <remote_asn>
- neighbor <remote_peer_ip_without_mask> update-source lo
- <end for>
- </if>
- !
- address-family ipv4 unicast
-  <for each extra_attribute on the peer_group address_family or endpoint address_family>
-  <render the attribute as FRR config>
-  </for>
- exit-address-family
-!
+ollama_generate_config(
+  domain="frr",
+  task="Generate complete FRR vtysh push command for device <NAME>. <summarize all interfaces, IPs, OSPF areas, BGP peers, extra_attributes here>",
+  device_context={"hostname": "<name>", "role": "<role>", "platform": "frr", "router_id": "<rid>", "asn": <asn>, "interfaces": [{"name": "lo", "ip_address": "<ip>", "area": "0.0.0.0"}, {"name": "eth1", "ip_address": "<ip>", "area": "0.0.0.0", "peer_as": "<if eBGP>"}]}
+)
 ```
 
-**Rendering extra_attributes under address-family ipv4 unicast:**
+The tool returns a complete `docker exec clab-netclaw-demo-<node> vtysh -c ...` command string. Execute it directly.
 
-The `extra_attributes` JSON on `PeerGroupAddressFamily` or `PeerEndpointAddressFamily` maps directly to FRR address-family commands:
-
-| extra_attributes key | FRR command |
-|---------------------|-------------|
-| `"route-reflector-client": true` | `neighbor <name> route-reflector-client` |
-| `"next-hop-self": true` | `neighbor <name> next-hop-self` |
-| `"send-community": true` | `neighbor <name> send-community` |
-| `"soft-reconfiguration-inbound": true` | `neighbor <name> soft-reconfiguration inbound` |
-| `"default-originate": true` | `neighbor <name> default-originate` |
-
-Where `<name>` is the peer-group name (if the attribute is on a PeerGroupAddressFamily) or the specific neighbor IP (if on a PeerEndpointAddressFamily).
-
-**If an extra_attribute is not present, do NOT emit the command.** The model is the authority.
-
-**Network statements:** Do NOT add any `network` statements to BGP. Loopback reachability is handled entirely by OSPF (IGP). BGP in this design is used ONLY for route reflection of customer/external prefixes — NOT for advertising infrastructure loopbacks. Adding `network <loopback>/32` under BGP is incorrect and will cause next-hop resolution issues on the route reflector.
-
-**How to derive values from GraphQL response:**
-- `loopback_ip` → from `interfaces` where `name == "lo"`, take `ip_addresses[0].address`
-- `router_id_without_mask` → from `bgp_routing_instances[0].router_id.address`, strip the `/32`
-- `asn` → from `bgp_routing_instances[0].autonomous_system.asn`
-- `p2p_ip` → from `interfaces` where `name == "ethX"`, take `ip_addresses[0].address`
-- `ospf area` → from `ospf_interface_configurations` where `interface.device.name == device` and `interface.name == iface_name`, take `area`
-- `network_type` → from `ospf_interface_configurations` where `interface.device.name == device` and `interface.name == iface_name`, take `network_type` (e.g., "point-to-point"). Only emit `ip ospf network point-to-point` if the field is non-empty.
-- `peer_group` → from `bgp_routing_instances[0].peer_groups[]` — name, ASN, source_interface
-- `peer neighbors` → from `bgp_peerings` — find all peerings where this device is an endpoint, collect remote peer IPs
-- `address-family commands` → from `peer_groups[].address_families[].extra_attributes` or `endpoints[].address_families[].extra_attributes` — render each key as the corresponding FRR command
+**If the tool returns an error or `success: false`:**
+1. Check the error message
+2. Try again with a more detailed `task` description
+3. If it fails 3 times, report the error to the user and STOP — do NOT attempt to write configs manually
 
 ### Step 3: Push config to each device
 
-The vtysh commands are constructed from the config built in Step 2. Example for a device with a peer-group:
-
-```bash
-docker exec clab-netclaw-demo-<node> vtysh -c "configure terminal" \
-  -c "hostname <name>" \
-  -c "interface lo" \
-  -c "ip address <loopback_ip>" \
-  -c "ip ospf area 0" \
-  -c "exit" \
-  -c "interface <ethX>" \
-  -c "ip address <ip>" \
-  -c "ip ospf area 0" \
-  -c "ip ospf network point-to-point" \
-  -c "exit" \
-  -c "router ospf" \
-  -c "ospf router-id <rid>" \
-  -c "passive-interface lo" \
-  -c "exit" \
-  -c "router bgp <asn>" \
-  -c "bgp router-id <rid>" \
-  -c "no bgp ebgp-requires-policy" \
-  -c "neighbor <group_name> peer-group" \
-  -c "neighbor <group_name> remote-as <asn>" \
-  -c "neighbor <group_name> update-source lo" \
-  -c "neighbor <peer1_ip> peer-group <group_name>" \
-  -c "neighbor <peer2_ip> peer-group <group_name>" \
-  -c "address-family ipv4 unicast" \
-  -c "<each command derived from extra_attributes>" \
-  -c "exit-address-family"
-```
-
-Example for a device with direct neighbor statements (no peer-group):
-```bash
-docker exec clab-netclaw-demo-<node> vtysh -c "configure terminal" \
-  -c "hostname <name>" \
-  -c "interface lo" \
-  -c "ip address <loopback_ip>" \
-  -c "ip ospf area 0" \
-  -c "exit" \
-  -c "interface <ethX>" \
-  -c "ip address <ip>" \
-  -c "ip ospf area 0" \
-  -c "ip ospf network point-to-point" \
-  -c "exit" \
-  -c "router ospf" \
-  -c "ospf router-id <rid>" \
-  -c "passive-interface lo" \
-  -c "exit" \
-  -c "router bgp <asn>" \
-  -c "bgp router-id <rid>" \
-  -c "no bgp ebgp-requires-policy" \
-  -c "neighbor <peer_ip> remote-as <asn>" \
-  -c "neighbor <peer_ip> update-source lo" \
-  -c "address-family ipv4 unicast" \
-  -c "<each command derived from extra_attributes>" \
-  -c "exit-address-family"
-```
-
-**The address-family commands come entirely from `extra_attributes` in the model. Do NOT add commands that are not expressed in the data.**
+Execute the vtysh command string returned by `ollama_generate_config` directly via terminal/exec.
 
 **Push order:** Configure all devices before expecting BGP to come up (OSPF needs to converge first for iBGP loopback reachability).
 

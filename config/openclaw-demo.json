@@ -6,7 +6,7 @@
     "defaults": {
       "workspace": "~/.openclaw/workspace",
       "model": {
-        "primary": "ollama/qwen3.5:35b",
+        "primary": "ollama/deepseek-v4-flash:cloud",
         "fallbacks": [
           "ollama/deepseek-v4-flash:cloud"
         ]
