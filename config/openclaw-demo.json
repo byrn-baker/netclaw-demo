@@ -30,81 +30,83 @@
   "security": {
     "mode": "hobby"
   },
-  "mcpServers": {
-    "nautobot-mcp": {
-      "command": "/home/ubuntu/netclaw/.venv/bin/python3",
-      "args": [
-        "-u",
-        "/home/ubuntu/netclaw/mcp-servers/nautobot-mcp-v2/server.py"
-      ],
-      "env": {
-        "NAUTOBOT_URL": "${NAUTOBOT_URL}",
-        "NAUTOBOT_TOKEN": "${NAUTOBOT_TOKEN}",
-        "NAUTOBOT_VERIFY_SSL": "${NAUTOBOT_VERIFY_SSL:-false}",
-        "NAUTOBOT_TIMEOUT": "${NAUTOBOT_TIMEOUT:-60}",
-        "ITSM_ENABLED": "${ITSM_ENABLED:-false}",
-        "ITSM_LAB_MODE": "${ITSM_LAB_MODE:-true}"
-      }
-    },
-    "nautobot-routing-mcp": {
-      "command": "/home/ubuntu/netclaw/.venv/bin/python3",
-      "args": [
-        "-u",
-        "/home/ubuntu/netclaw/mcp-servers/nautobot-routing-mcp/server.py"
-      ],
-      "env": {
-        "NAUTOBOT_URL": "${NAUTOBOT_URL}",
-        "NAUTOBOT_TOKEN": "${NAUTOBOT_TOKEN}",
-        "NAUTOBOT_VERIFY_SSL": "${NAUTOBOT_VERIFY_SSL:-false}",
-        "NAUTOBOT_TIMEOUT": "${NAUTOBOT_TIMEOUT:-60}",
-        "ITSM_ENABLED": "${ITSM_ENABLED:-false}",
-        "ITSM_LAB_MODE": "${ITSM_LAB_MODE:-true}"
-      }
-    },
-    "protocol-mcp": {
-      "command": "sudo",
-      "args": [
-        "-E",
-        "/home/ubuntu/netclaw/.venv/bin/python3",
-        "-u",
-        "/home/ubuntu/netclaw/mcp-servers/protocol-mcp/server.py"
-      ],
-      "env": {
-        "NETCLAW_ROUTER_ID": "${NETCLAW_ROUTER_ID:-10.0.99.1}",
-        "NETCLAW_LOCAL_AS": "${NETCLAW_LOCAL_AS:-65001}",
-        "NETCLAW_BGP_PEERS": "${NETCLAW_BGP_PEERS:-[]}",
-        "NETCLAW_OSPF_AREAS": "${NETCLAW_OSPF_AREAS:-[]}",
-        "NETCLAW_GRE_TUNNELS": "${NETCLAW_GRE_TUNNELS:-[]}",
-        "NETCLAW_LAB_MODE": "${NETCLAW_LAB_MODE:-true}",
-        "NETCLAW_OSPF_INTERFACE": "${NETCLAW_OSPF_INTERFACE:-veth-netclaw}",
-        "NETCLAW_OSPF_IP": "${NETCLAW_OSPF_IP:-10.0.99.1}",
-        "NETCLAW_OSPF_MASK": "${NETCLAW_OSPF_MASK:-255.255.255.252}",
-        "NETCLAW_OSPF_AREA": "${NETCLAW_OSPF_AREA:-0.0.0.0}"
-      }
-    },
-    "rfc-lookup": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@mjpitz/mcp-rfc"
-      ]
-    },
-    "ollama-experts": {
-      "command": "/home/ubuntu/netclaw/.venv/bin/python3",
-      "args": [
-        "-u",
-        "/home/ubuntu/netclaw/mcp-servers/ollama-experts/server.py"
-      ],
-      "env": {
-        "OLLAMA_BASE_URL": "${OLLAMA_BASE_URL:-http://your-ollama-host:11434}",
-        "OLLAMA_TIMEOUT": "${OLLAMA_TIMEOUT:-120}",
-        "OLLAMA_MODEL_FRR": "${OLLAMA_MODEL_FRR:-netclaw-frr-codegen:latest}",
-        "OLLAMA_MODEL_NAUTOBOT": "${OLLAMA_MODEL_NAUTOBOT:-netclaw-nautobot:latest}",
-        "OLLAMA_MODEL_BGP": "${OLLAMA_MODEL_BGP:-netclaw-bgp:latest}",
-        "OLLAMA_MODEL_OSPF": "${OLLAMA_MODEL_OSPF:-netclaw-ospf:latest}",
-        "OLLAMA_MODEL_RFC": "${OLLAMA_MODEL_RFC:-netclaw-rfc-design:latest}",
-        "OLLAMA_MODEL_GENERAL": "${OLLAMA_MODEL_GENERAL:-qwen2.5-coder:32b-instruct-q8_0}",
-        "OLLAMA_MODEL_FALLBACK": "${OLLAMA_MODEL_FALLBACK:-qwen2.5-coder:32b-instruct-q8_0}"
+  "mcp": {
+    "servers": {
+      "nautobot-mcp": {
+        "command": "/home/ubuntu/netclaw/.venv/bin/python3",
+        "args": [
+          "-u",
+          "/home/ubuntu/netclaw/mcp-servers/nautobot-mcp-v2/server.py"
+        ],
+        "env": {
+          "NAUTOBOT_URL": "http://localhost:8080",
+          "NAUTOBOT_TOKEN": "${NAUTOBOT_TOKEN}",
+          "NAUTOBOT_VERIFY_SSL": "false",
+          "NAUTOBOT_TIMEOUT": "60",
+          "ITSM_ENABLED": "false",
+          "ITSM_LAB_MODE": "true"
+        }
+      },
+      "nautobot-routing-mcp": {
+        "command": "/home/ubuntu/netclaw/.venv/bin/python3",
+        "args": [
+          "-u",
+          "/home/ubuntu/netclaw/mcp-servers/nautobot-routing-mcp/server.py"
+        ],
+        "env": {
+          "NAUTOBOT_URL": "http://localhost:8080",
+          "NAUTOBOT_TOKEN": "${NAUTOBOT_TOKEN}",
+          "NAUTOBOT_VERIFY_SSL": "false",
+          "NAUTOBOT_TIMEOUT": "60",
+          "ITSM_ENABLED": "false",
+          "ITSM_LAB_MODE": "true"
+        }
+      },
+      "protocol-mcp": {
+        "command": "sudo",
+        "args": [
+          "-E",
+          "/home/ubuntu/netclaw/.venv/bin/python3",
+          "-u",
+          "/home/ubuntu/netclaw/mcp-servers/protocol-mcp/server.py"
+        ],
+        "env": {
+          "NETCLAW_ROUTER_ID": "10.0.99.1",
+          "NETCLAW_LOCAL_AS": "65001",
+          "NETCLAW_BGP_PEERS": "[]",
+          "NETCLAW_OSPF_AREAS": "[]",
+          "NETCLAW_GRE_TUNNELS": "[]",
+          "NETCLAW_LAB_MODE": "true",
+          "NETCLAW_OSPF_INTERFACE": "veth-netclaw",
+          "NETCLAW_OSPF_IP": "10.0.99.1",
+          "NETCLAW_OSPF_MASK": "255.255.255.252",
+          "NETCLAW_OSPF_AREA": "0.0.0.0"
+        }
+      },
+      "rfc-lookup": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@mjpitz/mcp-rfc"
+        ]
+      },
+      "ollama-experts": {
+        "command": "/home/ubuntu/netclaw/.venv/bin/python3",
+        "args": [
+          "-u",
+          "/home/ubuntu/netclaw/mcp-servers/ollama-experts/server.py"
+        ],
+        "env": {
+          "OLLAMA_BASE_URL": "http://your-ollama-host:11434",
+          "OLLAMA_TIMEOUT": "120",
+          "OLLAMA_MODEL_FRR": "netclaw-frr-codegen:latest",
+          "OLLAMA_MODEL_NAUTOBOT": "netclaw-nautobot:latest",
+          "OLLAMA_MODEL_BGP": "netclaw-bgp:latest",
+          "OLLAMA_MODEL_OSPF": "netclaw-ospf:latest",
+          "OLLAMA_MODEL_RFC": "netclaw-rfc-design:latest",
+          "OLLAMA_MODEL_GENERAL": "qwen2.5-coder:32b-instruct-q8_0",
+          "OLLAMA_MODEL_FALLBACK": "qwen2.5-coder:32b-instruct-q8_0"
+        }
       }
     }
   }
