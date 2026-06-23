@@ -35,10 +35,18 @@ This is a NetClaw Demo VM. The ONLY infrastructure available is listed below.
   - `ollama_validate_config_against_sot(config, sot_data, device)` — validates config against Nautobot data
   - `ollama_validate_design(design, rfcs)` — validates against RFC standards
   - `ollama_domain_query(domain, question)` — ask domain-specific questions
+  - `ollama_build_graphql_query(intent, device)` — builds valid Nautobot GraphQL queries from natural language (eliminates query guessing)
+  - `ollama_summarize_state(output, device, command)` — summarizes show command output into compact JSON (saves parsing tokens)
+  - `ollama_compress_sot_data(graphql_response, device)` — compresses raw GraphQL responses to minimal config-relevant JSON (80% context reduction)
   - `ollama_list_experts()` — list configured domain models
   - `ollama_health_check()` — check Ollama connectivity
-- **Domains:** ospf, bgp, mpls, acl, frr, nautobot, general
-- **Why:** Saves Frontier model tokens by delegating to local 32B models on GPU
+- **Domains:** ospf, bgp, mpls, acl, frr, nautobot, graphql, state, compress, general
+- **Why:** Saves Frontier model tokens by delegating to local 7B models on GPU
+- **Token-saving workflow:**
+  1. Use `ollama_build_graphql_query` to construct queries (don't guess field names)
+  2. After getting GraphQL response, use `ollama_compress_sot_data` to reduce it before reasoning
+  3. Use `ollama_generate_config` for FRR config generation
+  4. Use `ollama_summarize_state` after show commands instead of parsing raw output yourself
 
 ## Protocol MCP (Optional)
 

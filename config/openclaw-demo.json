@@ -98,14 +98,17 @@
         ],
         "env": {
           "OLLAMA_BASE_URL": "http://your-ollama-host:11434",
-          "OLLAMA_TIMEOUT": "120",
-          "OLLAMA_MODEL_FRR": "netclaw-frr-codegen:latest",
-          "OLLAMA_MODEL_NAUTOBOT": "netclaw-nautobot:latest",
-          "OLLAMA_MODEL_BGP": "netclaw-bgp:latest",
-          "OLLAMA_MODEL_OSPF": "netclaw-ospf:latest",
-          "OLLAMA_MODEL_RFC": "netclaw-rfc-design:latest",
-          "OLLAMA_MODEL_GENERAL": "qwen2.5-coder:32b-instruct-q8_0",
-          "OLLAMA_MODEL_FALLBACK": "qwen2.5-coder:32b-instruct-q8_0"
+          "OLLAMA_TIMEOUT": "60",
+          "OLLAMA_MODEL_FRR": "netclaw-frr-codegen:7b",
+          "OLLAMA_MODEL_NAUTOBOT": "netclaw-nautobot:7b",
+          "OLLAMA_MODEL_BGP": "netclaw-bgp:7b",
+          "OLLAMA_MODEL_OSPF": "netclaw-ospf:7b",
+          "OLLAMA_MODEL_RFC": "netclaw-rfc-design:7b",
+          "OLLAMA_MODEL_GRAPHQL": "netclaw-graphql-builder:7b",
+          "OLLAMA_MODEL_STATE": "netclaw-state-summarizer:7b",
+          "OLLAMA_MODEL_COMPRESS": "netclaw-context-compressor:7b",
+          "OLLAMA_MODEL_GENERAL": "qwen2.5-coder:7b",
+          "OLLAMA_MODEL_FALLBACK": "qwen2.5-coder:7b"
         }
       }
     }

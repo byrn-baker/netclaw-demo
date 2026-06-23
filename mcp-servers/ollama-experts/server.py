@@ -273,6 +273,76 @@ TOOLS = [
             },
         },
     ),
+    Tool(
+        name="ollama_build_graphql_query",
+        description=(
+            "Build a valid Nautobot GraphQL query from natural language intent. "
+            "Eliminates the Frontier model guessing at field names and filter syntax. "
+            "Returns the raw GraphQL query string ready to pass to nautobot_graphql()."
+        ),
+        inputSchema={
+            "type": "object",
+            "required": ["intent"],
+            "properties": {
+                "intent": {
+                    "type": "string",
+                    "description": "Natural language description of what data to query (e.g., 'full config generation data for device P1', 'BGP summary for RR1', 'all OSPF interfaces')",
+                },
+                "device": {
+                    "type": "string",
+                    "description": "Device name to filter by, if applicable (e.g., 'P1', 'RR1')",
+                },
+            },
+        },
+    ),
+    Tool(
+        name="ollama_summarize_state",
+        description=(
+            "Summarize raw FRR show command output into a compact JSON digest. "
+            "Returns healthy/unhealthy status, peer counts, and only details for "
+            "problem states. Saves Frontier tokens by eliminating raw output parsing."
+        ),
+        inputSchema={
+            "type": "object",
+            "required": ["output"],
+            "properties": {
+                "output": {
+                    "type": "string",
+                    "description": "Raw show command output (e.g., from 'show ip bgp summary', 'show ip ospf neighbor', 'show ip route')",
+                },
+                "device": {
+                    "type": "string",
+                    "description": "Device name for context (e.g., 'P1', 'RR1')",
+                },
+                "command": {
+                    "type": "string",
+                    "description": "The show command that produced this output (e.g., 'show ip bgp summary')",
+                },
+            },
+        },
+    ),
+    Tool(
+        name="ollama_compress_sot_data",
+        description=(
+            "Compress a raw Nautobot GraphQL response into minimal config-relevant JSON. "
+            "Reduces 2KB+ GraphQL responses to ~400 bytes by extracting only the fields "
+            "needed for FRR config generation. Saves 80% context window for the Frontier model."
+        ),
+        inputSchema={
+            "type": "object",
+            "required": ["graphql_response", "device"],
+            "properties": {
+                "graphql_response": {
+                    "type": "string",
+                    "description": "Raw JSON string of the Nautobot GraphQL response (devices, bgp_routing_instances, bgp_peerings, ospf_interface_configurations)",
+                },
+                "device": {
+                    "type": "string",
+                    "description": "Target device name to extract data for (e.g., 'P1', 'RR1')",
+                },
+            },
+        },
+    ),
 ]
 
 
@@ -300,6 +370,12 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             return await handle_delegation_stats(arguments)
         elif name == "ollama_validate_config_against_sot":
             return await handle_validate_config_against_sot(arguments)
+        elif name == "ollama_build_graphql_query":
+            return await handle_build_graphql_query(arguments)
+        elif name == "ollama_summarize_state":
+            return await handle_summarize_state(arguments)
+        elif name == "ollama_compress_sot_data":
+            return await handle_compress_sot_data(arguments)
         else:
             return [TextContent(type="text", text=f"Unknown tool: {name}")]
     except Exception as e:
@@ -560,6 +636,164 @@ async def handle_validate_config_against_sot(args: dict) -> list[TextContent]:
             "valid": None,
             "device": device,
             "error": f"Validation delegation failed: {str(e)}",
+        }, indent=2)
+
+    return [TextContent(type="text", text=output)]
+
+
+async def handle_build_graphql_query(args: dict) -> list[TextContent]:
+    """Build a Nautobot GraphQL query from natural language intent."""
+    intent = args["intent"]
+    device = args.get("device", "")
+
+    model = router.get_model("graphql")
+    options = router.get_generation_options("graphql")
+
+    prompt = intent
+    if device:
+        prompt = f"{intent} for device {device}"
+
+    try:
+        result = await client.generate(model=model, prompt=prompt, options=options)
+        response_text = result.get("response", "").strip()
+        elapsed_ms = result.get("_elapsed_ms", 0)
+        eval_count = result.get("eval_count", len(response_text) // 4)
+
+        metrics.record_delegation("graphql", model, elapsed_ms, eval_count, success=True)
+
+        # Strip markdown fences if model included them
+        if response_text.startswith("```"):
+            lines = response_text.split("\n")
+            # Remove first and last fence lines
+            lines = [l for l in lines if not l.strip().startswith("```")]
+            response_text = "\n".join(lines).strip()
+
+        output = json.dumps({
+            "success": True,
+            "query": response_text,
+            "model_used": model,
+            "generation_time_ms": elapsed_ms,
+        }, indent=2)
+
+    except Exception as e:
+        metrics.record_delegation("graphql", model, 0, 0, success=False)
+        output = json.dumps({
+            "success": False,
+            "error": f"Query generation failed: {str(e)}",
+            "model_used": model,
+        }, indent=2)
+
+    return [TextContent(type="text", text=output)]
+
+
+async def handle_summarize_state(args: dict) -> list[TextContent]:
+    """Summarize raw show command output into compact JSON."""
+    show_output = args["output"]
+    device = args.get("device", "unknown")
+    command = args.get("command", "")
+
+    model = router.get_model("state")
+    options = router.get_generation_options("state")
+
+    prompt = f"Device: {device}."
+    if command:
+        prompt += f" Command: {command}."
+    prompt += f"\n\n{show_output}"
+
+    try:
+        result = await client.generate(model=model, prompt=prompt, options=options)
+        response_text = result.get("response", "").strip()
+        elapsed_ms = result.get("_elapsed_ms", 0)
+        eval_count = result.get("eval_count", len(response_text) // 4)
+
+        metrics.record_delegation("state", model, elapsed_ms, eval_count, success=True)
+
+        # Strip markdown fences if present
+        if response_text.startswith("```"):
+            lines = response_text.split("\n")
+            lines = [l for l in lines if not l.strip().startswith("```")]
+            response_text = "\n".join(lines).strip()
+
+        # Try to parse and re-serialize for clean output
+        try:
+            parsed = json.loads(response_text)
+            output = json.dumps(parsed, indent=2)
+        except json.JSONDecodeError:
+            output = json.dumps({
+                "success": False,
+                "device": device,
+                "raw_response": response_text,
+                "note": "Could not parse structured summary",
+                "generation_time_ms": elapsed_ms,
+            }, indent=2)
+
+    except Exception as e:
+        metrics.record_delegation("state", model, 0, 0, success=False)
+        output = json.dumps({
+            "success": False,
+            "device": device,
+            "error": f"State summarization failed: {str(e)}",
+        }, indent=2)
+
+    return [TextContent(type="text", text=output)]
+
+
+async def handle_compress_sot_data(args: dict) -> list[TextContent]:
+    """Compress raw Nautobot GraphQL response into minimal config-relevant JSON."""
+    graphql_response = args["graphql_response"]
+    device = args["device"]
+
+    model = router.get_model("compress")
+    options = router.get_generation_options("compress")
+
+    prompt = f"Compress for device {device}:\n{graphql_response}"
+
+    try:
+        result = await client.generate(model=model, prompt=prompt, options=options)
+        response_text = result.get("response", "").strip()
+        elapsed_ms = result.get("_elapsed_ms", 0)
+        eval_count = result.get("eval_count", len(response_text) // 4)
+
+        metrics.record_delegation("compress", model, elapsed_ms, eval_count, success=True)
+
+        # Strip markdown fences if present
+        if response_text.startswith("```"):
+            lines = response_text.split("\n")
+            lines = [l for l in lines if not l.strip().startswith("```")]
+            response_text = "\n".join(lines).strip()
+
+        # Validate JSON output
+        try:
+            parsed = json.loads(response_text)
+            # Calculate compression ratio
+            input_size = len(graphql_response)
+            output_size = len(response_text)
+            compression_ratio = round((1 - output_size / input_size) * 100, 1) if input_size > 0 else 0
+
+            output = json.dumps({
+                "success": True,
+                "compressed": parsed,
+                "model_used": model,
+                "generation_time_ms": elapsed_ms,
+                "compression_ratio_pct": compression_ratio,
+                "input_chars": input_size,
+                "output_chars": output_size,
+            }, indent=2)
+        except json.JSONDecodeError:
+            output = json.dumps({
+                "success": False,
+                "device": device,
+                "raw_response": response_text,
+                "note": "Could not parse compressed output as JSON",
+                "generation_time_ms": elapsed_ms,
+            }, indent=2)
+
+    except Exception as e:
+        metrics.record_delegation("compress", model, 0, 0, success=False)
+        output = json.dumps({
+            "success": False,
+            "device": device,
+            "error": f"Compression failed: {str(e)}",
         }, indent=2)
 
     return [TextContent(type="text", text=output)]

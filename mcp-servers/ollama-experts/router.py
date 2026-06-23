@@ -26,6 +26,9 @@ DOMAIN_DESCRIPTIONS = {
     "frr": "FRR config generation expert — generates complete vtysh commands from Nautobot GraphQL data for the NetClaw demo",
     "nautobot": "Nautobot API/GraphQL expert — BGP Models plugin hierarchy, OSPF IGP models, job execution patterns",
     "general": "General network config generation — multi-protocol, multi-platform",
+    "graphql": "Nautobot GraphQL query builder — constructs valid queries from natural language intent",
+    "state": "Protocol state summarizer — compresses show command output into pass/fail JSON signals",
+    "compress": "Context compressor — reduces raw GraphQL responses to minimal config-relevant JSON",
 }
 
 
@@ -58,7 +61,7 @@ class DomainRouter:
         """
         self._fallback_model = os.environ.get("OLLAMA_MODEL_FALLBACK", "deepseek-coder-v2:16b")
 
-        for domain in ["ospf", "bgp", "mpls", "acl", "rfc", "frr", "nautobot", "general"]:
+        for domain in ["ospf", "bgp", "mpls", "acl", "rfc", "frr", "nautobot", "general", "graphql", "state", "compress"]:
             env_key = f"OLLAMA_MODEL_{domain.upper()}"
             model = os.environ.get(env_key)
 
