@@ -1,0 +1,236 @@
+# Vector config for NetClaw Demo VMs
+# Tails the OpenClaw gateway JSONL log, extracts token/cost metrics,
+# and pushes them to Prometheus via remote-write on the OBS VM.
+#
+# Log location: /tmp/openclaw/openclaw-YYYY-MM-DD.log
+# Each line is a JSON object from the OpenClaw gateway logger.
+# Model calls include usage fields: input_tokens, output_tokens, cache_read, cost.
+
+data_dir: /var/lib/vector
+
+sources:
+  # Tail the OpenClaw gateway JSONL log files (rolling daily)
+  openclaw_log:
+    type: file
+    include:
+      - /tmp/openclaw/openclaw-*.log
+    read_from: beginning
+    fingerprint:
+      strategy: device_and_inode
+    multiline:
+      mode: halt_before
+      start_pattern: '^\{'
+      condition_pattern: '^\{'
+      timeout_ms: 1000
+
+transforms:
+  # Parse each line as JSON
+  parse_json:
+    type: remap
+    inputs:
+      - openclaw_log
+    source: |
+      . = parse_json!(.message)
+
+  # Filter to only model-call log entries that contain token usage
+  # OpenClaw logs model calls with fields like: model, provider, usage.*
+  filter_model_calls:
+    type: filter
+    inputs:
+      - parse_json
+    condition: |
+      # Keep lines that look like model call completions with usage data
+      # OpenClaw logs these with various shapes — we check for common patterns
+      exists(.usage) || exists(.inputTokens) || exists(.input_tokens) || (exists(.model) && (exists(.tokens) || exists(.totalTokens)))
+
+  # Extract and normalize token metrics from model call log entries
+  extract_token_metrics:
+    type: remap
+    inputs:
+      - filter_model_calls
+    source: |
+      # Normalize field names — OpenClaw uses several shapes depending on log context
+      # Shape 1: .usage.input_tokens / .usage.output_tokens / .usage.cache_read_input_tokens
+      # Shape 2: .inputTokens / .outputTokens / .cacheReadInputTokens
+      # Shape 3: .tokens (total only)
+
+      input_tokens = to_int(.usage.input_tokens ?? .usage.inputTokens ?? .inputTokens ?? .input_tokens ?? 0) ?? 0
+      output_tokens = to_int(.usage.output_tokens ?? .usage.outputTokens ?? .outputTokens ?? .output_tokens ?? 0) ?? 0
+      cache_read = to_int(.usage.cache_read_input_tokens ?? .usage.cacheReadInputTokens ?? .cacheReadInputTokens ?? .cache_read_input_tokens ?? 0) ?? 0
+      cache_write = to_int(.usage.cache_creation_input_tokens ?? .usage.cacheCreationInputTokens ?? .cacheCreationInputTokens ?? .cache_creation_input_tokens ?? 0) ?? 0
+      total_tokens = to_int(.usage.total_tokens ?? .usage.totalTokens ?? .totalTokens ?? .total_tokens ?? .tokens ?? 0) ?? 0
+
+      # If we only have total, skip (can't split)
+      # If we have input+output, compute total
+      if input_tokens == 0 && output_tokens == 0 && total_tokens > 0 {
+        input_tokens = total_tokens
+      }
+
+      # Model and provider info
+      model = to_string(.model ?? .usage.model ?? "unknown") ?? "unknown"
+      provider = to_string(.provider ?? .usage.provider ?? "unknown") ?? "unknown"
+
+      # Strip provider prefix from model if present (e.g., "anthropic/claude-opus-4-6" -> "claude-opus-4-6")
+      model_parts = split(model, "/", limit: 2)
+      if length(model_parts) == 2 {
+        if provider == "unknown" {
+          provider = model_parts[0]
+        }
+        model = model_parts[1]
+      }
+
+      # Cost (USD)
+      cost = to_float(.usage.cost ?? .cost ?? .totalCost ?? 0.0) ?? 0.0
+
+      # Agent info
+      agent = to_string(.agent_id ?? .agent ?? "default") ?? "default"
+
+      # Session info for labeling
+      session = to_string(.session_id ?? .sessionId ?? "unknown") ?? "unknown"
+
+      # Duration (ms)
+      duration_ms = to_float(.durationMs ?? .duration_ms ?? .usage.duration_ms ?? 0.0) ?? 0.0
+
+      # Write normalized fields
+      .input_tokens = input_tokens
+      .output_tokens = output_tokens
+      .cache_read_tokens = cache_read
+      .cache_write_tokens = cache_write
+      .total_tokens = input_tokens + output_tokens
+      .model = model
+      .provider = provider
+      .cost_usd = cost
+      .agent = agent
+      .session = session
+      .duration_ms = duration_ms
+
+      # Drop if no meaningful data
+      if .input_tokens == 0 && .output_tokens == 0 {
+        abort
+      }
+
+  # Generate counter metrics for input tokens
+  metric_input_tokens:
+    type: log_to_metric
+    inputs:
+      - extract_token_metrics
+    metrics:
+      - type: counter
+        field: input_tokens
+        name: netclaw_model_input_tokens_total
+        namespace: ""
+        tags:
+          model: "{{model}}"
+          provider: "{{provider}}"
+          agent: "{{agent}}"
+          instance: "netclaw-demo"
+
+  # Generate counter metrics for output tokens
+  metric_output_tokens:
+    type: log_to_metric
+    inputs:
+      - extract_token_metrics
+    metrics:
+      - type: counter
+        field: output_tokens
+        name: netclaw_model_output_tokens_total
+        namespace: ""
+        tags:
+          model: "{{model}}"
+          provider: "{{provider}}"
+          agent: "{{agent}}"
+          instance: "netclaw-demo"
+
+  # Generate counter metrics for cache read tokens
+  metric_cache_read:
+    type: log_to_metric
+    inputs:
+      - extract_token_metrics
+    metrics:
+      - type: counter
+        field: cache_read_tokens
+        name: netclaw_model_cache_read_tokens_total
+        namespace: ""
+        tags:
+          model: "{{model}}"
+          provider: "{{provider}}"
+          instance: "netclaw-demo"
+
+  # Generate counter metrics for cache write tokens
+  metric_cache_write:
+    type: log_to_metric
+    inputs:
+      - extract_token_metrics
+    metrics:
+      - type: counter
+        field: cache_write_tokens
+        name: netclaw_model_cache_write_tokens_total
+        namespace: ""
+        tags:
+          model: "{{model}}"
+          provider: "{{provider}}"
+          instance: "netclaw-demo"
+
+  # Generate counter for cost
+  metric_cost:
+    type: log_to_metric
+    inputs:
+      - extract_token_metrics
+    metrics:
+      - type: counter
+        field: cost_usd
+        name: netclaw_model_cost_usd_total
+        namespace: ""
+        tags:
+          model: "{{model}}"
+          provider: "{{provider}}"
+          agent: "{{agent}}"
+          instance: "netclaw-demo"
+
+  # Generate counter for model calls (increment by 1 per event)
+  metric_calls:
+    type: log_to_metric
+    inputs:
+      - extract_token_metrics
+    metrics:
+      - type: counter
+        field: input_tokens
+        name: netclaw_model_calls_total
+        namespace: ""
+        increment_by_value: false
+        tags:
+          model: "{{model}}"
+          provider: "{{provider}}"
+          agent: "{{agent}}"
+          instance: "netclaw-demo"
+
+  # Generate gauge for request duration
+  metric_duration:
+    type: log_to_metric
+    inputs:
+      - extract_token_metrics
+    metrics:
+      - type: gauge
+        field: duration_ms
+        name: netclaw_model_call_duration_ms
+        namespace: ""
+        tags:
+          model: "{{model}}"
+          provider: "{{provider}}"
+          instance: "netclaw-demo"
+
+sinks:
+  # Push metrics to Prometheus on OBS VM via remote-write
+  prometheus_remote_write:
+    type: prometheus_remote_write
+    inputs:
+      - metric_input_tokens
+      - metric_output_tokens
+      - metric_cache_read
+      - metric_cache_write
+      - metric_cost
+      - metric_calls
+      - metric_duration
+    endpoint: "http://your-obs-host:9090/api/v1/write"
+    healthcheck:
+      enabled: false
