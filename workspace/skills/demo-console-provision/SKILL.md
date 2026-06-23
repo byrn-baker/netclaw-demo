@@ -62,6 +62,15 @@ NEXT_PORT=$((LAST_PORT + 1))
 
 If multiple routers are requested, allocate sequential ports: NEXT_PORT, NEXT_PORT+1, etc.
 
+**Before using a port, verify it's actually free:**
+
+```bash
+# Kill any zombie process on the target port
+sudo fuser -k $NEXT_PORT/tcp 2>/dev/null || true
+sleep 1
+ss -tlnp | grep :$NEXT_PORT && echo "ERROR: port still in use" || echo "OK: port free"
+```
+
 ### Step 2: Update ContainerLab Topology
 
 Edit `/home/ubuntu/netclaw-demo/lab/netclaw-demo/netclaw-demo.clab.yml` to add the new node(s) and link(s), then reconfigure:
@@ -99,9 +108,33 @@ chmod +x /usr/local/bin/router-pe2.sh
 
 ### Step 4: Launch ttyd Instances
 
+First, verify the port is actually free. If something is bound to it, kill it:
+
+```bash
+# Check if port is in use and kill the occupying process
+fuser -k 7688/tcp 2>/dev/null || true
+sleep 1
+```
+
+Then launch ttyd as a **systemd transient service** (more reliable than nohup in an agent shell context):
+
+```bash
+sudo systemd-run --unit=ttyd-pe2 --remain-after-exit -- ttyd -p 7688 -W /usr/local/bin/router-pe2.sh
+```
+
+**Why systemd-run instead of nohup?** When the agent runs shell commands, nohup processes can still get killed if the parent shell session is cleaned up or if stdout/stderr pipes break. `systemd-run` creates a proper background service that survives independently.
+
+If `systemd-run` is not available or fails, fall back to:
+
 ```bash
 nohup ttyd -p 7688 -W /usr/local/bin/router-pe2.sh > /var/log/ttyd-pe2.log 2>&1 &
+disown
+sleep 2
+# Verify it's actually running
+ss -tlnp | grep :7688 || echo "ERROR: ttyd failed to bind port 7688"
 ```
+
+**Always verify the port is listening after launch.** If it's not, check `/var/log/ttyd-pe2.log` for errors.
 
 ### Step 5: Add Nginx Location Blocks
 

@@ -549,6 +549,24 @@
         "CLAROTY_RATE_LIMIT_PER_MIN": "${CLAROTY_RATE_LIMIT_PER_MIN:-2000}",
         "NETCLAW_LAB_MODE": "${NETCLAW_LAB_MODE:-false}"
       }
+    },
+    "ollama-experts": {
+      "command": "python3",
+      "args": [
+        "-u",
+        "mcp-servers/ollama-experts/server.py"
+      ],
+      "env": {
+        "OLLAMA_BASE_URL": "${OLLAMA_BASE_URL:-http://your-ollama-host:11434}",
+        "OLLAMA_TIMEOUT": "${OLLAMA_TIMEOUT:-120}",
+        "OLLAMA_MODEL_FRR": "${OLLAMA_MODEL_FRR:-netclaw-frr-codegen:latest}",
+        "OLLAMA_MODEL_NAUTOBOT": "${OLLAMA_MODEL_NAUTOBOT:-netclaw-nautobot:latest}",
+        "OLLAMA_MODEL_BGP": "${OLLAMA_MODEL_BGP:-netclaw-bgp:latest}",
+        "OLLAMA_MODEL_OSPF": "${OLLAMA_MODEL_OSPF:-netclaw-ospf:latest}",
+        "OLLAMA_MODEL_RFC": "${OLLAMA_MODEL_RFC:-netclaw-rfc-design:latest}",
+        "OLLAMA_MODEL_GENERAL": "${OLLAMA_MODEL_GENERAL:-qwen2.5-coder:32b-instruct-q8_0}",
+        "OLLAMA_MODEL_FALLBACK": "${OLLAMA_MODEL_FALLBACK:-qwen2.5-coder:32b-instruct-q8_0}"
+      }
     }
   }
 }
