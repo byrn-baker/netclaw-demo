@@ -625,7 +625,7 @@ These tools manage Nautobot jobs (finding, enabling, running, checking results):
 4. **BGP lives in BGP models** — queried via `bgp_routing_instances` and `bgp_peerings` in GraphQL
 5. **Address-family config from extra_attributes** — commands like `route-reflector-client` are ONLY emitted if expressed in `extra_attributes` on the PeerGroupAddressFamily. If not present, do NOT emit.
 6. **extra_attributes placement** — `route-reflector-client` belongs ONLY on the RR's peer-group address family. Spoke endpoint address families get NO extra_attributes. Do NOT put RR-side knobs on spoke-side objects.
-7. **No network statements for infrastructure loopbacks** — OSPF handles all loopback reachability within the SP core. Do NOT add `network <loopback>/32` under BGP for any SP core device. BGP network statements are ONLY used for customer/external prefixes advertised via eBGP.
+7. **BGP network statements are SOT-driven** — only add `network X.X.X.X/Y` under BGP address-family ipv4 if the prefix is explicitly listed in `extra_attributes.networks` on the device's PeerEndpointAddressFamily or PeerGroupAddressFamily in Nautobot. If no `networks` field exists in the SOT data for a device, emit ZERO network statements. Pass any discovered networks in the `bgp_networks` field of `device_context` when calling `ollama_generate_config`.
 6. **OSPF network_type from IGP models** — `network_type` is stored directly on each `ospf_interface_configuration` object (not in config_context). Query it via GraphQL and emit `ip ospf network <type>` only when the field is non-empty.
 9. **Config push via vtysh** — `docker exec clab-netclaw-demo-<node> vtysh`
 10. **Validate after pushing** — always show proof the network is working

@@ -96,6 +96,16 @@ def build_config_prompt(domain: str, task: str, device_context: dict, constraint
                 parts.append(f"({iface.description})")
             prompt_parts.append(", ".join(parts))
 
+    # BGP network statements — SOT-driven
+    if ctx.bgp_networks:
+        prompt_parts.append(f"")
+        prompt_parts.append(f"BGP network statements (from source-of-truth):")
+        for net in ctx.bgp_networks:
+            prompt_parts.append(f"  - network {net}")
+    else:
+        prompt_parts.append(f"")
+        prompt_parts.append(f"BGP network statements: NONE — do NOT add any 'network' statements under address-family ipv4 unicast. Only emit network statements if explicitly listed above.")
+
     if constraints:
         prompt_parts.append(f"")
         prompt_parts.append(f"Constraints:")
@@ -153,7 +163,7 @@ TOOLS = [
                 },
                 "device_context": {
                     "type": "object",
-                    "description": "Device details: hostname, role, platform, interfaces, router_id, asn",
+                    "description": "Device details: hostname, role, platform, interfaces, router_id, asn, bgp_networks",
                     "properties": {
                         "hostname": {"type": "string"},
                         "role": {"type": "string"},
@@ -161,6 +171,11 @@ TOOLS = [
                         "interfaces": {"type": "array"},
                         "router_id": {"type": "string"},
                         "asn": {"type": "integer"},
+                        "bgp_networks": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Explicit BGP network statements from Nautobot extra_attributes (e.g., ['172.16.10.0/24']). If empty/absent, NO network statements will be generated.",
+                        },
                     },
                 },
                 "constraints": {

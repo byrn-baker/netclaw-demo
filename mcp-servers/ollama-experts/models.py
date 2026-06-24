@@ -21,6 +21,7 @@ class DeviceContext(BaseModel):
     interfaces: List[DeviceInterface] = Field(default_factory=list)
     router_id: Optional[str] = None
     asn: Optional[int] = None
+    bgp_networks: List[str] = Field(default_factory=list)  # Explicit network statements from SOT (e.g., ["172.16.10.0/24"])
 
 
 class ConfigGenerationRequest(BaseModel):
