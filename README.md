@@ -32,32 +32,12 @@ The demo runs on [LocalEdge Datacenter](https://localedgedatacenter.com) infrast
 | Server | What it does |
 |--------|--------------|
 | **`ollama-experts`** | Delegates config generation to local Ollama domain models (FRR, BGP, OSPF, Nautobot, RFC) — saves cloud tokens |
-| **`protocol-mcp`** | Live BGP/OSPF/GRE control-plane participation via scapy — the agent peers with real routers |
 | **`nautobot-mcp-v2`** | Full Nautobot SOT integration (GraphQL reads + REST writes, ITSM gating) |
 | **`nautobot-routing-mcp`** | BGP/OSPF routing model CRUD against Nautobot's routing plugin |
 | **`nautobot-golden-config-mcp`** | Golden config compliance and intended/actual/backup comparisons |
-| **`gnmi-mcp`** | gNMI streaming telemetry (Get/Set/Subscribe/Capabilities) for IOS-XR, Juniper, Arista, Nokia |
 | **`containerlab-mcp`** | Deploy/destroy/inspect ContainerLab topologies via the clab API |
 | **`eve-ng-mcp-server`** | EVE-NG lab automation (topology build, node ops, console, config push) |
-| **`gns3-mcp-server`** | GNS3 project lifecycle, node operations, packet captures, snapshots |
-| **`syslog-mcp`** | Real-time syslog receiver — the agent sees device logs as they arrive |
-| **`snmptrap-mcp`** | SNMP trap receiver — events flow directly to the agent |
-| **`ipfix-mcp`** | NetFlow/IPFIX collector for flow-based traffic visibility |
 | **`memory-mcp`** | Hybrid persistent memory (SQLite + ChromaDB embeddings) across sessions |
-| **`suzieq-mcp`** | SuzieQ network observability (state queries, assertions, path tracing) |
-| **`batfish-mcp`** | Offline config analysis via Batfish (reachability, routing, ACLs) |
-| **`claroty-mcp`** | Claroty xDome OT/IoT/IoMT asset visibility and vulnerability triage |
-| **`prisma-sdwan-mcp`** | Palo Alto Prisma SD-WAN read-only monitoring |
-| **`azure-network-mcp`** | Azure networking (VNets, NSGs, ExpressRoute, VPN, Firewall, DNS) |
-| **`gitlab-mcp`** | GitLab DevOps (issues, MRs, pipelines, repos) |
-| **`jenkins-mcp`** | Jenkins CI/CD (jobs, builds, logs, SCM tracking) |
-
-### Other experiments
-
-- **`ui/netclaw-visual/`** — Three.js 3D operations dashboard that visualizes integrations, device fleet, and live BGP topology in the browser
-- **`specs/`** — 37 numbered feature specs documenting the design process for each integration
-- **`workspace/skills/`** — 180+ skill definitions covering everything from EVE-NG lab builds to Claroty OT triage to Zscaler Zero Trust
-- **Token optimization** — TOON serialization for 40-60% token savings on tabular network data, real-time cost tracking per session
 
 ## Demo environment overview
 
