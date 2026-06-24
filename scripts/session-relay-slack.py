@@ -7,8 +7,8 @@ import sys
 import time
 import urllib.request
 
-SLACK_TOKEN = "${SLACK_BOT_TOKEN}"
-SLACK_CHANNEL = "C01CCCXHT9T"
+SLACK_TOKEN = os.environ.get("SLACK_BOT_TOKEN", "")
+SLACK_CHANNEL = os.environ.get("SLACK_CHANNEL_ID", "")
 SESSION_DIR = os.path.expanduser("~/.openclaw/agents/main/sessions")
 POLL_INTERVAL = 2
 
