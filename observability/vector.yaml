@@ -181,5 +181,7 @@ sinks:
       - metric_calls
       - metric_total
     endpoint: "http://your-obs-host:9090/api/v1/write"
+    batch:
+      timeout_secs: 5
     healthcheck:
       enabled: false
