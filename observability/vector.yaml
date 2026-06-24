@@ -79,6 +79,7 @@ transforms:
         field: input_tokens
         name: netclaw_model_input_tokens_total
         namespace: ""
+        increment_by_value: true
         tags:
           model: "{{model}}"
           provider: "{{provider}}"
@@ -93,6 +94,7 @@ transforms:
         field: output_tokens
         name: netclaw_model_output_tokens_total
         namespace: ""
+        increment_by_value: true
         tags:
           model: "{{model}}"
           provider: "{{provider}}"
@@ -107,6 +109,7 @@ transforms:
         field: cache_read_tokens
         name: netclaw_model_cache_read_tokens_total
         namespace: ""
+        increment_by_value: true
         tags:
           model: "{{model}}"
           provider: "{{provider}}"
@@ -121,6 +124,7 @@ transforms:
         field: cache_write_tokens
         name: netclaw_model_cache_write_tokens_total
         namespace: ""
+        increment_by_value: true
         tags:
           model: "{{model}}"
           provider: "{{provider}}"
@@ -135,6 +139,7 @@ transforms:
         field: cost_usd
         name: netclaw_model_cost_usd_total
         namespace: ""
+        increment_by_value: true
         tags:
           model: "{{model}}"
           provider: "{{provider}}"
@@ -164,6 +169,7 @@ transforms:
         field: total_tokens
         name: netclaw_model_total_tokens
         namespace: ""
+        increment_by_value: true
         tags:
           model: "{{model}}"
           provider: "{{provider}}"
