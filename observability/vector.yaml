@@ -1,19 +1,19 @@
 # Vector config for NetClaw Demo VMs
-# Tails the OpenClaw gateway JSONL log, extracts token/cost metrics,
+# Tails OpenClaw trajectory JSONL files for token/cost metrics,
 # and pushes them to Prometheus via remote-write on the OBS VM.
 #
-# Log location: /tmp/openclaw/openclaw-YYYY-MM-DD.log
-# Each line is a JSON object from the OpenClaw gateway logger.
-# Model calls include usage fields: input_tokens, output_tokens, cache_read, cost.
+# Trajectory files: ~/.openclaw/agents/main/sessions/*.trajectory.jsonl
+# Each line is a JSON object. We filter for type="model.completed" entries
+# which contain: provider, modelId, data.usage.{input, output, cacheRead, cacheWrite, total}
 
 data_dir: /var/lib/vector
 
 sources:
-  # Tail the OpenClaw gateway JSONL log files (rolling daily)
-  openclaw_log:
+  # Tail all OpenClaw trajectory session files
+  openclaw_trajectory:
     type: file
     include:
-      - /tmp/openclaw/openclaw-*.log
+      - /home/ubuntu/.openclaw/agents/*/sessions/*.trajectory.jsonl
     read_from: beginning
     fingerprint:
       strategy: device_and_inode
@@ -23,80 +23,82 @@ transforms:
   parse_json:
     type: remap
     inputs:
-      - openclaw_log
+      - openclaw_trajectory
     source: |
       . = parse_json!(.message)
 
-  # Filter to only model-call log entries that contain token usage
-  filter_model_calls:
+  # Filter to only model.completed entries (these have usage data)
+  filter_model_completed:
     type: filter
     inputs:
       - parse_json
     condition: |
-      exists(.usage) || exists(.inputTokens) || exists(.input_tokens) || exists(.tokens) || exists(.totalTokens)
+      .type == "model.completed" || .type == "trace.artifacts"
 
-  # Extract and normalize token metrics from model call log entries
+  # Extract and normalize token metrics
   extract_token_metrics:
     type: remap
     inputs:
-      - filter_model_calls
+      - filter_model_completed
     source: |
-      # Normalize field names — OpenClaw uses several shapes depending on log context
-      input_tokens = to_int(.usage.input_tokens ?? .usage.inputTokens ?? .inputTokens ?? .input_tokens ?? 0) ?? 0
-      output_tokens = to_int(.usage.output_tokens ?? .usage.outputTokens ?? .outputTokens ?? .output_tokens ?? 0) ?? 0
-      cache_read = to_int(.usage.cache_read_input_tokens ?? .usage.cacheReadInputTokens ?? .cacheReadInputTokens ?? .cache_read_input_tokens ?? 0) ?? 0
-      cache_write = to_int(.usage.cache_creation_input_tokens ?? .usage.cacheCreationInputTokens ?? .cacheCreationInputTokens ?? .cache_creation_input_tokens ?? 0) ?? 0
+      # Usage fields from data.usage
+      input_tokens = to_int(.data.usage.input ?? 0) ?? 0
+      output_tokens = to_int(.data.usage.output ?? 0) ?? 0
+      cache_read = to_int(.data.usage.cacheRead ?? .data.promptCache.lastCallUsage.cacheRead ?? 0) ?? 0
+      cache_write = to_int(.data.usage.cacheWrite ?? .data.promptCache.lastCallUsage.cacheWrite ?? 0) ?? 0
+      total_tokens = to_int(.data.usage.total ?? 0) ?? 0
 
-      # If we only have a total field, use that as input
-      total_only = to_int(.usage.total_tokens ?? .usage.totalTokens ?? .totalTokens ?? .tokens ?? 0) ?? 0
-      if input_tokens == 0 && output_tokens == 0 && total_only > 0 {
-        input_tokens = total_only
+      # Model and provider info (top-level fields in trajectory entries)
+      model = to_string(.modelId ?? "unknown")
+      provider = to_string(.provider ?? "unknown")
+
+      # Session/run context
+      agent = "main"
+      session = to_string(.sessionId ?? "unknown")
+      run_id = to_string(.runId ?? "unknown")
+
+      # Cost estimation (Anthropic pricing: Opus=$15/$75, Sonnet=$3/$15, Haiku=$1/$5 per 1M)
+      # Cache reads are 90% cheaper than input, cache writes are 25% more than input
+      cost = 0.0
+      if contains(model, "opus") {
+        cost = (to_float(input_tokens) * 15.0 / 1000000.0) + (to_float(output_tokens) * 75.0 / 1000000.0) + (to_float(cache_read) * 1.5 / 1000000.0) + (to_float(cache_write) * 18.75 / 1000000.0)
+      } else if contains(model, "sonnet") {
+        cost = (to_float(input_tokens) * 3.0 / 1000000.0) + (to_float(output_tokens) * 15.0 / 1000000.0) + (to_float(cache_read) * 0.3 / 1000000.0) + (to_float(cache_write) * 3.75 / 1000000.0)
+      } else if contains(model, "haiku") {
+        cost = (to_float(input_tokens) * 1.0 / 1000000.0) + (to_float(output_tokens) * 5.0 / 1000000.0) + (to_float(cache_read) * 0.1 / 1000000.0) + (to_float(cache_write) * 1.25 / 1000000.0)
       }
-
-      # Model and provider info
-      raw_model = to_string(.model ?? .usage.model ?? "unknown")
-      provider = to_string(.provider ?? .usage.provider ?? "unknown")
-
-      # Strip provider prefix from model if present (e.g., "anthropic/claude-opus-4-6")
-      model_parts = split(raw_model, "/", limit: 2)
-      if length(model_parts) == 2 {
-        if provider == "unknown" {
-          provider = model_parts[0]
-        }
-        raw_model = model_parts[1]
-      }
-
-      # Cost (USD)
-      cost = to_float(.usage.cost ?? .cost ?? .totalCost ?? 0.0)
-
-      # Agent info
-      agent = to_string(.agent_id ?? .agent ?? "default")
-
-      # Duration (ms)
-      duration_ms = to_float(.durationMs ?? .duration_ms ?? .usage.duration_ms ?? 0.0)
 
       # Write normalized fields
       .input_tokens = input_tokens
       .output_tokens = output_tokens
       .cache_read_tokens = cache_read
       .cache_write_tokens = cache_write
-      .total_tokens = input_tokens + output_tokens
-      .model = raw_model
+      .total_tokens = total_tokens
+      .model = model
       .provider = provider
       .cost_usd = cost
       .agent = agent
-      .duration_ms = duration_ms
+      .session = session
 
-      # Drop if no meaningful data
-      if .input_tokens == 0 && .output_tokens == 0 {
+      # Drop if no meaningful data (e.g., duplicate trace.artifacts with same data)
+      if input_tokens == 0 && output_tokens == 0 && cache_write == 0 {
         abort
       }
+
+  # Deduplicate: model.completed and trace.artifacts carry the same usage data.
+  # Keep only model.completed to avoid double-counting.
+  dedup_model_completed:
+    type: filter
+    inputs:
+      - extract_token_metrics
+    condition: |
+      !exists(.type) || .type != "trace.artifacts"
 
   # Generate counter metrics for input tokens
   metric_input_tokens:
     type: log_to_metric
     inputs:
-      - extract_token_metrics
+      - dedup_model_completed
     metrics:
       - type: counter
         field: input_tokens
@@ -105,14 +107,13 @@ transforms:
         tags:
           model: "{{model}}"
           provider: "{{provider}}"
-          agent: "{{agent}}"
           instance: "netclaw-demo"
 
   # Generate counter metrics for output tokens
   metric_output_tokens:
     type: log_to_metric
     inputs:
-      - extract_token_metrics
+      - dedup_model_completed
     metrics:
       - type: counter
         field: output_tokens
@@ -121,14 +122,13 @@ transforms:
         tags:
           model: "{{model}}"
           provider: "{{provider}}"
-          agent: "{{agent}}"
           instance: "netclaw-demo"
 
   # Generate counter metrics for cache read tokens
   metric_cache_read:
     type: log_to_metric
     inputs:
-      - extract_token_metrics
+      - dedup_model_completed
     metrics:
       - type: counter
         field: cache_read_tokens
@@ -143,7 +143,7 @@ transforms:
   metric_cache_write:
     type: log_to_metric
     inputs:
-      - extract_token_metrics
+      - dedup_model_completed
     metrics:
       - type: counter
         field: cache_write_tokens
@@ -154,11 +154,11 @@ transforms:
           provider: "{{provider}}"
           instance: "netclaw-demo"
 
-  # Generate counter for cost
+  # Generate counter for estimated cost
   metric_cost:
     type: log_to_metric
     inputs:
-      - extract_token_metrics
+      - dedup_model_completed
     metrics:
       - type: counter
         field: cost_usd
@@ -167,14 +167,13 @@ transforms:
         tags:
           model: "{{model}}"
           provider: "{{provider}}"
-          agent: "{{agent}}"
           instance: "netclaw-demo"
 
   # Generate counter for model calls (increment by 1 per event)
   metric_calls:
     type: log_to_metric
     inputs:
-      - extract_token_metrics
+      - dedup_model_completed
     metrics:
       - type: counter
         field: input_tokens
@@ -184,18 +183,17 @@ transforms:
         tags:
           model: "{{model}}"
           provider: "{{provider}}"
-          agent: "{{agent}}"
           instance: "netclaw-demo"
 
-  # Generate gauge for request duration
-  metric_duration:
+  # Generate counter for total tokens (input + output + cache)
+  metric_total_tokens:
     type: log_to_metric
     inputs:
-      - extract_token_metrics
+      - dedup_model_completed
     metrics:
-      - type: gauge
-        field: duration_ms
-        name: netclaw_model_call_duration_ms
+      - type: counter
+        field: total_tokens
+        name: netclaw_model_total_tokens
         namespace: ""
         tags:
           model: "{{model}}"
@@ -213,7 +211,7 @@ sinks:
       - metric_cache_write
       - metric_cost
       - metric_calls
-      - metric_duration
+      - metric_total_tokens
     endpoint: "http://your-obs-host:9090/api/v1/write"
     healthcheck:
       enabled: false
