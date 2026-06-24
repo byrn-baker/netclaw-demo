@@ -1,12 +1,12 @@
 # NetClaw Demo VM — Token Metrics Observability
 
 Pushes LLM token usage and cost metrics from ephemeral demo VMs to the
-centralized Prometheus instance on the OBS VM (your-obs-host).
+centralized Prometheus instance on the OBS VM.
 
 ## Architecture
 
 ```
-Demo VM (ephemeral, 4hr TTL)              OBS VM (your-obs-host)
+Demo VM (ephemeral, 4hr TTL)              OBS VM
 ┌────────────────────────────┐           ┌──────────────────────┐
 │ OpenClaw gateway           │           │                      │
 │  └─→ /tmp/openclaw/       │           │  Prometheus          │
@@ -86,20 +86,20 @@ No manual steps needed — Vector is installed and started automatically.
 
 2. **Import the Grafana dashboard:**
    ```bash
-   curl -X POST http://admin:admin@your-obs-host:3000/api/dashboards/db \
+   curl -X POST http://<GRAFANA_USER>:<GRAFANA_PASS>@<OBS_HOST>:3000/api/dashboards/db \
      -H "Content-Type: application/json" \
      -d "{\"dashboard\": $(cat grafana-dashboard-netclaw-tokens.json), \"overwrite\": true}"
    ```
 
 3. **Restart Prometheus** if you added the remote-write flag:
    ```bash
-   ssh ubuntu@your-obs-host "cd ~/observability-stack && docker compose restart prometheus"
+   ssh ubuntu@<OBS_HOST> "cd ~/observability-stack && docker compose restart prometheus"
    ```
 
 ## Prerequisites
 
-- Prometheus on your-obs-host must accept remote-write (`--web.enable-remote-write-receiver`)
-- Demo VM must have network access to your-obs-host:9090
+- Prometheus on your observability host must accept remote-write (`--web.enable-remote-write-receiver`)
+- Demo VM must have network access to the observability host on port 9090
 - OpenClaw gateway must be logging to `/tmp/openclaw/` (default behavior)
 
 ## Log Format Expected

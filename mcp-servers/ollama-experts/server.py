@@ -10,7 +10,7 @@ BGP extra_attributes placement, FRR config generation from data, and
 Nautobot job execution patterns.
 
 Environment Variables:
-    OLLAMA_BASE_URL         - Ollama instance URL (default: http://your-ollama-host:11434)
+    OLLAMA_BASE_URL         - Ollama instance URL (default: http://localhost:11434)
     OLLAMA_TIMEOUT          - Request timeout in seconds (default: 120)
     OLLAMA_MODEL_OSPF       - Model for OSPF domain (e.g., netclaw-ospf:latest)
     OLLAMA_MODEL_BGP        - Model for BGP domain (e.g., netclaw-bgp:latest)
@@ -52,7 +52,7 @@ from models import (
 logging.basicConfig(level=logging.INFO, stream=sys.stderr)
 logger = logging.getLogger("ollama-experts")
 
-OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://your-ollama-host:11434")
+OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
 OLLAMA_TIMEOUT = float(os.environ.get("OLLAMA_TIMEOUT", "120"))
 
 # Initialize components

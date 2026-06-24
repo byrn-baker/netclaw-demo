@@ -16,7 +16,7 @@ This is a NetClaw Demo VM. The ONLY infrastructure available is listed below.
 
 - **Platform:** Nautobot (NOT NetBox)
 - **URL:** http://localhost:8080
-- **API Token:** `${NAUTOBOT_TOKEN}`
+- **API Token:** Set via `NAUTOBOT_TOKEN` environment variable (see `.env.example`)
 - **Start command:** `cd /home/ubuntu/nautobot-docker-compose && poetry run invoke start`
 - **MCP servers:** nautobot-mcp-v2, nautobot-routing-mcp, nautobot-golden-config-mcp
 

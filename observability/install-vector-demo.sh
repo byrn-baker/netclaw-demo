@@ -9,7 +9,7 @@
 #   2. Ensures the OpenClaw log directory exists
 #   3. Restarts the Vector service
 #
-# Metrics are pushed via remote-write to Prometheus at your-obs-host:9090
+# Metrics are pushed via remote-write to Prometheus (set PROMETHEUS_REMOTE_WRITE_URL in .env)
 
 set -euo pipefail
 

@@ -39,7 +39,7 @@
           "/home/ubuntu/netclaw/mcp-servers/nautobot-mcp-v2/server.py"
         ],
         "env": {
-          "NAUTOBOT_URL": "http://localhost:8080",
+          "NAUTOBOT_URL": "${NAUTOBOT_URL:-http://localhost:8080}",
           "NAUTOBOT_TOKEN": "${NAUTOBOT_TOKEN}",
           "NAUTOBOT_VERIFY_SSL": "false",
           "NAUTOBOT_TIMEOUT": "60",
@@ -54,7 +54,7 @@
           "/home/ubuntu/netclaw/mcp-servers/nautobot-routing-mcp/server.py"
         ],
         "env": {
-          "NAUTOBOT_URL": "http://localhost:8080",
+          "NAUTOBOT_URL": "${NAUTOBOT_URL:-http://localhost:8080}",
           "NAUTOBOT_TOKEN": "${NAUTOBOT_TOKEN}",
           "NAUTOBOT_VERIFY_SSL": "false",
           "NAUTOBOT_TIMEOUT": "60",
@@ -97,7 +97,7 @@
           "/home/ubuntu/netclaw/mcp-servers/ollama-experts/server.py"
         ],
         "env": {
-          "OLLAMA_BASE_URL": "http://your-ollama-host:11434",
+          "OLLAMA_BASE_URL": "${OLLAMA_BASE_URL:-http://localhost:11434}",
           "OLLAMA_TIMEOUT": "60",
           "OLLAMA_MODEL_FRR": "netclaw-frr-codegen:7b",
           "OLLAMA_MODEL_NAUTOBOT": "netclaw-nautobot:7b",

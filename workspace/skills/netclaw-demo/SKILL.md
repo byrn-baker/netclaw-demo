@@ -56,7 +56,7 @@ cd /home/ubuntu/nautobot-docker-compose && docker compose logs --tail=20 nautobo
 
 **Never use `docker compose logs -f` or stream full logs into context. Only check the last 20 lines if the health check fails.**
 
-Nautobot runs at **http://localhost:8080** with API token `${NAUTOBOT_TOKEN}`. Do not search for or discover these values — they are fixed.
+Nautobot runs at **http://localhost:8080** with the API token configured in the `.env` file (variable `NAUTOBOT_TOKEN`). Do not search for or discover these values — they are set at deploy time.
 
 If Nautobot needs a full rebuild (first time or after destroy):
 ```bash

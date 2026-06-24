@@ -186,7 +186,7 @@ sinks:
       - metric_cost
       - metric_calls
       - metric_total
-    endpoint: "http://your-obs-host:9090/api/v1/write"
+    endpoint: "${PROMETHEUS_REMOTE_WRITE_URL:-http://localhost:9090/api/v1/write}"
     batch:
       timeout_secs: 5
     healthcheck:
