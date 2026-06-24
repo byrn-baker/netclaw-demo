@@ -1,112 +1,79 @@
 # Vector config for NetClaw Demo VMs
-# Tails OpenClaw trajectory JSONL files for token/cost metrics,
-# and pushes them to Prometheus via remote-write on the OBS VM.
-#
-# Trajectory files: ~/.openclaw/agents/main/sessions/*.trajectory.jsonl
-# Each line is a JSON object. We filter for type="model.completed" entries
-# which contain: provider, modelId, data.usage.{input, output, cacheRead, cacheWrite, total}
+# Tails OpenClaw trajectory JSONL files, extracts token usage from model.completed entries,
+# and pushes metrics to Prometheus via remote-write.
 
 data_dir: /var/lib/vector
 
 sources:
-  # Tail all OpenClaw trajectory session files
   openclaw_trajectory:
     type: file
     include:
       - /home/ubuntu/.openclaw/agents/*/sessions/*.trajectory.jsonl
     read_from: beginning
+    max_line_bytes: 1048576
     fingerprint:
       strategy: device_and_inode
+    glob_minimum_cooldown_ms: 5000
 
 transforms:
-  # Parse each line as JSON
-  parse_json:
+  parse_and_extract:
     type: remap
     inputs:
       - openclaw_trajectory
     source: |
-      . = parse_json!(.message)
+      parsed = parse_json!(.message)
 
-  # Filter to only model.completed entries (these have usage data)
-  filter_model_completed:
-    type: filter
-    inputs:
-      - parse_json
-    condition: |
-      .type == "model.completed" || .type == "trace.artifacts"
-
-  # Extract and normalize token metrics
-  extract_token_metrics:
-    type: remap
-    inputs:
-      - filter_model_completed
-    source: |
-      # Usage fields from data.usage — use get() pattern to avoid infallibility issues
-      input_tokens = int(.data.usage.input) ?? 0
-      output_tokens = int(.data.usage.output) ?? 0
-      cache_read = int(.data.usage.cacheRead) ?? int(.data.promptCache.lastCallUsage.cacheRead) ?? 0
-      cache_write = int(.data.usage.cacheWrite) ?? int(.data.promptCache.lastCallUsage.cacheWrite) ?? 0
-      total_tokens = int(.data.usage.total) ?? 0
-
-      # Model and provider info (top-level fields in trajectory entries)
-      model = string(.modelId) ?? "unknown"
-      provider = string(.provider) ?? "unknown"
-
-      # Session/run context
-      agent = "main"
-      session = string(.sessionId) ?? "unknown"
-      run_id = string(.runId) ?? "unknown"
-
-      # Cost estimation (Anthropic pricing per 1M tokens)
-      # Opus: input=15, output=75, cache_read=1.50, cache_write=18.75
-      # Sonnet: input=3, output=15, cache_read=0.30, cache_write=3.75
-      # Haiku: input=1, output=5, cache_read=0.10, cache_write=1.25
-      cost = 0.0
-      input_f = to_float(input_tokens)
-      output_f = to_float(output_tokens)
-      cache_read_f = to_float(cache_read)
-      cache_write_f = to_float(cache_write)
-      million = 1000000.0
-
-      if contains(model, "opus") {
-        cost = (input_f * 15.0 + output_f * 75.0 + cache_read_f * 1.5 + cache_write_f * 18.75) / million
-      } else if contains(model, "sonnet") {
-        cost = (input_f * 3.0 + output_f * 15.0 + cache_read_f * 0.3 + cache_write_f * 3.75) / million
-      } else if contains(model, "haiku") {
-        cost = (input_f * 1.0 + output_f * 5.0 + cache_read_f * 0.1 + cache_write_f * 1.25) / million
+      # Only process model.completed events
+      if string!(parsed.type) != "model.completed" {
+        abort
       }
 
-      # Write normalized fields
+      # Extract usage data — use fallible access with defaults
+      usage = parsed.data.usage
+
+      input_tokens = int(usage.input) ?? 0
+      output_tokens = int(usage.output) ?? 0
+
+      # Skip events with zero usage (empty heartbeat completions have usage:{})
+      if input_tokens == 0 && output_tokens == 0 {
+        abort
+      }
+
+      cache_read = int(usage.cacheRead) ?? 0
+      cache_write = int(usage.cacheWrite) ?? 0
+      total = int(usage.total) ?? 0
+
+      # Model and provider
+      .model = string!(parsed.modelId)
+      .provider = string!(parsed.provider)
       .input_tokens = input_tokens
       .output_tokens = output_tokens
       .cache_read_tokens = cache_read
       .cache_write_tokens = cache_write
-      .total_tokens = total_tokens
-      .model = model
-      .provider = provider
-      .cost_usd = cost
-      .agent = agent
-      .session = session
+      .total_tokens = total
 
-      # Drop if no meaningful data (e.g., duplicate trace.artifacts with same data)
-      if input_tokens == 0 && output_tokens == 0 && cache_write == 0 {
-        abort
+      # Cost estimation (per 1M tokens, USD)
+      # Sonnet: input=3, output=15, cache_read=0.30, cache_write=3.75
+      # Opus: input=15, output=75, cache_read=1.50, cache_write=18.75
+      # Haiku: input=1, output=5, cache_read=0.10, cache_write=1.25
+      input_f = to_float(input_tokens)
+      output_f = to_float(output_tokens)
+      cr_f = to_float(cache_read)
+      cw_f = to_float(cache_write)
+      m = 1000000.0
+
+      if contains(string!(parsed.modelId), "opus") {
+        .cost_usd = (input_f * 15.0 + output_f * 75.0 + cr_f * 1.5 + cw_f * 18.75) / m
+      } else if contains(string!(parsed.modelId), "haiku") {
+        .cost_usd = (input_f * 1.0 + output_f * 5.0 + cr_f * 0.1 + cw_f * 1.25) / m
+      } else {
+        .cost_usd = (input_f * 3.0 + output_f * 15.0 + cr_f * 0.3 + cw_f * 3.75) / m
       }
 
-  # Deduplicate: model.completed and trace.artifacts carry the same usage data.
-  # Keep only model.completed to avoid double-counting.
-  dedup_model_completed:
-    type: filter
-    inputs:
-      - extract_token_metrics
-    condition: |
-      !exists(.type) || .type != "trace.artifacts"
-
-  # Generate counter metrics for input tokens
   metric_input_tokens:
     type: log_to_metric
     inputs:
-      - dedup_model_completed
+      - parse_and_extract
     metrics:
       - type: counter
         field: input_tokens
@@ -117,11 +84,10 @@ transforms:
           provider: "{{provider}}"
           instance: "netclaw-demo"
 
-  # Generate counter metrics for output tokens
   metric_output_tokens:
     type: log_to_metric
     inputs:
-      - dedup_model_completed
+      - parse_and_extract
     metrics:
       - type: counter
         field: output_tokens
@@ -132,11 +98,10 @@ transforms:
           provider: "{{provider}}"
           instance: "netclaw-demo"
 
-  # Generate counter metrics for cache read tokens
   metric_cache_read:
     type: log_to_metric
     inputs:
-      - dedup_model_completed
+      - parse_and_extract
     metrics:
       - type: counter
         field: cache_read_tokens
@@ -147,11 +112,10 @@ transforms:
           provider: "{{provider}}"
           instance: "netclaw-demo"
 
-  # Generate counter metrics for cache write tokens
   metric_cache_write:
     type: log_to_metric
     inputs:
-      - dedup_model_completed
+      - parse_and_extract
     metrics:
       - type: counter
         field: cache_write_tokens
@@ -162,11 +126,10 @@ transforms:
           provider: "{{provider}}"
           instance: "netclaw-demo"
 
-  # Generate counter for estimated cost
   metric_cost:
     type: log_to_metric
     inputs:
-      - dedup_model_completed
+      - parse_and_extract
     metrics:
       - type: counter
         field: cost_usd
@@ -177,11 +140,10 @@ transforms:
           provider: "{{provider}}"
           instance: "netclaw-demo"
 
-  # Generate counter for model calls (increment by 1 per event)
   metric_calls:
     type: log_to_metric
     inputs:
-      - dedup_model_completed
+      - parse_and_extract
     metrics:
       - type: counter
         field: input_tokens
@@ -193,11 +155,10 @@ transforms:
           provider: "{{provider}}"
           instance: "netclaw-demo"
 
-  # Generate counter for total tokens (input + output + cache)
-  metric_total_tokens:
+  metric_total:
     type: log_to_metric
     inputs:
-      - dedup_model_completed
+      - parse_and_extract
     metrics:
       - type: counter
         field: total_tokens
@@ -209,7 +170,6 @@ transforms:
           instance: "netclaw-demo"
 
 sinks:
-  # Push metrics to Prometheus on OBS VM via remote-write
   prometheus_remote_write:
     type: prometheus_remote_write
     inputs:
@@ -219,7 +179,7 @@ sinks:
       - metric_cache_write
       - metric_cost
       - metric_calls
-      - metric_total_tokens
+      - metric_total
     endpoint: "http://your-obs-host:9090/api/v1/write"
     healthcheck:
       enabled: false
