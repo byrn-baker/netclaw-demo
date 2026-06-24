@@ -41,21 +41,21 @@ transforms:
     inputs:
       - filter_model_completed
     source: |
-      # Usage fields from data.usage
-      input_tokens = to_int(.data.usage.input ?? 0) ?? 0
-      output_tokens = to_int(.data.usage.output ?? 0) ?? 0
-      cache_read = to_int(.data.usage.cacheRead ?? .data.promptCache.lastCallUsage.cacheRead ?? 0) ?? 0
-      cache_write = to_int(.data.usage.cacheWrite ?? .data.promptCache.lastCallUsage.cacheWrite ?? 0) ?? 0
-      total_tokens = to_int(.data.usage.total ?? 0) ?? 0
+      # Usage fields from data.usage — use get() pattern to avoid infallibility issues
+      input_tokens = int(.data.usage.input) ?? 0
+      output_tokens = int(.data.usage.output) ?? 0
+      cache_read = int(.data.usage.cacheRead) ?? int(.data.promptCache.lastCallUsage.cacheRead) ?? 0
+      cache_write = int(.data.usage.cacheWrite) ?? int(.data.promptCache.lastCallUsage.cacheWrite) ?? 0
+      total_tokens = int(.data.usage.total) ?? 0
 
       # Model and provider info (top-level fields in trajectory entries)
-      model = to_string(.modelId ?? "unknown")
-      provider = to_string(.provider ?? "unknown")
+      model = string(.modelId) ?? "unknown"
+      provider = string(.provider) ?? "unknown"
 
       # Session/run context
       agent = "main"
-      session = to_string(.sessionId ?? "unknown")
-      run_id = to_string(.runId ?? "unknown")
+      session = string(.sessionId) ?? "unknown"
+      run_id = string(.runId) ?? "unknown"
 
       # Cost estimation (Anthropic pricing per 1M tokens)
       # Opus: input=15, output=75, cache_read=1.50, cache_write=18.75
