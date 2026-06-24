@@ -16,15 +16,48 @@ The upstream repo has the latest features, full documentation, installation wiza
 
 ## What's different in this fork?
 
-This repo contains the exact configuration used for the LocalEdge Datacenter demo environment shown in the NetGru podcast:
+This repo contains the exact configuration used for the LocalEdge Datacenter demo environment shown in the NetGru podcast, plus several custom MCP servers and integrations I've been experimenting with.
 
-- **`config/openclaw-demo.json`** — MCP server config for the ephemeral demo VMs (Nautobot, protocol-mcp, ollama-experts, rfc-lookup)
+### Demo infrastructure
+
+- **`config/openclaw-demo.json`** — MCP server config for the ephemeral demo VMs
 - **`workspace/skills/netclaw-demo/`** — Locked-down skill set for the 4-hour demo sessions
 - **`observability/`** — Vector + Prometheus remote-write pipeline for token usage metrics
-- **`mcp-servers/ollama-experts/`** — Local Ollama domain expert delegation (FRR, BGP, OSPF, Nautobot, RFC validation)
 - **`testbed/`** — ContainerLab FRR testbed topology (6 routers: PE1, P1–P4, RR1)
 
 The demo runs on [LocalEdge Datacenter](https://localedgedatacenter.com) infrastructure — ephemeral VMs with a 4-hour TTL, automated provisioning via Proxmox + Cloudflare Tunnels, and self-destructing environments.
+
+### Custom MCP servers (built in this fork)
+
+| Server | What it does |
+|--------|--------------|
+| **`ollama-experts`** | Delegates config generation to local Ollama domain models (FRR, BGP, OSPF, Nautobot, RFC) — saves cloud tokens |
+| **`protocol-mcp`** | Live BGP/OSPF/GRE control-plane participation via scapy — the agent peers with real routers |
+| **`nautobot-mcp-v2`** | Full Nautobot SOT integration (GraphQL reads + REST writes, ITSM gating) |
+| **`nautobot-routing-mcp`** | BGP/OSPF routing model CRUD against Nautobot's routing plugin |
+| **`nautobot-golden-config-mcp`** | Golden config compliance and intended/actual/backup comparisons |
+| **`gnmi-mcp`** | gNMI streaming telemetry (Get/Set/Subscribe/Capabilities) for IOS-XR, Juniper, Arista, Nokia |
+| **`containerlab-mcp`** | Deploy/destroy/inspect ContainerLab topologies via the clab API |
+| **`eve-ng-mcp-server`** | EVE-NG lab automation (topology build, node ops, console, config push) |
+| **`gns3-mcp-server`** | GNS3 project lifecycle, node operations, packet captures, snapshots |
+| **`syslog-mcp`** | Real-time syslog receiver — the agent sees device logs as they arrive |
+| **`snmptrap-mcp`** | SNMP trap receiver — events flow directly to the agent |
+| **`ipfix-mcp`** | NetFlow/IPFIX collector for flow-based traffic visibility |
+| **`memory-mcp`** | Hybrid persistent memory (SQLite + ChromaDB embeddings) across sessions |
+| **`suzieq-mcp`** | SuzieQ network observability (state queries, assertions, path tracing) |
+| **`batfish-mcp`** | Offline config analysis via Batfish (reachability, routing, ACLs) |
+| **`claroty-mcp`** | Claroty xDome OT/IoT/IoMT asset visibility and vulnerability triage |
+| **`prisma-sdwan-mcp`** | Palo Alto Prisma SD-WAN read-only monitoring |
+| **`azure-network-mcp`** | Azure networking (VNets, NSGs, ExpressRoute, VPN, Firewall, DNS) |
+| **`gitlab-mcp`** | GitLab DevOps (issues, MRs, pipelines, repos) |
+| **`jenkins-mcp`** | Jenkins CI/CD (jobs, builds, logs, SCM tracking) |
+
+### Other experiments
+
+- **`ui/netclaw-visual/`** — Three.js 3D operations dashboard that visualizes integrations, device fleet, and live BGP topology in the browser
+- **`specs/`** — 37 numbered feature specs documenting the design process for each integration
+- **`workspace/skills/`** — 180+ skill definitions covering everything from EVE-NG lab builds to Claroty OT triage to Zscaler Zero Trust
+- **Token optimization** — TOON serialization for 40-60% token savings on tabular network data, real-time cost tracking per session
 
 ## Demo environment overview
 
